@@ -1,6 +1,7 @@
 package com.boot.ksis.entity.Log;
 
 import com.boot.ksis.constant.Category;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,5 +18,11 @@ public class AccessLog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accessLogId;
 
+    //계정 아이디
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id")
+    private Account account;
+
+    //접근카테고리
     private Category category;
 }

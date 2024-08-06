@@ -16,7 +16,7 @@ public class ThumbNail {
     private Long thumbNailId;
 
     //원본 id
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "original_resource_id")
     private OriginalResource originalResource;
 

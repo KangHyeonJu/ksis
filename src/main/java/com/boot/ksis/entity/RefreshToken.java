@@ -14,7 +14,7 @@ public class RefreshToken {
     private String accountId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
+    @MapsId("accountId")
     @JoinColumn(name = "account_id")
     private Account account;
 

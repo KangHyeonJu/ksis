@@ -1,5 +1,6 @@
 package com.boot.ksis.entity.Log;
 
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -16,5 +17,11 @@ public class ActivityLog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long activityLogId;
 
+    //계정 아이디
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id")
+    private Account account;
+
+    //활동기록
     private String activityDetail;
 }

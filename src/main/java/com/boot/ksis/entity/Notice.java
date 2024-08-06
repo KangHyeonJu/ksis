@@ -18,6 +18,11 @@ public class Notice extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long noticeId;
 
+    //계정 아이디
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id")
+    private Account account;
+
     //제목
     @Column(nullable = false, length = 50)
     private String title;
