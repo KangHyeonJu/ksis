@@ -1,5 +1,7 @@
-package com.boot.ksis.entity;
+package com.boot.ksis.entity.Log;
 
+import com.boot.ksis.entity.Base.BaseEntity;
+import com.boot.ksis.entity.EncodedResource;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +10,7 @@ import lombok.Setter;
 @Table(name = "upload_log")
 @Getter
 @Setter
-public class UploadLog extends BaseEntity{
+public class UploadLog extends BaseEntity {
     //업로드 로그 id
     @Id
     @Column(name = "upload_log_id")

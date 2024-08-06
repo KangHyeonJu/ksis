@@ -1,6 +1,7 @@
 package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "notification")
 @Getter
 @Setter
-public class Notification extends BaseEntity{
+public class Notification extends BaseEntity {
     //알림 id
     @Id
     @Column(name = "notification_id")
@@ -23,7 +24,7 @@ public class Notification extends BaseEntity{
     //확인 여부
     @Column(nullable = false, columnDefinition = "TINYINT(0)")
     @ColumnDefault("false") //미확인
-    private boolean isRead;
+    private Boolean isRead;
 
     //유형
     @Enumerated(EnumType.STRING)

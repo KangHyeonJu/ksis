@@ -1,4 +1,4 @@
-package com.boot.ksis.entity;
+package com.boot.ksis.entity.Base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

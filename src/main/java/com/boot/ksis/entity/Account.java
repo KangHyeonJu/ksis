@@ -50,7 +50,7 @@ public class Account {
     //활성화
     @Column(nullable = false, columnDefinition = "TINYINT(0)")
     @ColumnDefault("false") //활성화 O
-    private boolean isActive;
+    private Boolean isActive;
 
     //권한
     @Enumerated(EnumType.STRING)

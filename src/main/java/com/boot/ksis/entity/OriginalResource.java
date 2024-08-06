@@ -2,6 +2,7 @@ package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +13,7 @@ import java.time.LocalTime;
 @Table(name = "original_resource")
 @Getter
 @Setter
-public class OriginalResource extends BaseEntity{
+public class OriginalResource extends BaseEntity {
     //원본 id
     @Id
     @Column(name = "original_resource_id")

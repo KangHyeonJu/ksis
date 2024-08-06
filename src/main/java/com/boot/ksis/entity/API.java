@@ -1,5 +1,6 @@
 package com.boot.ksis.entity;
 
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @Table(name = "api")
 @Getter
 @Setter
-public class API extends BaseEntity{
+public class API extends BaseEntity {
     //api id
     @Id
     @Column(name = "api_id")

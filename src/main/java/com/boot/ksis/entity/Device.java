@@ -1,6 +1,7 @@
 package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.DeviceType;
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "device")
 @Getter
 @Setter
-public class Device extends BaseEntity{
+public class Device extends BaseEntity {
 
     //디바이스 id
     @Id
@@ -45,7 +46,7 @@ public class Device extends BaseEntity{
     //공지표시여부
     @Column(nullable = false, columnDefinition = "TINYINT(0)")
     @ColumnDefault("false") //공지표시 O
-    private boolean isShow;
+    private Boolean isShow;
 
     //디바이스 유형
     @Enumerated(EnumType.STRING)

@@ -1,5 +1,6 @@
-package com.boot.ksis.entity;
+package com.boot.ksis.entity.Log;
 
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import lombok.Setter;
 @Table(name = "activity_log")
 @Getter
 @Setter
-public class ActivityLog extends BaseEntity{
+public class ActivityLog extends BaseEntity {
     //액티비티
     @Id
     @Column(name = "activity_log_id")

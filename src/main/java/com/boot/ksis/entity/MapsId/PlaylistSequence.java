@@ -1,5 +1,8 @@
-package com.boot.ksis.entity;
+package com.boot.ksis.entity.MapsId;
 
+import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.IdClass.PlaylistSequenceId;
+import com.boot.ksis.entity.PlayList;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

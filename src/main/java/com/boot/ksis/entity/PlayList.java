@@ -1,5 +1,6 @@
 package com.boot.ksis.entity;
 
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "playlist")
 @Getter
 @Setter
-public class PlayList extends BaseEntity{
+public class PlayList extends BaseEntity {
     //재생목록 id
     @Id
     @Column(name = "playlist_id")
@@ -32,5 +33,5 @@ public class PlayList extends BaseEntity{
     //재생여부
     @Column(nullable = false, columnDefinition = "TINYINT(0)")
     @ColumnDefault("false")
-    private boolean isDefault;
+    private Boolean isDefault;
 }

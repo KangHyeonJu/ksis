@@ -1,4 +1,4 @@
-package com.boot.ksis.entity;
+package com.boot.ksis.entity.IdClass;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

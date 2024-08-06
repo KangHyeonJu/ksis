@@ -1,6 +1,7 @@
-package com.boot.ksis.entity;
+package com.boot.ksis.entity.Log;
 
 import com.boot.ksis.constant.Category;
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,7 @@ import lombok.Setter;
 @Table(name = "access_log")
 @Getter
 @Setter
-public class AccessLog extends BaseEntity{
+public class AccessLog extends BaseEntity {
     //엑세스 로그 id
     @Id
     @Column(name = "access_log_id")

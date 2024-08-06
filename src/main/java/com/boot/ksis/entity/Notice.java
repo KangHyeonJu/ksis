@@ -1,5 +1,6 @@
 package com.boot.ksis.entity;
 
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @Table(name = "notice")
 @Getter
 @Setter
-public class Notice extends BaseEntity{
+public class Notice extends BaseEntity {
     //공지 아이디
     @Id
     @Column(name = "notice_id")

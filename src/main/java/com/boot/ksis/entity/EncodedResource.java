@@ -2,6 +2,7 @@ package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +13,7 @@ import java.time.LocalTime;
 @Table(name = "encoded_resource")
 @Getter
 @Setter
-public class EncodedResource extends BaseEntity{
+public class EncodedResource extends BaseEntity {
     //인코딩 id
     @Id
     @Column(name = "encoded_resource_id")
