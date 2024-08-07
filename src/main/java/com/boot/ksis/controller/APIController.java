@@ -23,10 +23,18 @@ public class APIController {
         return ResponseEntity.ok(savedAPI);
     }
 
+    //API 삭제
+    @DeleteMapping("/posts/{id}")
+    public ResponseEntity<Void> deleteAPI(@PathVariable Long id) {
+        apiService.deleteAPI(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // 모든 API 조회
     @GetMapping("/all")
     public ResponseEntity<List<API>> getAllAPIs() {
         List<API> apis = apiService.getAllAPIs();
         return ResponseEntity.ok(apis);
     }
+
 }
