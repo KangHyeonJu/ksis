@@ -1,8 +1,7 @@
 package com.boot.ksis.controller.api;
 
 import com.boot.ksis.entity.API;
-import com.boot.ksis.service.api.ApiService; // 적절한 패키지로 임포트
-
+import com.boot.ksis.service.api.ApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +19,19 @@ public class ApiController {
     // API 등록
     @PostMapping("/register")
     public ResponseEntity<API> registerAPI(@RequestBody API api) {
-        API savedAPI = apiService.saveApi(api); // 메소드 이름 변경
+        API savedAPI = apiService.saveApi(api);
         return ResponseEntity.ok(savedAPI);
+    }
+
+    // API 수정
+    @PutMapping("/update/{id}")
+    public ResponseEntity<API> updateAPI(@PathVariable Long id, @RequestBody API api) {
+        API updatedAPI = apiService.updateApi(id, api);
+        if (updatedAPI != null) {
+            return ResponseEntity.ok(updatedAPI);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // API 삭제
