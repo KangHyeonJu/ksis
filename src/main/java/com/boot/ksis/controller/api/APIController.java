@@ -1,4 +1,4 @@
-package com.boot.ksis.controller;
+package com.boot.ksis.controller.api;
 
 import com.boot.ksis.entity.API;
 import com.boot.ksis.service.api.APIService;

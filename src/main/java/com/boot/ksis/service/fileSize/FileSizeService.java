@@ -1,15 +1,15 @@
-package com.boot.ksis.service.capa;
+package com.boot.ksis.service.fileSize;
 
 import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.repository.capa.CapaRepository;
+import com.boot.ksis.repository.FileSize.FileSizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CapaService {
+public class FileSizeService {
 
     @Autowired
-    private CapaRepository fileSizeRepository;
+    private FileSizeRepository fileSizeRepository;
 
     // Get the current file size settings
     public FileSize getFileSize() {
