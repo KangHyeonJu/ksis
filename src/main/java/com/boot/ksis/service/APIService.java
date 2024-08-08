@@ -18,14 +18,8 @@ public class APIService {
         return apiRepository.save(api);
     }
 
-    //API 삭제
-    public void deleteAPI(Long id) {
-        apiRepository.deleteById(id);
-    }
-
     // 모든 API 조회
     public List<API> getAllAPIs() {
         return apiRepository.findAll();
     }
-
 }
