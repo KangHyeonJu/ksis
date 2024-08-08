@@ -1,7 +1,7 @@
 package com.boot.ksis.controller;
 
 import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.service.FileSizeService;
+import com.boot.ksis.service.capa.CapaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 public class FileSizeController {
 
     @Autowired
-    private FileSizeService fileSizeService;
+    private CapaService fileSizeService;
 
     @GetMapping
     public ResponseEntity<FileSize> getFileSize() {

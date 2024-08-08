@@ -1,7 +1,7 @@
 package com.boot.ksis.controller;
 
 import com.boot.ksis.entity.API;
-import com.boot.ksis.service.APIService;
+import com.boot.ksis.service.api.APIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

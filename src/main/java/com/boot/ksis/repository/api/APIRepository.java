@@ -1,4 +1,4 @@
-package com.boot.ksis.repository;
+package com.boot.ksis.repository.api;
 
 import com.boot.ksis.entity.API;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,7 @@
-package com.boot.ksis.service;
+package com.boot.ksis.service.api;
 
 import com.boot.ksis.entity.API;
-import com.boot.ksis.repository.APIRepository;
+import com.boot.ksis.repository.api.APIRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
