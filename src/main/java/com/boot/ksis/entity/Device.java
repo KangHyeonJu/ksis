@@ -32,11 +32,11 @@ public class Device extends BaseEntity {
     private String location;
 
     //크기
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String screenSize;
 
     //해상도
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String resolution;
 
     //상세주소
@@ -44,7 +44,7 @@ public class Device extends BaseEntity {
     private String detailAddress;
 
     //공지표시여부
-    @Column(nullable = false, columnDefinition = "TINYINT(0)")
+    @Column(columnDefinition = "TINYINT(0)")
     @ColumnDefault("false") //공지표시 O
     private Boolean isShow;
 
