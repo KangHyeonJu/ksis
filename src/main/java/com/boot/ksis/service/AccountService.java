@@ -1,15 +1,21 @@
 package com.boot.ksis.service;
 
+import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.AccountDTO;
+import com.boot.ksis.dto.AccountListDTO;
 import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.Device;
 import com.boot.ksis.repository.AccountRepository;
 import com.boot.ksis.util.AESUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -18,6 +24,7 @@ public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
     private final SecretKeySpec keySpec;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     public AccountService(AccountRepository accountRepository, SecretKeySpec keySpec) {
@@ -25,21 +32,17 @@ public class AccountService {
         this.keySpec = keySpec;
     }
 
-//    public Account createAccount(AccountDTO dto) throws Exception {
-//        Account account = new Account();
-//        account.setAccountId(dto.getAccountId());
-//        account.setPassword(hashPassword(dto.getPassword()));
-//        account.setName(dto.getName());
-//        account.setBirthDate(dto.getBirthDate());
-//        account.setBusinessTel(dto.getBusinessTel());
-//        account.setEmergencyTel(dto.getEmergencyTel());
-//        account.setEmail(dto.getEmail());
-//        account.setPosition(dto.getPosition());
-//        account.setGender(dto.getGender());
-//        account.setIsActive(false);
-//        account.setRole(Role.ADMIN);
-//        return accountRepository.save(account);
-//    }
+    public boolean validateCredentials(String accountId, String password) {
+        if (accountId == null || accountId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Account ID must not be null or empty");
+        }
+
+        Account account = accountRepository.findById(accountId).orElse(null);
+        if (account == null) {
+            return false;
+        }
+        return passwordEncoder.matches(password, account.getPassword());
+    }
 
     public Account createAccount(AccountDTO dto) throws Exception {
         Account account = new Account();
@@ -92,4 +95,25 @@ public class AccountService {
     public static String hashPassword(String password) {return BCrypt.hashpw(password, BCrypt.gensalt());}
 
     public static boolean checkPassword(String password, String hashed) {return BCrypt.checkpw(password, hashed);}
+
+    public List<AccountListDTO> getAccountList(){
+        List<Account> accounts = accountRepository.findAll();
+        List<AccountListDTO> accountListDTOs = accounts.stream()
+                .map(account -> {
+                    AccountListDTO dto = new AccountListDTO();
+                    dto.setAccountId(account.getAccountId());
+                    dto.setName(account.getName());
+                    dto.setBusinessTel(account.getBusinessTel());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return accountListDTOs;
+    }
+
+    public void deleteAccountById(String accountId) throws Exception {
+        if (!accountRepository.existsById(accountId)) {
+            throw new Exception("Account not found.");
+        }
+        accountRepository.deleteById(accountId); // 계정 삭제
+    }
 }
