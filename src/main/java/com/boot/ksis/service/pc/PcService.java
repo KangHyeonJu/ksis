@@ -1,7 +1,7 @@
 package com.boot.ksis.service.pc;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.AccountDTO;
+import com.boot.ksis.dto.AccountListDTO;
 import com.boot.ksis.dto.PcFormDTO;
 import com.boot.ksis.dto.PcListDTO;
 import com.boot.ksis.entity.Account;
@@ -26,11 +26,11 @@ public class PcService {
         List<Device> devices = pcRepository.findByDeviceType(DeviceType.PC);
 
         return devices.stream().map(device -> {
-            List<AccountDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+            List<AccountListDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
-                        return new AccountDTO(account.getAccountId(), account.getName());
+                        return new AccountListDTO(account.getAccountId(), account.getName());
                     })
                     .collect(Collectors.toList());
 

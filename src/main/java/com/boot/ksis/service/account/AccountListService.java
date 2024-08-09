@@ -9,7 +9,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AccountService {
+public class AccountListService {
     private final AccountRepository accountRepository;
 
     public List<Account> getAccountList(){

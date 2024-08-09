@@ -1,7 +1,7 @@
 package com.boot.ksis.controller.pc;
 
 import com.boot.ksis.dto.PcFormDTO;
-import com.boot.ksis.service.account.AccountService;
+import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.pc.PcService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PcController {
     private final PcService pcService;
-    private final AccountService accountService;
+    private final AccountListService accountService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
