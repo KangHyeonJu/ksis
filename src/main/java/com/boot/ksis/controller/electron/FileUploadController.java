@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 @RequestMapping("/api")
 public class FileUploadController {
 
-    private final String UPLOAD_DIR = "uploads/";
+    private final String UPLOAD_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\uploads\\";
 
     @PostMapping("/upload-chunk")
     public ResponseEntity<String> uploadChunk(@RequestParam("chunk") MultipartFile chunk,

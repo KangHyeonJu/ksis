@@ -15,17 +15,27 @@ import java.nio.file.Paths;
 @RequestMapping("/api")
 public class AppDownloadController {
 
+    private final String APP_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\app\\";
+
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile() {
         try {
-            Path filePath = Paths.get(UPLOAD_DIR + "era-project Setup 0.1.0.exe");
+            Path filePath = Paths.get(APP_DIR + "ElectronReact Setup 4.6.0.exe");
+
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(null);
+            }
+
             byte[] fileData = Files.readAllBytes(filePath);
             return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=\"era-project Setup 0.1.0.exe\"")
+                    .header("Content-Disposition", "attachment; filename=\"ElectronReact Setup 4.6.0.exe\"")
                     .body(fileData);
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
     }
+
 }
