@@ -1,15 +1,36 @@
 package com.boot.ksis.dto;
 
-import lombok.AllArgsConstructor;
+import com.boot.ksis.constant.Gender;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
-@AllArgsConstructor
+@Getter
+@Setter
 public class AccountDTO {
-    //계정 아이디
     private String accountId;
-
-    //이름
+    private String password;
     private String name;
+    private String birthDate;
+    private String businessTel;
+    private String emergencyTel;
+    private String email;
+    private String position;
+    private Gender gender;
+
+
+
+    @Override
+    public String toString() {
+        return "AccountDTO{" +
+                "accountId='" + accountId + '\'' +
+                ", password='" + password + '\'' +
+                ", name='" + name + '\'' +
+                ", birthdate='" + birthDate + '\'' +
+                ", businessTel='" + businessTel + '\'' +
+                ", emergencyTel='" + emergencyTel + '\'' +
+                ", email='" + email + '\'' +
+                ", position='" + position + '\'' +
+                ", gender='" + gender + '\'' +
+                '}';
+    }
 }
