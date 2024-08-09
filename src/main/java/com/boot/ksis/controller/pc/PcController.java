@@ -9,10 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,7 +21,7 @@ public class PcController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @GetMapping("/pcList")
+    @GetMapping("/pc")
     public ResponseEntity<?> pcList(){
         return new ResponseEntity<>(pcService.getPcList(), HttpStatus.OK);
     }
@@ -42,5 +39,10 @@ public class PcController {
 
         System.out.println("account?? : " + accountList);
         return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
+    }
+
+    @GetMapping("/pc/{pcId}")
+    public ResponseEntity<?> pcDtl(@PathVariable("pcId") Long pcId){
+        return new ResponseEntity<>(pcService.getPcList(), HttpStatus.OK);
     }
 }
