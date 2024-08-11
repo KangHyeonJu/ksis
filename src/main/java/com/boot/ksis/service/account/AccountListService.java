@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,5 +15,10 @@ public class AccountListService {
 
     public List<Account> getAccountList(){
         return accountRepository.findAll();
+    }
+
+    // 특정 accountId로 계정 조회
+    public Optional<Account> getAccountById(String accountId) {
+        return accountRepository.findById(accountId);
     }
 }
