@@ -1,21 +1,23 @@
 package com.boot.ksis.dto;
 
-
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class NoticeDTO {
+public class NoticeFormDTO {
     //공지 아이디
     private Long noticeId;
-    //디바이스 이름목록
-    private List<PcListDTO> pcList;
+    // 작성자를 식별하기 위한 필드
+    private Long accountId;
+    //디바이스 아이디
+    private Long deviceId;
+    //디바이스명
+    private String deviceName;
+    //등록일
+    private LocalDateTime createTime;
     //제목
     private String title;
     //내용
