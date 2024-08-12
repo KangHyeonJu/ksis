@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
+import java.util.List;
+
 @Getter @Setter
 public class PcFormDTO {
     private Long deviceId;
@@ -25,9 +27,18 @@ public class PcFormDTO {
     //디바이스 유형
     private DeviceType deviceType;
 
+    //담당자 리스트
+    private List<AccountListDTO> accountList;
+
     private static ModelMapper modelMapper = new ModelMapper();
 
     public Device createNewPc(){
         return modelMapper.map(this, Device.class);
+    }
+
+    public static PcFormDTO of(Device device, List<AccountListDTO> accountDTOList){
+        PcFormDTO pcFormDTO = modelMapper.map(device, PcFormDTO.class);
+        pcFormDTO.setAccountList(accountDTOList);
+        return pcFormDTO;
     }
 }

@@ -1,6 +1,7 @@
 package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.DeviceType;
+import com.boot.ksis.dto.PcFormDTO;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -51,4 +52,11 @@ public class Device extends BaseEntity {
     //디바이스 유형
     @Enumerated(EnumType.STRING)
     private DeviceType deviceType;
+
+    public void updatePc(PcFormDTO pcFormDTO){
+        this.deviceName = pcFormDTO.getDeviceName();;
+        this.location = pcFormDTO.getLocation();
+        this.detailAddress = pcFormDTO.getDetailAddress();
+        this.macAddress = pcFormDTO.getMacAddress();;
+    }
 }
