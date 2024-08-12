@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface AccountDeviceMapRepository extends JpaRepository<AccountDeviceMap, AccountDeviceId> {
     List<AccountDeviceMap> findByDeviceId(Long deviceId);
+
+    void deleteByDeviceId(Long deviceId);
 }

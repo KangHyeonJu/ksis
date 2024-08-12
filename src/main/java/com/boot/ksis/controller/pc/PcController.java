@@ -6,13 +6,11 @@ import com.boot.ksis.service.pc.PcService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,7 +22,7 @@ public class PcController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @GetMapping("/pcList")
+    @GetMapping("/pc")
     public ResponseEntity<?> pcList(){
         return new ResponseEntity<>(pcService.getPcList(), HttpStatus.OK);
     }
@@ -42,5 +40,22 @@ public class PcController {
 
         System.out.println("account?? : " + accountList);
         return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
+    }
+
+    @GetMapping("/pc/{pcId}")
+    public ResponseEntity<?> pcDtl(@PathVariable("pcId") Long pcId){
+        try {
+            return new ResponseEntity<>(pcService.getPcDtl(pcId), HttpStatus.OK);
+        } catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 PC입니다.", HttpStatus.OK);
+        }
+    }
+
+    @PatchMapping("/pc")
+    public ResponseEntity<String> pcUpdate(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException{
+        List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<>() {});
+
+        pcService.updatePc(pcFormDto, accountList);
+        return ResponseEntity.ok("pc가 정상적으로 수정되었습니다.");
     }
 }
