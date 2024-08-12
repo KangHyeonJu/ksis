@@ -16,6 +16,8 @@ public class NoticeFormDTO {
     private Long noticeId;
     // 작성자를 식별하기 위한 필드
     private String accountId;
+    //작성자 이름
+    private String accountName;
     //디바이스 아이디
     private Long deviceId;
     //디바이스명
@@ -37,5 +39,17 @@ public class NoticeFormDTO {
 
     public Notice createNewNotice(){
         return modelMapper.map(this, Notice.class);
+    }
+
+    public NoticeFormDTO(Long noticeId, String accountId, String accountName, Long deviceId, String deviceName, String title, String content, LocalDateTime startDate, LocalDateTime endDate) {
+        this.noticeId = noticeId;
+        this.accountId= accountId;
+        this.accountName = accountName;
+        this.deviceId= deviceId;
+        this.deviceName = deviceName;
+        this.title = title;
+        this.content = content;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,8 +33,8 @@ public class Notice extends BaseEntity {
     private String content;
 
     //노출 시작일
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     //노출 종료일
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 }
