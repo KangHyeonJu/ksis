@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.electron;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class AppDownloadController {
 
