@@ -38,7 +38,6 @@ public class PcController {
 
         pcService.saveNewPc(pcFormDto, accountList);
 
-        System.out.println("account?? : " + accountList);
         return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
     }
 

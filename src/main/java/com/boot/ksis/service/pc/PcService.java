@@ -3,7 +3,7 @@ package com.boot.ksis.service.pc;
 import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.dto.AccountListDTO;
 import com.boot.ksis.dto.PcFormDTO;
-import com.boot.ksis.dto.PcListDTO;
+import com.boot.ksis.dto.DeviceListDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
@@ -31,7 +31,7 @@ public class PcService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<PcListDTO> getPcList(){
+    public List<DeviceListDTO> getPcList(){
         List<Device> devices = pcRepository.findByDeviceType(DeviceType.PC);
 
         return devices.stream().map(device -> {
@@ -43,7 +43,7 @@ public class PcService {
                     })
                     .collect(Collectors.toList());
 
-            return new PcListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
+            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
         }).collect(Collectors.toList());
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PcListDTO {
+public class DeviceListDTO {
     //디바이스 id
     private Long deviceId;
 
