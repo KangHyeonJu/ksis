@@ -10,4 +10,6 @@ public interface AccountDeviceMapRepository extends JpaRepository<AccountDeviceM
     List<AccountDeviceMap> findByDeviceId(Long deviceId);
 
     void deleteByDeviceId(Long deviceId);
+
+    void deleteByDeviceIdIn(List<Long> deviceIds);
 }

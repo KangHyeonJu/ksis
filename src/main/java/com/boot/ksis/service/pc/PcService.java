@@ -3,14 +3,16 @@ package com.boot.ksis.service.pc;
 import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.dto.AccountListDTO;
 import com.boot.ksis.dto.PcFormDTO;
-import com.boot.ksis.dto.PcListDTO;
+import com.boot.ksis.dto.DeviceListDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.pc.PcRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,11 @@ public class PcService {
     private final PcRepository pcRepository;
     private final AccountRepository accountRepository;
     private final AccountDeviceMapRepository accountDeviceMapRepository;
-    public List<PcListDTO> getPcList(){
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public List<DeviceListDTO> getPcList(){
         List<Device> devices = pcRepository.findByDeviceType(DeviceType.PC);
 
         return devices.stream().map(device -> {
@@ -37,7 +43,7 @@ public class PcService {
                     })
                     .collect(Collectors.toList());
 
-            return new PcListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
+            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
         }).collect(Collectors.toList());
     }
 
@@ -94,5 +100,15 @@ public class PcService {
                 .collect(Collectors.toList());
 
         return PcFormDTO.of(device, accountDTOList);
+    }
+
+    //pc 삭제
+    @Transactional
+    public void deletePcs(List<Long> pcIds){
+        accountDeviceMapRepository.deleteByDeviceIdIn(pcIds);
+
+        entityManager.flush();
+
+        pcRepository.deleteAllByIdInBatch(pcIds);
     }
 }

@@ -38,7 +38,6 @@ public class PcController {
 
         pcService.saveNewPc(pcFormDto, accountList);
 
-        System.out.println("account?? : " + accountList);
         return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
     }
 
@@ -57,5 +56,15 @@ public class PcController {
 
         pcService.updatePc(pcFormDto, accountList);
         return ResponseEntity.ok("pc가 정상적으로 수정되었습니다.");
+    }
+    
+    @DeleteMapping("/pc")
+    public ResponseEntity<?> deletePcs(@RequestParam List<Long> pcIds) {
+        try {
+            pcService.deletePcs(pcIds);
+            return ResponseEntity.ok("PCs deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting PCs");
+        }
     }
 }
