@@ -17,7 +17,7 @@ public class NoticeDTO {
     //담당자 리스트
     private List<AccountListDTO> accountList;
     //디바이스 이름목록
-    private List<PcListDTO> pcList;
+  /*  private List<PcListDTO> pcList;*/
     //제목
     private String title;
     //내용
