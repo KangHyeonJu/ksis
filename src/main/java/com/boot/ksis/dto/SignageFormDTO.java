@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -37,9 +38,22 @@ public class SignageFormDTO {
     //담당자 리스트
     private List<AccountListDTO> accountList;
 
+    //등록일
+    private LocalDateTime regTime;
+
+    //공지표시여부
+    private Boolean isShow;
+
     private static ModelMapper modelMapper = new ModelMapper();
 
     public Device createNewSignage(){
         return modelMapper.map(this, Device.class);
+    }
+
+    public static SignageFormDTO of(Device device, List<AccountListDTO> accountListDTOList){
+        SignageFormDTO signageFormDTO = modelMapper.map(device, SignageFormDTO.class);
+        signageFormDTO.setAccountList(accountListDTOList);
+
+        return signageFormDTO;
     }
 }
