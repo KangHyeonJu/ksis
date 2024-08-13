@@ -40,14 +40,24 @@ public class AccountService {
             throw new IllegalArgumentException("Account ID must not be null or empty");
         }
 
-        Account account = accountRepository.findById(accountId).orElse(null);
+        Account account = accountRepository.findByAccountId(accountId).orElse(null);
         if (account == null) {
             return false;
         }
+
+        if (Boolean.TRUE.equals(account.getIsActive())) {
+            return false;
+        }
+
         return passwordEncoder.matches(password, account.getPassword());
     }
 
     public Account createAccount(AccountDTO dto) throws Exception {
+
+        if (accountRepository.existsByAccountId(dto.getAccountId())) {
+            throw new IllegalArgumentException("이미 가입된 아이디입니다.");
+        }
+
         Account account = new Account();
         account.setAccountId(dto.getAccountId());
         account.setPassword(hashPassword(dto.getPassword()));
@@ -120,18 +130,6 @@ public class AccountService {
         return accountListDTOs;
     }
 
-    //    public void toggleActiveStatus(String accountId, boolean isActive) {
-//        logger.info("--------------------");
-//        logger.info("Account ID: {}", accountId);
-//        logger.info("Is Active: {}", isActive);
-//        logger.info(String.valueOf(isActive));
-//
-//        Account account = accountRepository.findById(accountId)
-//                .orElseThrow(() -> new IllegalArgumentException("Invalid account ID: " + accountId));
-//
-//        account.setActive(!isActive);
-//        accountRepository.save(account);
-//    }
     public boolean toggleActiveStatus(String accountId, boolean isActive) {
         try {
             Account account = accountRepository.findById(accountId)

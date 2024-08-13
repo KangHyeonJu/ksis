@@ -26,6 +26,9 @@ public class AccountController {
             System.out.println("Received AccountDTO: " + accountDTO);
             Account account = accountService.createAccount(accountDTO);
             return ResponseEntity.ok("Account created successfully!");
+        } catch (IllegalArgumentException e) {
+            // 아이디 중복 예외 처리
+            return ResponseEntity.status(400).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error creating account");
@@ -82,44 +85,24 @@ public class AccountController {
         }
     }
 
-//    @PutMapping("/account/{accountId}/active")
-//    public ResponseEntity<?> toggleAccountActiveStatus(
-//            @PathVariable String accountId,
-//            @RequestBody Map<String, Object> requestBody) {
-//
-//        // JSON에서 isActive 값 추출
-//        Boolean isActive = (Boolean) requestBody.get("isActive");
-//        boolean newIsActive = isActive != null ? isActive : false;
-//
-//        // 로그 출력
-//        logger.info("Received accountId: {}", accountId);
-//        logger.info("Received request body: {}", requestBody);
-//        logger.info("Received isActive: {}", isActive);
-//        logger.info("Updated isActive: {}", newIsActive);
-//
-//        // 서비스 메소드 호출
-//        accountService.toggleActiveStatus(accountId, newIsActive);
-//
-//        return ResponseEntity.ok("Account status updated successfully");
-//    }
-
-
     @GetMapping("/accountList")
-    public ResponseEntity<?> accountList(){
+    public ResponseEntity<?> accountList() {
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO){
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         System.out.println("Received login request: " + loginDTO.getAccountId() + ", " + loginDTO.getPassword());
 
-        boolean isValid = accountService.validateCredentials(loginDTO.getAccountId(), loginDTO.getPassword());
-        try{
-            return ResponseEntity.ok("{\"success\":true}");
-        } catch (Exception e){
+        try {
+            boolean isValid = accountService.validateCredentials(loginDTO.getAccountId(), loginDTO.getPassword());
+            if (isValid) {
+                return ResponseEntity.ok("{\"success\":true}");
+            }else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\":false, \"message\":\"아이디 및 비밀번호 확인바람\"}");
+            }
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\":false, \"message\":\"Invalid credentials\"}");
         }
     }
-
-
 }
