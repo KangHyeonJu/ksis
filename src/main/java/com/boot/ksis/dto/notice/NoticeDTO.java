@@ -1,6 +1,7 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.notice;
 
 
+import com.boot.ksis.dto.AccountListDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

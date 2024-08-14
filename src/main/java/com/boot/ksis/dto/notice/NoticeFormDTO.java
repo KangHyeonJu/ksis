@@ -1,4 +1,4 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.notice;
 
 import com.boot.ksis.entity.Notice;
 import com.fasterxml.jackson.annotation.JsonFormat;
