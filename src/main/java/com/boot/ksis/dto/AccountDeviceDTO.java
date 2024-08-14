@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class AccountListDTO {
+public class AccountDeviceDTO {
     //계정 아이디
     private String accountId;
 

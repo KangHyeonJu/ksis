@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter @Setter
 public class SignageNoticeStatusDTO {
 
-    private boolean isShow;
+    private boolean showNotice;
 }

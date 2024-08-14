@@ -1,7 +1,7 @@
 package com.boot.ksis.service.signage;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.AccountListDTO;
+import com.boot.ksis.dto.AccountDeviceDTO;
 import com.boot.ksis.dto.DeviceListDTO;
 import com.boot.ksis.dto.SignageFormDTO;
 import com.boot.ksis.entity.Account;
@@ -30,11 +30,11 @@ public class SignageService {
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
 
         return deviceList.stream().map(device -> {
-            List<AccountListDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
-                        return new AccountListDTO(account.getAccountId(), account.getName());
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
                     .collect(Collectors.toList());
 
@@ -87,11 +87,11 @@ public class SignageService {
     public SignageFormDTO getSignageDtl(Long signageId){
         Device device = signageRepository.findById(signageId).orElseThrow(EntityNotFoundException::new);
 
-        List<AccountListDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+        List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                 .stream()
                 .map(map -> {
                     Account account = map.getAccount();
-                    return new AccountListDTO(account.getAccountId(), account.getName());
+                    return new AccountDeviceDTO(account.getAccountId(), account.getName());
                 })
                 .collect(Collectors.toList());
 
