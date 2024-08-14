@@ -26,7 +26,7 @@ public class EncodedResource extends BaseEntity {
     private OriginalResource originalResource;
 
     //재생 시간
-    private LocalTime playTime;
+    private float playTime;
 
     //해상도
     @Column(nullable = false, length = 50)

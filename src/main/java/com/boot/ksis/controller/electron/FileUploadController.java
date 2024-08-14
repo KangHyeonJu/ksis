@@ -1,7 +1,9 @@
 package com.boot.ksis.controller.electron;
 
 import com.boot.ksis.constant.ResourceStatus;
-import com.boot.ksis.dto.ResourceDTO;
+import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.dto.OriginalResourceDTO;
+import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.service.upload.OriginalResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 @RestController
@@ -20,68 +20,62 @@ public class FileUploadController {
 
     private final OriginalResourceService originalResourceService;
 
+    // 파일이 저장되는 경로
     private final String UPLOAD_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\uploads\\";
 
-    @PostMapping("/upload-chunk")
-    public ResponseEntity<String> uploadChunk(@RequestParam("chunk") MultipartFile chunk,
-                                              @RequestParam("index") int index,
-                                              @RequestParam("totalChunks") int totalChunks,
-                                              @RequestParam("filename") String filename) {
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("title") String title,
+            @RequestParam("format") String format,
+            @RequestParam("resolution") String resolution,
+            @RequestParam("playTime") String playTime,
+            @RequestParam("status") String status,
+            @RequestParam("resourceType") String resourceType
+    ){
+        // 요청 파라미터를 System.out.println으로 출력
+        System.out.println("Received file: " + file.getOriginalFilename());
+        System.out.println("Title: " + title);
+        System.out.println("Format: " + format);
+        System.out.println("Resolution: " + resolution);
+        System.out.println("PlayTime: " + playTime);
+        System.out.println("Status: " + status);
+        System.out.println("ResourceType: " + resourceType);
+
         try{
-            // 메인 파일의 경로 설정
-            File mainFile = new File(UPLOAD_DIR + filename);
+            // 파일 경로 생성
+            String filePath = UPLOAD_DIR + file.getOriginalFilename();
 
-            // 청크를 메인 파일에 추가 (append)
-            try(FileOutputStream fos = new FileOutputStream(mainFile, true)){
-                fos.write(chunk.getBytes());
-            }
+            // 문자열을 Enum으로 변환
+            ResourceStatus resourceStatusEnum = ResourceStatus.valueOf(status.toUpperCase());
+            ResourceType resourceTypeEnum = ResourceType.valueOf(resourceType.toUpperCase());
 
-            // 업로드 상태를 UPLOADING으로 업데이트
-            originalResourceService.updateFileStatus(filename, ResourceStatus.UPLOADING);
+            // 파일 정보를 DTO로 변환
+            OriginalResourceDTO originalResourceDTO = new OriginalResourceDTO(
+                    file.getOriginalFilename(),
+                    title,
+                    filePath,
+                    Float.parseFloat(playTime),
+                    format,
+                    resolution,
+                    file.getSize(),
+                    resourceStatusEnum,
+                    resourceTypeEnum
+            );
 
-            // 모든 청크가 업로드되었는지 확인
-            boolean allChunksUploaded = (index + 1) == totalChunks;
-            if (allChunksUploaded) {
-                // 모든 청크가 업로드되면 상태를 COMPLETED로 설정
-                originalResourceService.updateFileStatus(filename, ResourceStatus.COMPLETED);
-            } else {
-                // 청크가 추가로 필요하면 상태를 UPLOADING으로 설정
-                originalResourceService.updateFileStatus(filename, ResourceStatus.UPLOADING);
-            }
+            // 서비스에 DTO 전달하여 데이터베이스에 저장
+            originalResourceService.saveToDatabase(originalResourceDTO);
 
-            return ResponseEntity.ok("Chunk " + index + " uploaded and appended successful.");
-        }catch(IOException e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error processing chunk " + index);
-        }
-    }
-
-    @PostMapping("/upload-metadata")
-    public ResponseEntity<String> uploadFileMetadata(@RequestBody ResourceDTO dto) {
-        try {
-            // 파일 메타데이터를 저장하고 상태를 UPLOADING으로 설정
-            originalResourceService.saveFileMetadata(dto);
-            return ResponseEntity.ok("File metadata saved successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error saving file metadata.");
-        }
-    }
-
-    @PostMapping("/update-file")
-    public ResponseEntity<String> updateFileStatus(@RequestParam("title") String title,
-                                                   @RequestParam("status") String status) {
-        try {
-            // 파일 상태를 업데이트
-            ResourceStatus resourceStatus = ResourceStatus.valueOf(status.toUpperCase());
-            originalResourceService.updateFileStatus(title, resourceStatus);
-            return ResponseEntity.ok("File status updated successfully.");
+            return ResponseEntity.ok("File uploaded successfully");
         } catch (IllegalArgumentException e) {
+            // Enum 변환 오류 처리
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid status provided.");
+                    .body("Invalid status or resource type: " + e.getMessage());
         } catch (Exception e) {
+            // 일반적인 예외 처리
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating file status.");
+                    .body("File upload failed: " + e.getMessage());
         }
     }
+
 }
