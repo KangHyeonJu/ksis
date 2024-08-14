@@ -1,17 +1,15 @@
 package com.boot.ksis.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class AccountDeviceDTO {
-    //계정 아이디
+@ToString
+public class AccountListDTO {
     private String accountId;
-
-    //이름
     private String name;
+    private String businessTel;
+    private Boolean isActive;
 }
