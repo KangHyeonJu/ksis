@@ -3,9 +3,11 @@ package com.boot.ksis.dto;
 import com.boot.ksis.constant.Gender;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 public class AccountDTO {
     private String accountId;
     private String password;
@@ -16,21 +18,4 @@ public class AccountDTO {
     private String email;
     private String position;
     private Gender gender;
-
-
-
-    @Override
-    public String toString() {
-        return "AccountDTO{" +
-                "accountId='" + accountId + '\'' +
-                ", password='" + password + '\'' +
-                ", name='" + name + '\'' +
-                ", birthdate='" + birthDate + '\'' +
-                ", businessTel='" + businessTel + '\'' +
-                ", emergencyTel='" + emergencyTel + '\'' +
-                ", email='" + email + '\'' +
-                ", position='" + position + '\'' +
-                ", gender='" + gender + '\'' +
-                '}';
-    }
 }
