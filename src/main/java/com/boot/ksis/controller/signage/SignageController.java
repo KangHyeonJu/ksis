@@ -62,9 +62,9 @@ public class SignageController {
 
     @PutMapping("/signage/update/{signageId}")
     public ResponseEntity<String> signagePut(@PathVariable Long signageId, @RequestBody SignageNoticeStatusDTO signageNoticeStatusDTO) {
-        System.out.println("signageNoticeStatusDTO: " + signageNoticeStatusDTO.isShow());
+        System.out.println("signageNoticeStatusDTO: " + signageNoticeStatusDTO.isShowNotice());
 
-        signageService.updateSignageStatus(signageId, signageNoticeStatusDTO.isShow());
+        signageService.updateSignageStatus(signageId, signageNoticeStatusDTO.isShowNotice());
         return ResponseEntity.ok("재생장치 공지표시 상태가 정상적으로 수정되었습니다.");
     }
 

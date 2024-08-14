@@ -36,7 +36,7 @@ public class SignageFormDTO {
     private DeviceType deviceType;
 
     //담당자 리스트
-    private List<AccountListDTO> accountList;
+    private List<AccountDeviceDTO> accountList;
 
     //등록일
     private LocalDateTime regTime;
@@ -50,7 +50,7 @@ public class SignageFormDTO {
         return modelMapper.map(this, Device.class);
     }
 
-    public static SignageFormDTO of(Device device, List<AccountListDTO> accountListDTOList){
+    public static SignageFormDTO of(Device device, List<AccountDeviceDTO> accountListDTOList){
         SignageFormDTO signageFormDTO = modelMapper.map(device, SignageFormDTO.class);
         signageFormDTO.setAccountList(accountListDTOList);
 

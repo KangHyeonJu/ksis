@@ -47,7 +47,7 @@ public class Device extends BaseEntity {
 
     //공지표시여부
     @Column(columnDefinition = "TINYINT(0)")
-    @ColumnDefault("false") //공지표시 O
+    @ColumnDefault("true") //공지표시 O
     private Boolean isShow;
 
     //디바이스 유형

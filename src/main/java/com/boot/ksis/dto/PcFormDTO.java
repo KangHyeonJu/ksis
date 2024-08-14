@@ -28,7 +28,7 @@ public class PcFormDTO {
     private DeviceType deviceType;
 
     //담당자 리스트
-    private List<AccountListDTO> accountList;
+    private List<AccountDeviceDTO> accountList;
 
     private static ModelMapper modelMapper = new ModelMapper();
 
@@ -36,7 +36,7 @@ public class PcFormDTO {
         return modelMapper.map(this, Device.class);
     }
 
-    public static PcFormDTO of(Device device, List<AccountListDTO> accountDTOList){
+    public static PcFormDTO of(Device device, List<AccountDeviceDTO> accountDTOList){
         PcFormDTO pcFormDTO = modelMapper.map(device, PcFormDTO.class);
         pcFormDTO.setAccountList(accountDTOList);
         return pcFormDTO;

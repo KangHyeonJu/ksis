@@ -18,7 +18,7 @@ public class DeviceListDTO {
     private String deviceName;
 
     //담당자 리스트
-    private List<AccountListDTO> accountList;
+    private List<AccountDeviceDTO> accountList;
 
     //등록일
     private LocalDateTime regDate;
