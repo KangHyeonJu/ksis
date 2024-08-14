@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Setter @Getter
@@ -22,8 +23,8 @@ public class SignageNoticeDTO {
     private LocalDateTime regDate;
 
     //노출 시작일
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     //노출 종료일
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 }
