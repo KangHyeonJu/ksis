@@ -75,4 +75,13 @@ public class SignageController {
         signageService.updateSignage(signageFormDto, accountList);
         return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
     }
+
+    @GetMapping("/signage/notice/{signageId}")
+    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+        try {
+            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+        } catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
 }
