@@ -2,6 +2,7 @@ package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.dto.PcFormDTO;
+import com.boot.ksis.dto.SignageFormDTO;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -54,9 +55,18 @@ public class Device extends BaseEntity {
     private DeviceType deviceType;
 
     public void updatePc(PcFormDTO pcFormDTO){
-        this.deviceName = pcFormDTO.getDeviceName();;
+        this.deviceName = pcFormDTO.getDeviceName();
         this.location = pcFormDTO.getLocation();
         this.detailAddress = pcFormDTO.getDetailAddress();
-        this.macAddress = pcFormDTO.getMacAddress();;
+        this.macAddress = pcFormDTO.getMacAddress();
+    }
+
+    public void updateSignage(SignageFormDTO signageFormDTO) {
+        this.deviceName = signageFormDTO.getDeviceName();
+        this.location = signageFormDTO.getLocation();
+        this.detailAddress = signageFormDTO.getDetailAddress();
+        this.macAddress = signageFormDTO.getMacAddress();
+        this.screenSize = signageFormDTO.getScreenSize();
+        this.resolution = signageFormDTO.getResolution();
     }
 }
