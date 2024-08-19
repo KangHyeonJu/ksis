@@ -32,6 +32,10 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    //thumbnail
+    implementation 'net.coobird:thumbnailator:0.4.14'
+    // JavaCV dependencies
+    implementation 'org.bytedeco:javacv-platform:1.5.7'
 
     //security
     implementation 'org.springframework.security:spring-security-core:6.3.1'
