@@ -1,15 +1,19 @@
 package com.boot.ksis.service;
 
 import com.boot.ksis.constant.Role;
-import com.boot.ksis.controller.AccountController;
 import com.boot.ksis.dto.AccountDTO;
 import com.boot.ksis.dto.AccountListDTO;
+import com.boot.ksis.dto.JwtTokenDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.repository.AccountRepository;
 import com.boot.ksis.util.AESUtil;
+import com.boot.ksis.util.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,22 +22,15 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Service
+@RequiredArgsConstructor
 public class AccountService {
-
-    @Autowired
-    private AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
     private final SecretKeySpec keySpec;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
-
-    @Autowired
-    public AccountService(AccountRepository accountRepository, SecretKeySpec keySpec) {
-        this.accountRepository = accountRepository;
-        this.keySpec = keySpec;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     public boolean validateCredentials(String accountId, String password) {
         if (accountId == null || accountId.trim().isEmpty()) {
@@ -53,14 +50,14 @@ public class AccountService {
     }
 
     public Account createAccount(AccountDTO dto) throws Exception {
-
         if (accountRepository.existsByAccountId(dto.getAccountId())) {
             throw new IllegalArgumentException("이미 가입된 아이디입니다.");
         }
 
         Account account = new Account();
         account.setAccountId(dto.getAccountId());
-        account.setPassword(hashPassword(dto.getPassword()));
+//        account.setPassword(hashPassword(dto.getPassword()));
+        account.setPassword(passwordEncoder.encode(dto.getPassword()));
         account.setName(dto.getName());
 
         // BirthDate 암호화
@@ -72,7 +69,6 @@ public class AccountService {
         account.setEmergencyTel(encryptedEmergencyTel);
 
         account.setBusinessTel(dto.getBusinessTel());
-
         account.setEmail(dto.getEmail());
         account.setPosition(dto.getPosition());
         account.setGender(dto.getGender());
@@ -102,15 +98,6 @@ public class AccountService {
         dto.setGender(account.getGender());
 
         return dto;
-    }
-
-    // 패스워드 해싱 메서드
-    public static String hashPassword(String password) {
-        return BCrypt.hashpw(password, BCrypt.gensalt());
-    }
-
-    public static boolean checkPassword(String password, String hashed) {
-        return BCrypt.checkpw(password, hashed);
     }
 
     public List<AccountListDTO> getAccountList() {
@@ -151,9 +138,9 @@ public class AccountService {
         if (existingAccount != null) {
             // 비밀번호 암호화
             if (updatedDto.getPassword() != null && !updatedDto.getPassword().isEmpty()) {
-                existingAccount.setPassword(hashPassword(updatedDto.getPassword()));
+//                existingAccount.setPassword(hashPassword(updatedDto.getPassword()));
+                existingAccount.setPassword(passwordEncoder.encode(updatedDto.getPassword()));
             }
-
             existingAccount.setName(updatedDto.getName());
 
             // 생년월일 암호화
@@ -179,5 +166,33 @@ public class AccountService {
             return true;
         }
         return false;
+    }
+
+      public JwtTokenDTO signIn(String accountId, String password) {
+        // 1. username + password 를 기반으로 Authentication 객체 생성
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(accountId, password);
+        System.out.println("Created Authentication Credentials: " + authenticationToken.getCredentials());
+        try {
+            // 2. 실제 검증. authenticate() 메서드를 통해 요청된 Member 에 대한 검증 진행
+            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            System.out.println("Authenticated: " + authentication);
+
+            // 3. 인증 정보를 기반으로 JWT 토큰 생성
+            JwtTokenDTO jwtToken = jwtTokenProvider.generateToken(authentication);
+
+            return jwtToken;
+        } catch (Exception e) {
+            System.err.println("Authentication failed: " + e.getMessage());
+            throw e; // 예외를 다시 던져서 상위 레벨에서 처리하게 할 수 있음
+        }
+    }
+
+    // 패스워드 해싱 메서드
+//    public static String hashPassword(String password) {
+//        return BCrypt.hashpw(password, BCrypt.gensalt());
+//    }
+
+    public static boolean checkPassword(String password, String hashed) {
+        return BCrypt.checkpw(password, hashed);
     }
 }

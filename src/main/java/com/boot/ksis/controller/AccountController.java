@@ -2,6 +2,7 @@ package com.boot.ksis.controller;
 
 import com.boot.ksis.dto.AccountActiveDTO;
 import com.boot.ksis.dto.AccountDTO;
+import com.boot.ksis.dto.JwtTokenDTO;
 import com.boot.ksis.dto.LoginDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.service.AccountService;
@@ -96,8 +97,12 @@ public class AccountController {
 
         try {
             boolean isValid = accountService.validateCredentials(loginDTO.getAccountId(), loginDTO.getPassword());
+            String accountId = loginDTO.getAccountId();
+            String password = loginDTO.getPassword();
+            JwtTokenDTO jwtToken = accountService.signIn(accountId, password);
+            System.out.println("Created JwtToken : " + jwtToken);
             if (isValid) {
-                return ResponseEntity.ok("{\"success\":true}");
+                return ResponseEntity.ok(jwtToken);
             }else{
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\":false, \"message\":\"아이디 및 비밀번호 확인바람\"}");
             }
