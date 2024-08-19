@@ -1,19 +1,14 @@
 package com.boot.ksis.service.signage;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.AccountDeviceDTO;
-import com.boot.ksis.dto.DeviceListDTO;
-import com.boot.ksis.dto.SignageFormDTO;
-import com.boot.ksis.dto.SignageNoticeDTO;
-import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.Device;
+import com.boot.ksis.dto.*;
+import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
+import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
-import com.boot.ksis.entity.Notice;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
-import com.boot.ksis.repository.signage.DeviceNoticeRepository;
-import com.boot.ksis.repository.signage.SignageRepository;
+import com.boot.ksis.repository.signage.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +26,9 @@ public class SignageService {
     private final AccountRepository accountRepository;
     private final AccountDeviceMapRepository accountDeviceMapRepository;
     private final DeviceNoticeRepository deviceNoticeRepository;
+    private final DeviceEncodeRepository deviceEncodeRepository;
+    private final ThumbNailRepository thumbNailRepository;
+    private final PlayListRepository playListRepository;
 
     public List<DeviceListDTO> getSignageList(){
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
@@ -126,5 +124,40 @@ public class SignageService {
             signageNoticeDTOList.add(signageNoticeDTO);
         }
         return signageNoticeDTOList;
+    }
+
+    public List<SignageResourceDTO> getResourceList(Long signageId){
+        List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
+
+        List<DeviceEncodeMap> deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId);
+
+        for(DeviceEncodeMap deviceEncodeMap : deviceEncodeMaps){
+            EncodedResource encodedResource = deviceEncodeMap.getEncodedResource();
+
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+            SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+
+            signageResourceDTOList.add(signageResourceDTO);
+        }
+        return signageResourceDTOList;
+    }
+
+    public void deleteEncodedResource(Long signageId, Long encodedResourceId){
+        deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
+    }
+
+    public List<PlayListDTO> getPlaylistList(Long signageId){
+        Device device = signageRepository.findByDeviceId(signageId);
+        List<PlayList> playLists = playListRepository.findByDevice(device);
+
+        List<PlayListDTO> playListDTOList = new ArrayList<>();
+
+        for(PlayList playList : playLists){
+            PlayListDTO playListDTO = new PlayListDTO(playList.getPlaylistId(), playList.getFileTitle(), playList.getRegTime(), playList.getIsDefault());
+
+            playListDTOList.add(playListDTO);
+        }
+
+        return playListDTOList;
     }
 }

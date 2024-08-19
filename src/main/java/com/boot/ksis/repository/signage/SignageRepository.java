@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface SignageRepository extends JpaRepository<Device, Long> {
     List<Device> findByDeviceType(DeviceType deviceType);
+
+    Device findByDeviceId(Long deviceId);
 }
