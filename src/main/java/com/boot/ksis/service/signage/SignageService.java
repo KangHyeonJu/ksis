@@ -1,20 +1,20 @@
 package com.boot.ksis.service.signage;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.AccountDeviceDTO;
-import com.boot.ksis.dto.DeviceListDTO;
-import com.boot.ksis.dto.SignageFormDTO;
-import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.Device;
+import com.boot.ksis.dto.*;
+import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
+import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
+import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
-import com.boot.ksis.repository.signage.SignageRepository;
+import com.boot.ksis.repository.signage.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +25,10 @@ public class SignageService {
     private final SignageRepository signageRepository;
     private final AccountRepository accountRepository;
     private final AccountDeviceMapRepository accountDeviceMapRepository;
+    private final DeviceNoticeRepository deviceNoticeRepository;
+    private final DeviceEncodeRepository deviceEncodeRepository;
+    private final ThumbNailRepository thumbNailRepository;
+    private final PlayListRepository playListRepository;
 
     public List<DeviceListDTO> getSignageList(){
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
@@ -104,5 +108,56 @@ public class SignageService {
                 .orElseThrow(() -> new RuntimeException("Signage not found"));
         device.setIsShow(isShow);
         signageRepository.save(device);
+    }
+
+    public List<SignageNoticeDTO> getSignageNotice(Long signageId){
+        List<SignageNoticeDTO> signageNoticeDTOList = new ArrayList<>();
+
+        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeRepository.findByDeviceId(signageId);
+
+        for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
+            Notice notice = deviceNoticeMap.getNotice();
+            AccountDeviceDTO accountDeviceDTO = new AccountDeviceDTO(notice.getAccount().getAccountId(), notice.getAccount().getName());
+
+            SignageNoticeDTO signageNoticeDTO = new SignageNoticeDTO(notice.getNoticeId(), notice.getTitle(), accountDeviceDTO, notice.getRegTime(), notice.getStartDate(), notice.getEndDate());
+
+            signageNoticeDTOList.add(signageNoticeDTO);
+        }
+        return signageNoticeDTOList;
+    }
+
+    public List<SignageResourceDTO> getResourceList(Long signageId){
+        List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
+
+        List<DeviceEncodeMap> deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId);
+
+        for(DeviceEncodeMap deviceEncodeMap : deviceEncodeMaps){
+            EncodedResource encodedResource = deviceEncodeMap.getEncodedResource();
+
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+            SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+
+            signageResourceDTOList.add(signageResourceDTO);
+        }
+        return signageResourceDTOList;
+    }
+
+    public void deleteEncodedResource(Long signageId, Long encodedResourceId){
+        deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
+    }
+
+    public List<PlayListDTO> getPlaylistList(Long signageId){
+        Device device = signageRepository.findByDeviceId(signageId);
+        List<PlayList> playLists = playListRepository.findByDevice(device);
+
+        List<PlayListDTO> playListDTOList = new ArrayList<>();
+
+        for(PlayList playList : playLists){
+            PlayListDTO playListDTO = new PlayListDTO(playList.getPlaylistId(), playList.getFileTitle(), playList.getRegTime(), playList.getIsDefault());
+
+            playListDTOList.add(playListDTO);
+        }
+
+        return playListDTOList;
     }
 }

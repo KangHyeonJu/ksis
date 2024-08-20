@@ -17,22 +17,23 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/signage")
 public class SignageController {
     private final SignageService signageService;
     private final AccountListService accountService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @GetMapping("/signage")
+    @GetMapping()
     public ResponseEntity<?> pcList(){
         return new ResponseEntity<>(signageService.getSignageList(), HttpStatus.OK);
     }
 
-    @GetMapping("/signage/new")
+    @GetMapping("/new")
     public ResponseEntity<?> pcAdd(){
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
-    @PostMapping("/signage/new")
+    @PostMapping("/new")
     public ResponseEntity<String> pcAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException {
         List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<List<String>>() {});
 
@@ -42,7 +43,7 @@ public class SignageController {
         return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
     }
 
-    @GetMapping("/signage/{signageId}")
+    @GetMapping("/{signageId}")
     public ResponseEntity<?> signageDtl(@PathVariable("signageId") Long signageId){
         try {
             return new ResponseEntity<>(signageService.getSignageDtl(signageId), HttpStatus.OK);
@@ -51,7 +52,7 @@ public class SignageController {
         }
     }
 
-    @GetMapping("/signage/update/{signageId}")
+    @GetMapping("/update/{signageId}")
     public ResponseEntity<?> signageDtlUpdate(@PathVariable("signageId") Long signageId){
         try {
             return new ResponseEntity<>(signageService.getSignageDtl(signageId), HttpStatus.OK);
@@ -60,7 +61,7 @@ public class SignageController {
         }
     }
 
-    @PutMapping("/signage/update/{signageId}")
+    @PutMapping("/update/{signageId}")
     public ResponseEntity<String> signagePut(@PathVariable Long signageId, @RequestBody SignageNoticeStatusDTO signageNoticeStatusDTO) {
         System.out.println("signageNoticeStatusDTO: " + signageNoticeStatusDTO.isShowNotice());
 
@@ -68,11 +69,50 @@ public class SignageController {
         return ResponseEntity.ok("재생장치 공지표시 상태가 정상적으로 수정되었습니다.");
     }
 
-    @PatchMapping("/signage/update")
+    @PatchMapping("/update")
     public ResponseEntity<String> signageUpdate(@RequestPart("signageFormDto") SignageFormDTO signageFormDto, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException{
         List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<>() {});
 
         signageService.updateSignage(signageFormDto, accountList);
         return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
+    }
+
+    @GetMapping("/notice/{signageId}")
+    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+        try {
+            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+        } catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/resource/{signageId}")
+    public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId){
+        try{
+            return new ResponseEntity<>(signageService.getResourceList(signageId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+
+    }
+
+    @DeleteMapping("/resource/{signageId}/{encodedResourceId}")
+    public ResponseEntity<?> deleteEncodedResource(@PathVariable("signageId") Long signageId, @PathVariable("encodedResourceId") Long encodedResourceId){
+        try {
+            signageService.deleteEncodedResource(signageId, encodedResourceId);
+
+            return ResponseEntity.ok("Deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting");
+        }
+    }
+
+    @GetMapping("/playlist/{signageId}")
+    public ResponseEntity<?> signagePlaylistList(@PathVariable("signageId") Long signageId){
+        try{
+            return new ResponseEntity<>(signageService.getPlaylistList(signageId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
     }
 }
