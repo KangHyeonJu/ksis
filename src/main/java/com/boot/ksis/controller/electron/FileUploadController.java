@@ -20,8 +20,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.RandomAccess;
 import java.util.UUID;
 
 @RestController
@@ -90,49 +92,96 @@ public class FileUploadController {
         }
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFiles(
-            @RequestParam("files") MultipartFile[] files,
-            @RequestParam("fileNames") String[] fileNames
-    ) {
-        try {
-            for (int i = 0; i < files.length; i++) {
-                // UUID로 저장된 파일 이름을 사용
-                String uuidFileName = fileNames[i];
-                String filePath = UPLOAD_DIR + uuidFileName;
-                String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
+//    @PostMapping("/upload")
+//    public ResponseEntity<String> uploadFiles(
+//            @RequestParam("files") MultipartFile[] files,
+//            @RequestParam("fileNames") String[] fileNames
+//    ) {
+//        try {
+//            for (int i = 0; i < files.length; i++) {
+//                // UUID로 저장된 파일 이름을 사용
+//                String uuidFileName = fileNames[i];
+//                String filePath = UPLOAD_DIR + uuidFileName;
+//                String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
+//
+//                // 파일을 해당 경로에 저장
+//                File file = new File(filePath);
+//                files[i].transferTo(file);
+//
+//                // 상태를 COMPLETED로 업데이트
+//                OriginalResource originalResource = originalResourceService.updateStatus(uuidFileName);
+//
+//                // 파일 저장 확인 후 썸네일 생성 및 저장 호출
+//                if (file.exists()) {
+//                    String fileExtension = getFileExtension(uuidFileName).toLowerCase();
+//                    if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
+//                        // 동영상인 경우
+//                        generateVideoThumbnail(filePath, thumbnailPath, originalResource);
+//                    } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
+//                        // 이미지인 경우
+//                        generateImageThumbnail(filePath, thumbnailPath, originalResource);
+//                    } else {
+//                        System.out.println("지원하지 않는 파일 형식: " + fileExtension);
+//                    }
+//                } else {
+//                    System.out.println("썸네일 파일 저장 실패: " + filePath);
+//                }
+//            }
+//
+//            return ResponseEntity.ok("파일 업로드 완료");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("파일 업로드 실패: " + e.getMessage());
+//        }
+//    }
 
-                // 파일을 해당 경로에 저장
-                File file = new File(filePath);
-                files[i].transferTo(file);
+    @PostMapping("/upload/chunk")
+    public ResponseEntity<String> uploadChunk(
+            @RequestParam("file") MultipartFile chunk,
+            @RequestParam("fileName") String fileName,
+            @RequestParam("chunkIndex") int chunkIndex,
+            @RequestParam("totalChunks") int totalChunks
+    ){
+        int CHUNK_SIZE = 1 * 1024 * 1024;
+        try{
+            // UUID로 저장된 파일 이름을 사용
+            String filePath = UPLOAD_DIR + fileName;
+            String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
+            File file = new File(filePath);
 
-                // 상태를 COMPLETED로 업데이트
-                OriginalResource originalResource = originalResourceService.updateStatus(uuidFileName);
+            // 청크를 이어붙이기 위한 파일 채널 열기
+            RandomAccessFile raf = new RandomAccessFile(file, "rw");
+            raf.seek(chunkIndex * CHUNK_SIZE); // 파일의 위치를 청크 시작점으로 이동
+            raf.write(chunk.getBytes()); // 청크 데이터를 파일에 기록
+            raf.close();
 
-                // 파일 저장 확인 후 썸네일 생성 및 저장 호출
-                if (file.exists()) {
-                    String fileExtension = getFileExtension(uuidFileName).toLowerCase();
-                    if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
-                        // 동영상인 경우
-                        generateVideoThumbnail(filePath, thumbnailPath, originalResource);
-                    } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
-                        // 이미지인 경우
-                        generateImageThumbnail(filePath, thumbnailPath, originalResource);
-                    } else {
-                        System.out.println("지원하지 않는 파일 형식: " + fileExtension);
-                    }
+            // 상태를 COMPLETED로 업데이트
+            OriginalResource originalResource = originalResourceService.updateStatus(fileName);
+
+            // 파일 저장 확인 후 썸네일 생성 및 저장 호출
+            if (chunkIndex + 1 == totalChunks) {
+                String fileExtension = getFileExtension(fileName).toLowerCase();
+                if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
+                    // 동영상인 경우
+                    generateVideoThumbnail(filePath, thumbnailPath, originalResource);
+                } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
+                    // 이미지인 경우
+                    generateImageThumbnail(filePath, thumbnailPath, originalResource);
                 } else {
-                    System.out.println("파일 저장 실패: " + filePath);
+                    System.out.println("지원하지 않는 파일 형식: " + fileExtension);
                 }
             }
 
-            return ResponseEntity.ok("파일 업로드 완료");
-        } catch (IOException e) {
+            return ResponseEntity.ok("청크 업로드 성공");
+        }catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("파일 업로드 실패: " + e.getMessage());
+                    .body("청크 업로드 실패: " + e.getMessage());
         }
     }
+
+
 
     // 이미지 썸네일 생성 메서드
     private void generateImageThumbnail(String imagePath, String thumbnailPath, OriginalResource originalResource) throws IOException {
