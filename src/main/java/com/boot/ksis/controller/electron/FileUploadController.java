@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 
 @RestController
@@ -47,7 +48,7 @@ public class FileUploadController {
             @RequestParam("statuses") String[] statuses,
             @RequestParam("resourceTypes") String[] resourceTypes
     ){
-        HashMap<String, String> fileNamesMap = new HashMap<>();
+        LinkedHashMap<String, String> fileNamesMap = new LinkedHashMap<>();
         try {
             for (int i = 0; i < files.length; i++) {
                 // UUID를 생성하여 파일 이름으로 사용
@@ -72,7 +73,7 @@ public class FileUploadController {
                 originalResourceService.saveToDatabase(originalResourceDTO);
 
                 // 파일 이름을 맵에 추가
-                fileNamesMap.put("file" + i, uuidFileName);
+                fileNamesMap.put("file"+i, uuidFileName);
             }
 
             return ResponseEntity.ok(fileNamesMap);
@@ -102,24 +103,32 @@ public class FileUploadController {
                 String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
 
                 // 파일을 해당 경로에 저장
-                files[i].transferTo(new java.io.File(filePath));
+                File file = new File(filePath);
+                files[i].transferTo(file);
 
                 // 상태를 COMPLETED로 업데이트
                 OriginalResource originalResource = originalResourceService.updateStatus(uuidFileName);
 
-                // 썸네일 생성 및 저장 호출
-                String fileExtension = getFileExtension(uuidFileName).toLowerCase();
-                if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
-                    // 동영상인 경우
-                    generateVideoThumbnail(filePath, thumbnailPath, originalResource);
+                // 파일 저장 확인 후 썸네일 생성 및 저장 호출
+                if (file.exists()) {
+                    String fileExtension = getFileExtension(uuidFileName).toLowerCase();
+                    if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
+                        // 동영상인 경우
+                        generateVideoThumbnail(filePath, thumbnailPath, originalResource);
+                    } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
+                        // 이미지인 경우
+                        generateImageThumbnail(filePath, thumbnailPath, originalResource);
+                    } else {
+                        System.out.println("지원하지 않는 파일 형식: " + fileExtension);
+                    }
                 } else {
-                    // 이미지인 경우
-                    generateImageThumbnail(filePath, thumbnailPath, originalResource);
+                    System.out.println("파일 저장 실패: " + filePath);
                 }
             }
 
             return ResponseEntity.ok("파일 업로드 완료");
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("파일 업로드 실패: " + e.getMessage());
         }
@@ -127,6 +136,7 @@ public class FileUploadController {
 
     // 이미지 썸네일 생성 메서드
     private void generateImageThumbnail(String imagePath, String thumbnailPath, OriginalResource originalResource) throws IOException {
+
         // 이미지 파일을 읽어와서 썸네일을 생성하고 저장
         Thumbnails.of(new File(imagePath))
                 .size(200, 200) // 원하는 썸네일 크기 설정
