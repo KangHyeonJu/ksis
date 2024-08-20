@@ -2,7 +2,7 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
-import com.boot.ksis.repository.upload.ThumbNailRepository;
+import com.boot.ksis.repository.signage.ThumbNailRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

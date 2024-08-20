@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소s
 @RequestMapping("/api/notices")
 public class NoticeController {
 
