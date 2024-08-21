@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,11 +34,14 @@ public class FileUploadController {
     private final OriginalResourceService originalResourceService;
     private final ThumbnailService thumbnailService;
 
+    @Value("${fileLocation}")
+    String fileLocation;
+
     // 파일이 저장되는 경로
-    private final String UPLOAD_DIR = "C:/file/uploads/";
+    private final String UPLOAD_DIR = fileLocation + "/uploads/";
 
     // 썸네일이 저장되는 경로
-    private final String THUMBNAIL_DIR = "C:/file/thumbnails/";
+    private final String THUMBNAIL_DIR = fileLocation + "/thumbnails/";
 
     @PostMapping("/filedatasave")
     public ResponseEntity<HashMap<String, String>> uploadFile(
@@ -150,7 +154,8 @@ public class FileUploadController {
         try{
             // UUID로 저장된 파일 이름을 사용
             String filePath = UPLOAD_DIR + fileName;
-            String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
+//            String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
+            String thumbnailPath = "/file/thumbnails/" + UUID.randomUUID().toString() + ".jpg";
             File file = new File(filePath);
 
             // 청크를 이어붙이기 위한 파일 채널 열기
@@ -200,7 +205,8 @@ public class FileUploadController {
         // 썸네일 메타데이터를 데이터베이스에 저장
         ThumbNail thumbnail = new ThumbNail();
         thumbnail.setOriginalResource(originalResource);
-        thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
+//        thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
+        thumbnail.setFilePath(thumbnailPath);
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbnailService.saveThumbnail(thumbnail); // 썸네일 저장 서비스 호출
@@ -226,7 +232,8 @@ public class FileUploadController {
             // 썸네일 메타데이터를 데이터베이스에 저장
             ThumbNail thumbnail = new ThumbNail();
             thumbnail.setOriginalResource(originalResource);
-            thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
+//            thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
+            thumbnail.setFilePath(thumbnailPath);
             thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
             thumbnailService.saveThumbnail(thumbnail); // 썸네일 저장 서비스 호출

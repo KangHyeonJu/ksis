@@ -8,6 +8,7 @@ import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -26,13 +27,15 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class EncodedResourceService {
+    @Value("${fileLocation}")
+    String fileLocation;
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
-    private final String ENCODING_DIR = "C:/file/encoding/";
+    private final String ENCODING_DIR = fileLocation + "/encoding/";
 
-    private final String UPLOAD_DIR = "C:/file/uploads/";
+    private final String UPLOAD_DIR = fileLocation + "/uploads/";
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public EncodedResource saveEncodingInfo(String fileName,String title, String format, String resolution){
