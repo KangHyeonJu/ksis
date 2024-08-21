@@ -40,5 +40,4 @@ public class AppDownloadController {
                     .body(null);
         }
     }
-
 }
