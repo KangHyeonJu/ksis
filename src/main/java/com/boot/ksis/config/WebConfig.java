@@ -13,9 +13,5 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                 .allowedHeaders("*");
     }
-
-    String filePath = "C:\\Users\\codepc\\Documents\\GitHub\\ksis\\src\\main\\resources\\uploads\\40b9ea5f-8063-4f64-bb44-003078a598ba.png";
-    String normalizedFilePath = filePath.replace("\\", "/");
-// 이제 normalizedFilePath는 C:/Users/codepc/Documents/GitHub/ksis/src/main/resources/uploads/40b9ea5f-8063-4f64-bb44-003078a598ba.png가 됩니다.
-
+    
 }
