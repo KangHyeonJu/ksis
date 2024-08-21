@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,7 +18,7 @@ import java.nio.file.Paths;
 @RequestMapping("/api")
 public class AppDownloadController {
 
-    private final String APP_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\app\\";
+    private final String APP_DIR = "C:\\file\\app\\";
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile() {
@@ -39,5 +40,4 @@ public class AppDownloadController {
                     .body(null);
         }
     }
-
 }

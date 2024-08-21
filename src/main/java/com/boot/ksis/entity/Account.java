@@ -6,12 +6,18 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Table(name = "account")
 @Getter
 @Setter
-public class Account {
+public class Account implements UserDetails {
     //계정 아이디
     @Id
     @Column(name = "account_id")
@@ -56,4 +62,43 @@ public class Account {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Role에서 권한을 가져와서 GrantedAuthority로 변환
+        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return accountId;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        // 계정 만료 여부: 기본적으로 false를 반환
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        // 계정 잠금 여부: 기본적으로 false를 반환
+        return isActive;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        // 자격 증명 만료 여부: 기본적으로 false를 반환
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        // 계정 활성화 여부: 기본적으로 false를 반환
+        return isActive;
+    }
 }

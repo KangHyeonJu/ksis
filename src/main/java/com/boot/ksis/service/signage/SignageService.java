@@ -6,6 +6,7 @@ import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
+import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.signage.*;
@@ -15,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +32,7 @@ public class SignageService {
     private final DeviceEncodeRepository deviceEncodeRepository;
     private final ThumbNailRepository thumbNailRepository;
     private final PlayListRepository playListRepository;
+    private final PlaylistSequenceRepository playlistSequenceRepository;
 
     public List<DeviceListDTO> getSignageList(){
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
@@ -153,11 +157,48 @@ public class SignageService {
         List<PlayListDTO> playListDTOList = new ArrayList<>();
 
         for(PlayList playList : playLists){
-            PlayListDTO playListDTO = new PlayListDTO(playList.getPlaylistId(), playList.getFileTitle(), playList.getRegTime(), playList.getIsDefault());
+            PlayListDTO playListDTO = new PlayListDTO(playList.getPlaylistId(), playList.getFileTitle(), playList.getRegTime(), playList.getIsDefault(), playList.getSlideTime());
 
             playListDTOList.add(playListDTO);
         }
 
         return playListDTOList;
+    }
+
+    public void setPlaylist(Long signageId, Long playlistId){
+        Device device = signageRepository.findByDeviceId(signageId);
+        List<PlayList> playLists = playListRepository.findByDevice(device);
+
+        for(PlayList playList : playLists){
+            playList.setIsDefault(Objects.equals(playList.getPlaylistId(), playlistId));
+
+            playListRepository.save(playList);
+        }
+    }
+
+    public List<PlayListDtlDTO> getPlaylistDtl(Long playlistId){
+        List<PlaylistSequence> playlistSequences = playlistSequenceRepository.findByPlaylistId(playlistId);
+
+        List<PlayListDtlDTO> playListDtlDTOList = new ArrayList<>();
+
+        for(PlaylistSequence playlistSequence : playlistSequences){
+            EncodedResource encodedResource = playlistSequence.getEncodedResource();
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+            PlayListDtlDTO playListDtlDTO = new PlayListDtlDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath(), playlistSequence.getSequence());
+
+            playListDtlDTOList.add(playListDtlDTO);
+        }
+
+        playListDtlDTOList.sort(Comparator.comparingInt(PlayListDtlDTO::getSequence));
+        return playListDtlDTOList;
+    }
+
+    public void deletePlaylist(Long playlistId){
+        //재생순서 삭제
+        playlistSequenceRepository.deleteByPlaylistId(playlistId);
+
+        //재생목록 삭제
+        playListRepository.deleteById(playlistId);
     }
 }

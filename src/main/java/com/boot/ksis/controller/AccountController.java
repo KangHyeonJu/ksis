@@ -2,9 +2,11 @@ package com.boot.ksis.controller;
 
 import com.boot.ksis.dto.AccountActiveDTO;
 import com.boot.ksis.dto.AccountDTO;
+import com.boot.ksis.dto.JwtTokenDTO;
 import com.boot.ksis.dto.LoginDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.service.AccountService;
+import com.boot.ksis.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ public class AccountController {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private AuthService authService;
 
     private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
@@ -96,8 +101,11 @@ public class AccountController {
 
         try {
             boolean isValid = accountService.validateCredentials(loginDTO.getAccountId(), loginDTO.getPassword());
+
             if (isValid) {
-                return ResponseEntity.ok("{\"success\":true}");
+                JwtTokenDTO jwtToken = authService.signIn(loginDTO.getAccountId(), loginDTO.getPassword());
+                System.out.println("Created JwtToken : " + jwtToken);
+                return ResponseEntity.ok(jwtToken);
             }else{
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\":false, \"message\":\"아이디 및 비밀번호 확인바람\"}");
             }

@@ -21,4 +21,7 @@ public class PlayListDTO {
 
     //재생여부
     private Boolean play;
+
+    //재생시간
+    private int playTime;
 }

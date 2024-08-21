@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -102,7 +103,7 @@ public class SignageController {
             signageService.deleteEncodedResource(signageId, encodedResourceId);
 
             return ResponseEntity.ok("Deleted successfully");
-        } catch (Exception e) {
+        }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting");
         }
     }
@@ -113,6 +114,34 @@ public class SignageController {
             return new ResponseEntity<>(signageService.getPlaylistList(signageId), HttpStatus.OK);
         }catch(EntityNotFoundException e){
             return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
+
+    @PutMapping("/playlist/{signageId}")
+    public ResponseEntity<String> selectPlaylist(@PathVariable("signageId") Long signageId, @RequestBody Map<String, Long> playlistId){
+        Long selectedPlaylist = playlistId.get("selectedPlaylist");
+        signageService.setPlaylist(signageId, selectedPlaylist);
+
+        return ResponseEntity.ok("Playlist selected successfully");
+    }
+
+    @GetMapping("/playlist")
+    public ResponseEntity<?> playlistDtl(@RequestParam Long playlistDtlId){
+        try{
+            return new ResponseEntity<>(signageService.getPlaylistDtl(playlistDtlId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생목록입니다.", HttpStatus.OK);
+        }
+    }
+
+    @DeleteMapping("/playlist")
+    public ResponseEntity<?> deletePlaylist(@RequestParam Long playlistId){
+        try {
+            signageService.deletePlaylist(playlistId);
+
+            return ResponseEntity.ok("Deleted successfully");
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting");
         }
     }
 }
