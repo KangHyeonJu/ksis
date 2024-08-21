@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.RandomAccess;
 import java.util.UUID;
 
 @RestController
@@ -35,10 +34,10 @@ public class FileUploadController {
     private final ThumbnailService thumbnailService;
 
     // 파일이 저장되는 경로
-    private final String UPLOAD_DIR = "C:\\file\\uploads\\";
+    private final String UPLOAD_DIR = "C:/file/uploads/";
 
     // 썸네일이 저장되는 경로
-    private final String THUMBNAIL_DIR = "C:\\file\\thumbnails\\";
+    private final String THUMBNAIL_DIR = "C:/file/thumbnails/";
 
     @PostMapping("/filedatasave")
     public ResponseEntity<HashMap<String, String>> uploadFile(
@@ -60,7 +59,7 @@ public class FileUploadController {
                 // UUID를 생성하여 파일 이름으로 사용
                 String originalFileName = files[i].getOriginalFilename();
                 String uuidFileName = UUID.randomUUID().toString() + getFileExtension(originalFileName);
-                String filePath = UPLOAD_DIR + uuidFileName;
+                String filePath = "/file/uploads/" + uuidFileName;
                 ResourceStatus resourceStatusEnum = ResourceStatus.valueOf(statuses[i].toUpperCase());
                 ResourceType resourceTypeEnum = ResourceType.valueOf(resourceTypes[i].toUpperCase());
 
@@ -190,6 +189,8 @@ public class FileUploadController {
     // 이미지 썸네일 생성 메서드
     private void generateImageThumbnail(String imagePath, String thumbnailPath, OriginalResource originalResource) throws IOException {
 
+
+
         // 이미지 파일을 읽어와서 썸네일을 생성하고 저장
         Thumbnails.of(new File(imagePath))
                 .size(200, 200) // 원하는 썸네일 크기 설정
@@ -199,7 +200,7 @@ public class FileUploadController {
         // 썸네일 메타데이터를 데이터베이스에 저장
         ThumbNail thumbnail = new ThumbNail();
         thumbnail.setOriginalResource(originalResource);
-        thumbnail.setFilePath(thumbnailPath);
+        thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbnailService.saveThumbnail(thumbnail); // 썸네일 저장 서비스 호출
@@ -225,7 +226,7 @@ public class FileUploadController {
             // 썸네일 메타데이터를 데이터베이스에 저장
             ThumbNail thumbnail = new ThumbNail();
             thumbnail.setOriginalResource(originalResource);
-            thumbnail.setFilePath(thumbnailPath);
+            thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
             thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
             thumbnailService.saveThumbnail(thumbnail); // 썸네일 저장 서비스 호출

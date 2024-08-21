@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 @RequestMapping("/api")
 public class AppDownloadController {
 
-    private final String APP_DIR = "C:\\file\\app\\";
+    private final String APP_DIR = "C:/file/app/";
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile() {
