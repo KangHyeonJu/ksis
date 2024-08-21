@@ -1,13 +1,11 @@
 package com.boot.ksis.entity.IdClass;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@EqualsAndHashCode
 @Getter
 @Setter
 public class DeviceNoticeId implements Serializable {
