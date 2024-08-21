@@ -23,7 +23,6 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)  // CSRF 비활성화
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-                                .requestMatchers(PathRequest.toH2Console()).permitAll()
                                 .requestMatchers("/**").permitAll()
                                 .anyRequest().permitAll()
                 );

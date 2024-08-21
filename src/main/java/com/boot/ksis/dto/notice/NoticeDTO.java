@@ -1,43 +1,40 @@
 package com.boot.ksis.dto.notice;
 
-
-import com.boot.ksis.dto.AccountListDTO;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class NoticeDTO {
+    // 공지 아이디
     private Long noticeId;
-    //담당자 리스트
-    private List<AccountListDTO> accountList;
-    //디바이스 이름목록
-  /*  private List<PcListDTO> pcList;*/
-    //제목
+
+    // 계정 아이디
+    private String accountId;
+
+    //계정 이름
+    private String name;
+
+    //재생장치 이름
+    private String deviceName;
+
+    // 제목
     private String title;
-    //내용
+
+    // 내용
     private String content;
 
-    //노출 시작일
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime startDate;
-    //노출 종료일
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime endDate;
+    // 노출 시작일
+    private LocalDate startDate;
 
+    // 노출 종료일
+    private LocalDate endDate;
 
-    public NoticeDTO(Long noticeId, String title, String content, LocalDateTime startDate, LocalDateTime endDate) {
-        this.noticeId = noticeId;
-        this.title = title;
-        this.content = content;
-        this.startDate = startDate;
-        this.endDate = endDate;
-    }
-
+    //등록시간
+    private LocalDateTime regTime;
+    //수정 시간
+    private LocalDateTime updateTime;
 }

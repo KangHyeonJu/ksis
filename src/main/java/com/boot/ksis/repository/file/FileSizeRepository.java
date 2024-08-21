@@ -1,4 +1,4 @@
-package com.boot.ksis.repository.FileSize;
+package com.boot.ksis.repository.file;
 
 import com.boot.ksis.entity.FileSize;
 import org.springframework.data.jpa.repository.JpaRepository;
