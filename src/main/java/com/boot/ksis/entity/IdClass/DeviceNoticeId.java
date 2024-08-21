@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.Objects;
 
-@EqualsAndHashCode
+
 @Getter
 @Setter
 public class DeviceNoticeId implements Serializable {
