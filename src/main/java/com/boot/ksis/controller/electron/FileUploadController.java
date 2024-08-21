@@ -35,10 +35,10 @@ public class FileUploadController {
     private final ThumbnailService thumbnailService;
 
     // 파일이 저장되는 경로
-    private final String UPLOAD_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\uploads\\";
+    private final String UPLOAD_DIR = "C:\\Users\\codepc\\Desktop\\uploads\\";
 
     // 썸네일이 저장되는 경로
-    private final String THUMBNAIL_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\thumbnails\\";
+    private final String THUMBNAIL_DIR = "C:\\Users\\codepc\\Desktop\\thumbnails\\";
 
     @PostMapping("/filedatasave")
     public ResponseEntity<HashMap<String, String>> uploadFile(

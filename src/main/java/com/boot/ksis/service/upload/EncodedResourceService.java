@@ -1,44 +1,113 @@
 package com.boot.ksis.service.upload;
 
+import com.boot.ksis.constant.ResourceStatus;
+import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.dto.EncodingRequestDTO;
+import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
+import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class EncodedResourceService {
 
     private final EncodedResourceRepository encodedResourceRepository;
+    private final OriginalResourceRepository originalResourceRepository;
 
-    private final String ENCODING_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\encoding\\";
+    private final String ENCODING_DIR = "C:\\Users\\codepc\\Desktop\\encoding\\";
 
-    private final String UPLOAD_DIR = "C:\\Users\\codepc\\git\\ksis\\src\\main\\resources\\uploads\\";
+    private final String UPLOAD_DIR = "C:\\Users\\codepc\\Desktop\\uploads\\";
+
+    // 인코딩 정보를 데이터베이스에 저장하는 메서드
+    public EncodedResource saveEncodingInfo(String fileName,String title, String format, String resolution){
+        // 원본 리소스 조회
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
+
+        // 파일 이름에서 확장자 제거
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+        // 파일 이름 설정
+        String outputFileName = baseName + "_" + resolution + "." + format;
+
+        // 제목 설정
+        String encodedTitle = title + "_" + resolution + "_" + format;
+
+        // 경로 설정
+        String path = ENCODING_DIR + outputFileName;
+
+        // 파일 유형 설정 (영상 확장자 목록)
+        String[] videoExtensions = {"mp4", "avi", "mov", "mkv"};
+        String fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+
+        ResourceType resourceType;
+        if (Arrays.asList(videoExtensions).contains(fileExtension)) {
+            resourceType = ResourceType.VIDEO;
+        } else {
+            resourceType = ResourceType.IMAGE;
+        }
+
+        if(originalResourceOpt.isPresent()){
+            EncodedResource encodedResource = new EncodedResource();
+            encodedResource.setOriginalResource(originalResourceOpt.get());
+            encodedResource.setFileName(outputFileName);
+            encodedResource.setFileTitle(encodedTitle);
+            encodedResource.setFilePath(path);
+            encodedResource.setFormat(format);
+            encodedResource.setResolution(resolution);
+            encodedResource.setPlayTime(originalResourceOpt.get().getPlayTime());
+            encodedResource.setResourceStatus(ResourceStatus.UPLOADING);
+            encodedResource.setResourceType(resourceType);
+
+            // 데이터베이스 저장
+            return encodedResourceRepository.save(encodedResource);
+        }else{
+            throw new IllegalArgumentException("Original resource not found for fileName: " + fileName);
+        }
+    }
 
     // 각 파일들 인코딩 메서드
-    public void startEncoding(Map<String, List<Map<String, String>>> encodings){
+    public void startEncoding(Map<String, EncodingRequestDTO> encodings){
         // 각 파일에 대해 인코딩을 수행
-        encodings.forEach((fileName, encodingList) -> {
+        encodings.forEach((fileName, request) -> {
             File inputFile = new File(UPLOAD_DIR + fileName);
-            encodingList.forEach(encoding -> {
+            request.getEncodings().forEach(encoding -> {
                 String format = encoding.get("format");
                 String resolution = encoding.get("resolution");
 
-                // 인코딩 작업 수행
-                try{
-                    if(fileName.endsWith(".mp4")){
+                try {
+                    // 파일의 MIME 타입을 확인
+                    Path filePath = Paths.get(inputFile.getAbsolutePath());
+                    String mimeType = Files.probeContentType(filePath);
+
+                    // MIME 타입이 "video/"로 시작하는지 확인
+                    if (mimeType != null && mimeType.startsWith("video/")) {
+                        // 비디오 파일이면 비디오 인코딩 수행
                         encodeVideo(inputFile, format, resolution);
-                    }else{
+                    } else {
+                        // 그렇지 않으면 이미지 인코딩 수행
                         encodeImage(inputFile, format, resolution);
                     }
-                }catch(IOException e){
+
+                    // 인코딩 완료 후 상태 및 파일 용량 업데이트
+                    updateEncodingStatus(fileName, format, resolution);
+
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
@@ -65,7 +134,7 @@ public class EncodedResourceService {
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             case "mkv":
-                command = String.format("ffmpeg -i %s -vf scale=%s -c:v copy -c:a copy %s",
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             default:
@@ -76,9 +145,35 @@ public class EncodedResourceService {
         }
 
         Process process = Runtime.getRuntime().exec(command);
-        try{
+
+        // 표준 출력 및 에러 스트림 처리
+        new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.err.println(line);  // 에러 스트림을 표준 에러 출력으로 출력
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        try {
             process.waitFor(); // 프로세스 완료 대기
-        }catch(InterruptedException e){
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         System.out.println("Video encoded: " + outputFileName);
@@ -163,4 +258,46 @@ public class EncodedResourceService {
         return bufferedResizedImage;
     }
 
+    // 인코딩 완료 후 상태 및 파일 용량 업데이트
+    private void updateEncodingStatus(String fileName, String format, String resolution) {
+        // 파일 이름에서 확장자 제거
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+        // 파일 이름 설정
+        String outputFileName = baseName + "_" + resolution + "." + format;
+
+        // 인코딩된 파일의 경로
+        String filePath = ENCODING_DIR + outputFileName;
+
+        try {
+            // 인코딩된 파일의 용량 가져오기
+            long fileSize = getFileSize(filePath);
+
+            // 데이터베이스에서 인코딩된 리소스 조회
+            Optional<EncodedResource> encodedResourceOpt = encodedResourceRepository.findByFileName(outputFileName);
+
+            if (encodedResourceOpt.isPresent()) {
+                EncodedResource encodedResource = encodedResourceOpt.get();
+                encodedResource.setFileSize((int) fileSize);
+                encodedResource.setResourceStatus(ResourceStatus.COMPLETED);
+
+                // 데이터베이스 업데이트
+                encodedResourceRepository.save(encodedResource);
+            } else {
+                throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 경로에 있는 파일의 용량을 확인하는 메서드
+    private long getFileSize(String filePath) throws IOException {
+        File file = new File(filePath);
+        if (file.exists()) {
+            return Files.size(file.toPath());
+        } else {
+            throw new IOException("File not found: " + filePath);
+        }
+    }
 }
