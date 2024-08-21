@@ -1,7 +1,7 @@
-package com.boot.ksis.service.fileSize;
+package com.boot.ksis.service.file;
 
 import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.repository.FileSize.FileSizeRepository;
+import com.boot.ksis.repository.file.FileSizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
