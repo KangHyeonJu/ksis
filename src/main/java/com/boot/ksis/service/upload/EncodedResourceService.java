@@ -30,9 +30,9 @@ public class EncodedResourceService {
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
-    private final String ENCODING_DIR = "C:\\file\\encoding\\";
+    private final String ENCODING_DIR = "C:/file/encoding/";
 
-    private final String UPLOAD_DIR = "C:\\file\\uploads\\";
+    private final String UPLOAD_DIR = "C:/file/uploads/";
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public EncodedResource saveEncodingInfo(String fileName,String title, String format, String resolution){
@@ -51,7 +51,7 @@ public class EncodedResourceService {
         String encodedTitle = title + "_" + resolution + "_" + format;
 
         // 경로 설정
-        String path = ENCODING_DIR + outputFileName;
+        String path = "/file/encoding/" + outputFileName;
 
         // 파일 유형 설정 (영상 확장자 목록)
         String[] videoExtensions = {"mp4", "avi", "mov", "mkv"};

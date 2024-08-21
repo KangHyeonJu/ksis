@@ -1,7 +1,7 @@
 package com.boot.ksis.service;
 
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.repository.AccountRepository;
+import com.boot.ksis.repository.account.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
