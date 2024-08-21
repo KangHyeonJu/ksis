@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("")
 public class FileBoardController {
 
     private final FileBoardService fileBoardService;
