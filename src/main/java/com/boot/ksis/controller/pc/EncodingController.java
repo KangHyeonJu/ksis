@@ -16,8 +16,6 @@ public class EncodingController {
 
     private final EncodedResourceService encodedResourceService;
 
-    private final String UPLOAD_DIR = "C:\\Users\\codepc\\Desktop\\uploads\\";
-
     @PostMapping("/encoding")
     public ResponseEntity<String> startEncoding(@RequestBody Map<String, EncodingRequestDTO> encodings) {
         // 각 파일에 대한 인코딩 설정 및 제목을 출력

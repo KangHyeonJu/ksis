@@ -30,12 +30,14 @@ public class EncodedResourceService {
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
-    private final String ENCODING_DIR = "C:\\Users\\codepc\\Desktop\\encoding\\";
+    private final String ENCODING_DIR = "C:\\file\\encoding\\";
 
-    private final String UPLOAD_DIR = "C:\\Users\\codepc\\Desktop\\uploads\\";
+    private final String UPLOAD_DIR = "C:\\file\\uploads\\";
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public EncodedResource saveEncodingInfo(String fileName,String title, String format, String resolution){
+        createDirectoryIfNotExists(ENCODING_DIR);
+
         // 원본 리소스 조회
         Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
 
@@ -298,6 +300,14 @@ public class EncodedResourceService {
             return Files.size(file.toPath());
         } else {
             throw new IOException("File not found: " + filePath);
+        }
+    }
+
+    // 디렉토리 존재 여부를 확인하고 없으면 생성하는 메서드
+    private void createDirectoryIfNotExists(String dirPath) {
+        File dir = new File(dirPath);
+        if (!dir.exists()) {
+            dir.mkdirs(); // 디렉토리를 생성 (상위 디렉토리도 포함)
         }
     }
 }

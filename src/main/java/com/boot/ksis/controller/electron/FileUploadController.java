@@ -35,10 +35,10 @@ public class FileUploadController {
     private final ThumbnailService thumbnailService;
 
     // 파일이 저장되는 경로
-    private final String UPLOAD_DIR = "C:\\Users\\codepc\\Desktop\\uploads\\";
+    private final String UPLOAD_DIR = "C:\\file\\uploads\\";
 
     // 썸네일이 저장되는 경로
-    private final String THUMBNAIL_DIR = "C:\\Users\\codepc\\Desktop\\thumbnails\\";
+    private final String THUMBNAIL_DIR = "C:\\file\\thumbnails\\";
 
     @PostMapping("/filedatasave")
     public ResponseEntity<HashMap<String, String>> uploadFile(
@@ -50,6 +50,10 @@ public class FileUploadController {
             @RequestParam("statuses") String[] statuses,
             @RequestParam("resourceTypes") String[] resourceTypes
     ){
+        // 디렉토리 생성 확인
+        createDirectoryIfNotExists(UPLOAD_DIR);
+        createDirectoryIfNotExists(THUMBNAIL_DIR);
+
         LinkedHashMap<String, String> fileNamesMap = new LinkedHashMap<>();
         try {
             for (int i = 0; i < files.length; i++) {
@@ -237,6 +241,14 @@ public class FileUploadController {
             return fileName.substring(lastDotIndex);
         } else {
             return "";
+        }
+    }
+
+    // 디렉토리 존재 여부를 확인하고 없으면 생성하는 메서드
+    private void createDirectoryIfNotExists(String dirPath) {
+        File dir = new File(dirPath);
+        if (!dir.exists()) {
+            dir.mkdirs(); // 디렉토리를 생성 (상위 디렉토리도 포함)
         }
     }
 
