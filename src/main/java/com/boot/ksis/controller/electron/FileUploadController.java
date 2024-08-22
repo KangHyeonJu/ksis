@@ -34,15 +34,13 @@ public class FileUploadController {
     private final OriginalResourceService originalResourceService;
     private final ThumbnailService thumbnailService;
 
-    @Value("${fileLocation}")
-    String fileLocation;
+    @Value("${uploadLocation}")
+    String uploadLocation;
+
+    @Value("${thumbnailsLocation}")
+    String thumbnailsLocation;
 
     // 파일이 저장되는 경로
-    private final String UPLOAD_DIR = fileLocation + "/uploads/";
-
-    // 썸네일이 저장되는 경로
-    private final String THUMBNAIL_DIR = fileLocation + "/thumbnails/";
-
     @PostMapping("/filedatasave")
     public ResponseEntity<HashMap<String, String>> uploadFile(
             @RequestParam("files") MultipartFile[] files,
@@ -53,9 +51,10 @@ public class FileUploadController {
             @RequestParam("statuses") String[] statuses,
             @RequestParam("resourceTypes") String[] resourceTypes
     ){
+
         // 디렉토리 생성 확인
-        createDirectoryIfNotExists(UPLOAD_DIR);
-        createDirectoryIfNotExists(THUMBNAIL_DIR);
+        createDirectoryIfNotExists(uploadLocation);
+        createDirectoryIfNotExists(thumbnailsLocation);
 
         LinkedHashMap<String, String> fileNamesMap = new LinkedHashMap<>();
         try {
@@ -153,9 +152,12 @@ public class FileUploadController {
         int CHUNK_SIZE = 1 * 1024 * 1024;
         try{
             // UUID로 저장된 파일 이름을 사용
-            String filePath = UPLOAD_DIR + fileName;
-//            String thumbnailPath = THUMBNAIL_DIR + UUID.randomUUID().toString() + ".jpg";
-            String thumbnailPath = "/file/thumbnails/" + UUID.randomUUID().toString() + ".jpg";
+            String filePath = uploadLocation + fileName;
+            String fileNameUUID = UUID.randomUUID().toString() + ".jpg";
+
+            String thumbnailPath = thumbnailsLocation + fileNameUUID;
+            String thumbnailUrl = "/file/thumbnails/" + fileNameUUID;
+
             File file = new File(filePath);
 
             // 청크를 이어붙이기 위한 파일 채널 열기
@@ -172,10 +174,10 @@ public class FileUploadController {
                 String fileExtension = getFileExtension(fileName).toLowerCase();
                 if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
                     // 동영상인 경우
-                    generateVideoThumbnail(filePath, thumbnailPath, originalResource);
+                    generateVideoThumbnail(filePath,thumbnailPath, thumbnailUrl, originalResource);
                 } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
                     // 이미지인 경우
-                    generateImageThumbnail(filePath, thumbnailPath, originalResource);
+                    generateImageThumbnail(filePath,thumbnailPath, thumbnailUrl, originalResource);
                 } else {
                     System.out.println("지원하지 않는 파일 형식: " + fileExtension);
                 }
@@ -192,7 +194,7 @@ public class FileUploadController {
 
 
     // 이미지 썸네일 생성 메서드
-    private void generateImageThumbnail(String imagePath, String thumbnailPath, OriginalResource originalResource) throws IOException {
+    private void generateImageThumbnail(String imagePath,String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException {
 
 
 
@@ -206,14 +208,14 @@ public class FileUploadController {
         ThumbNail thumbnail = new ThumbNail();
         thumbnail.setOriginalResource(originalResource);
 //        thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
-        thumbnail.setFilePath(thumbnailPath);
+        thumbnail.setFilePath(thumbnailUrl);
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbnailService.saveThumbnail(thumbnail); // 썸네일 저장 서비스 호출
     }
 
     // 동영상 썸네일 생성 메서드
-    private void generateVideoThumbnail(String videoPath, String thumbnailPath, OriginalResource originalResource) throws IOException{
+    private void generateVideoThumbnail(String videoPath,String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException{
         FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(videoPath);
         try{
             frameGrabber.start();
@@ -233,7 +235,7 @@ public class FileUploadController {
             ThumbNail thumbnail = new ThumbNail();
             thumbnail.setOriginalResource(originalResource);
 //            thumbnail.setFilePath(thumbnailPath.replaceAll("^[a-zA-Z]:[\\\\/]", ""));
-            thumbnail.setFilePath(thumbnailPath);
+            thumbnail.setFilePath(thumbnailUrl);
             thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
             thumbnailService.saveThumbnail(thumbnail); // 썸네일 저장 서비스 호출
