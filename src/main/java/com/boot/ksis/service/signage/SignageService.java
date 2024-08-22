@@ -10,6 +10,7 @@ import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.signage.*;
+import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class SignageService {
     private final ThumbNailRepository thumbNailRepository;
     private final PlayListRepository playListRepository;
     private final PlaylistSequenceRepository playlistSequenceRepository;
+    private final EncodedResourceRepository encodedResourceRepository;
 
     public List<DeviceListDTO> getSignageList(){
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
@@ -200,5 +202,24 @@ public class SignageService {
 
         //재생목록 삭제
         playListRepository.deleteById(playlistId);
+    }
+
+    public void addPlaylist(PlayListAddDTO playListAddDTO, List<PlayListSequenceDTO> playListSequenceDTOList){
+        Device device = signageRepository.findByDeviceId(playListAddDTO.getDeviceId());
+
+        PlayList playList = playListRepository.save(playListAddDTO.createNewSignage(device));
+
+        for(PlayListSequenceDTO playListSequenceDTO : playListSequenceDTOList){
+            EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(playListSequenceDTO.getEncodedResourceId());
+
+            PlaylistSequence playlistSequence = PlaylistSequence.builder()
+                                                                .playlistId(playList.getPlaylistId())
+                                                                .playList(playList)
+                                                                .encodedResource(encodedResource)
+                                                                .sequence(playListSequenceDTO.getSequence())
+                                                                .build();
+
+            playlistSequenceRepository.save(playlistSequence);
+        }
     }
 }

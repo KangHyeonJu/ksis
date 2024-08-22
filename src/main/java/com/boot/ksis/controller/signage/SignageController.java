@@ -1,5 +1,7 @@
 package com.boot.ksis.controller.signage;
 
+import com.boot.ksis.dto.PlayListAddDTO;
+import com.boot.ksis.dto.PlayListSequenceDTO;
 import com.boot.ksis.dto.SignageFormDTO;
 import com.boot.ksis.dto.SignageNoticeStatusDTO;
 import com.boot.ksis.service.account.AccountListService;
@@ -143,5 +145,12 @@ public class SignageController {
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting");
         }
+    }
+
+    @PostMapping("/playlist")
+    public ResponseEntity<String> addPlaylist(@RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
+        signageService.addPlaylist(playListAddDTO, resourceSequence);
+
+        return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
     }
 }
