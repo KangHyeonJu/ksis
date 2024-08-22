@@ -1,28 +1,30 @@
 package com.boot.ksis.controller.file;
 
-import com.boot.ksis.entity.FileSize;
+import com.boot.ksis.dto.file.FileSizeDTO;
 import com.boot.ksis.service.file.FileSizeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
 @RequestMapping("/api/filesize")
+@RequiredArgsConstructor
 public class FileSizeController {
 
-    @Autowired
-    private FileSizeService fileSizeService;
+    private final FileSizeService fileSizeService;
 
+    // 현재 파일 크기 설정 조회
     @GetMapping
-    public ResponseEntity<FileSize> getFileSize() {
-        FileSize fileSize = fileSizeService.getFileSize();
-        return ResponseEntity.ok(fileSize);
+    public ResponseEntity<FileSizeDTO> getFileSize() {
+        FileSizeDTO fileSizeDTO = fileSizeService.getFileSize();
+        return ResponseEntity.ok(fileSizeDTO);
     }
 
+    // 파일 크기 설정 업데이트
     @PutMapping
-    public ResponseEntity<FileSize> updateFileSize(@RequestBody FileSize fileSize) {
-        FileSize updatedFileSize = fileSizeService.updateFileSize(fileSize);
-        return ResponseEntity.ok(updatedFileSize);
+    public ResponseEntity<FileSizeDTO> updateFileSize(@RequestBody FileSizeDTO fileSizeDTO) {
+        FileSizeDTO updatedFileSizeDTO = fileSizeService.updateFileSize(fileSizeDTO);
+        return ResponseEntity.ok(updatedFileSizeDTO);
     }
 }
