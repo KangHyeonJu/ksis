@@ -8,6 +8,7 @@ import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -27,16 +28,19 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EncodedResourceService {
 
+    @Value("${uploadLocation}")
+    String uploadLocation;
+
+    @Value("${encodingLocation}")
+    String encodingLocation;
+
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
-    private final String ENCODING_DIR = "C:/file/encoding/";
-
-    private final String UPLOAD_DIR = "C:/file/uploads/";
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public EncodedResource saveEncodingInfo(String fileName,String title, String format, String resolution){
-        createDirectoryIfNotExists(ENCODING_DIR);
+        createDirectoryIfNotExists(encodingLocation);
 
         // 원본 리소스 조회
         Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
@@ -87,7 +91,7 @@ public class EncodedResourceService {
     public void startEncoding(Map<String, EncodingRequestDTO> encodings){
         // 각 파일에 대해 인코딩을 수행
         encodings.forEach((fileName, request) -> {
-            File inputFile = new File(UPLOAD_DIR + fileName);
+            File inputFile = new File(uploadLocation + fileName);
             request.getEncodings().forEach(encoding -> {
                 String format = encoding.get("format");
                 String resolution = encoding.get("resolution");
@@ -122,7 +126,7 @@ public class EncodedResourceService {
         String baseName = inputFile.getName().substring(0, inputFile.getName().lastIndexOf('.'));
 
         // 결과 파일 이름 생성
-        String outputFileName = ENCODING_DIR + baseName + "_" + resolution + "." + format;
+        String outputFileName = encodingLocation + baseName + "_" + resolution + "." + format;
 
         String command;
 
@@ -186,7 +190,7 @@ public class EncodedResourceService {
         // 파일 이름에서 확장자 제거
         String baseName = inputFile.getName().substring(0, inputFile.getName().lastIndexOf('.'));
         // 결과 파일 이름 생성
-        String outputFileName = ENCODING_DIR + baseName + "_" + resolution + "." + format;
+        String outputFileName = encodingLocation + baseName + "_" + resolution + "." + format;
         String command;
 
         // 해상도에 따른 크기 설정
@@ -269,7 +273,7 @@ public class EncodedResourceService {
         String outputFileName = baseName + "_" + resolution + "." + format;
 
         // 인코딩된 파일의 경로
-        String filePath = ENCODING_DIR + outputFileName;
+        String filePath = encodingLocation + outputFileName;
 
         try {
             // 인코딩된 파일의 용량 가져오기
