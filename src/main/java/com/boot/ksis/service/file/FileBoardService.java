@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,4 +30,17 @@ public class FileBoardService {
         return originalResourceRepository.findByResourceType(ResourceType.VIDEO);
     }
 
+    // 파일 제목 수정
+    public Optional<OriginalResource> updateFileTitle(Long id, String newTitle) {
+        return originalResourceRepository.findById(id)
+                .map(resource -> {
+                    resource.setFileTitle(newTitle);
+                    return originalResourceRepository.save(resource);
+                });
+    }
+
+    // 파일 삭제
+    public void deleteFile(Long id) {
+        originalResourceRepository.deleteById(id);
+    }
 }
