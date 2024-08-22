@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ThumbNailRepository extends JpaRepository<ThumbNail, Long> {
     ThumbNail findByOriginalResource(OriginalResource originalResource);
+    void deleteByOriginalResource(OriginalResource originalResource);
 }

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,4 +20,6 @@ public class EncodeListDTO {
     private String resolution;
     //포맷
     private String format;
+    //등록일
+    private LocalDateTime regTime;
 }

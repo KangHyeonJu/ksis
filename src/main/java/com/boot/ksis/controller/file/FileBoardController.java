@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.file;
 
+import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.service.file.FileBoardService;
 import lombok.RequiredArgsConstructor;
@@ -18,22 +19,23 @@ public class FileBoardController {
 
     // 업로드된 파일 목록 조회
     @GetMapping
-    public ResponseEntity<List<OriginalResource>> getAllFiles() {
-        List<OriginalResource> files = fileBoardService.getAllFiles();
+    public ResponseEntity<List<ResourceListDTO>> getAllFiles() {
+        List<ResourceListDTO> files = fileBoardService.getAllFiles();
         return ResponseEntity.ok(files);
     }
 
     // 업로드된 이미지 파일 목록 조회
     @GetMapping("/images")
-    public ResponseEntity<List<OriginalResource>> getImageFiles() {
-        List<OriginalResource> imageFiles = fileBoardService.getImageFiles();
+    public ResponseEntity<List<ResourceListDTO>> getImageFiles() {
+        List<ResourceListDTO> imageFiles = fileBoardService.getImageFiles();
         return ResponseEntity.ok(imageFiles);
     }
 
+
     // 업로드된 동영상 파일 목록 조회
     @GetMapping("/videos")
-    public ResponseEntity<List<OriginalResource>> getVideoFiles() {
-        List<OriginalResource> videoFiles = fileBoardService.getVideoFiles();
+    public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
+        List<ResourceListDTO> videoFiles = fileBoardService.getVideoFiles();
         return ResponseEntity.ok(videoFiles);
     }
 
@@ -47,9 +49,9 @@ public class FileBoardController {
     }
 
     // 파일 삭제
-    @DeleteMapping("/{originalResourceId}")
-    public ResponseEntity<Void> deleteFile(@PathVariable Long originalResourceId) {
-        fileBoardService.deleteFile(originalResourceId);
+    @DeleteMapping("/{originalResource}")
+    public ResponseEntity<Void> deleteFile(@PathVariable Long originalResource) {
+        fileBoardService.deleteFile(originalResource);
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
 }
