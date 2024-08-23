@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface PlayListRepository extends JpaRepository<PlayList, Long> {
     List<PlayList> findByDevice(Device device);
+
+    PlayList findByPlaylistId(Long playlistId);
 }

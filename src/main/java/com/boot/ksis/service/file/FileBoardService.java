@@ -2,6 +2,7 @@ package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.List;
 public class FileBoardService {
 
     private final OriginalResourceRepository originalResourceRepository;
+    private final ThumbNailRepository thumbNailRepository;
 
     // 모든 파일 조회
     public List<OriginalResource> getAllFiles() {
@@ -28,5 +30,4 @@ public class FileBoardService {
     public List<OriginalResource> getVideoFiles() {
         return originalResourceRepository.findByResourceType(ResourceType.VIDEO);
     }
-
 }

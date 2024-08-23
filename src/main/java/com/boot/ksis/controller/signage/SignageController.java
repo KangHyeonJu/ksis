@@ -153,4 +153,13 @@ public class SignageController {
 
         return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
     }
+
+    @GetMapping("/playlistDtl/{playListId}")
+    public ResponseEntity<?> getPlaylistDtl(@PathVariable("playListId") Long playListId){
+        try{
+            return new ResponseEntity<>(signageService.playListDtl(playListId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생목록입니다.", HttpStatus.OK);
+        }
+    }
 }

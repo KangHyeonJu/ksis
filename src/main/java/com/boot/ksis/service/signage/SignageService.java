@@ -222,4 +222,24 @@ public class SignageService {
             playlistSequenceRepository.save(playlistSequence);
         }
     }
+
+    public List<SignageResourceDTO> playListDtl(Long playListId){
+        List<PlaylistSequence> playlistSequenceList = playlistSequenceRepository.findByPlaylistId(playListId);
+        playlistSequenceList.sort(Comparator.comparingInt(PlaylistSequence::getSequence));
+
+        List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
+
+        for(PlaylistSequence sequence : playlistSequenceList){
+            EncodedResource encodedResource = sequence.getEncodedResource();
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+            SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
+                                                                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                                                                    .fileTitle(encodedResource.getFileTitle())
+                                                                    .thumbFilePath(thumbNail.getFilePath())
+                                                                    .build();
+
+            signageResourceDTOList.add(signageResourceDTO);
+        }
+        return signageResourceDTOList;
+    }
 }
