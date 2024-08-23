@@ -151,7 +151,7 @@ public class SignageController {
     public ResponseEntity<String> addPlaylist(@RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
         signageService.addPlaylist(playListAddDTO, resourceSequence);
 
-        return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
+        return ResponseEntity.ok("재생목록이 정상적으로 등록되었습니다.");
     }
 
     @GetMapping("/playlistDtl/{playListId}")
@@ -161,5 +161,12 @@ public class SignageController {
         }catch(EntityNotFoundException e){
             return new ResponseEntity<>("존재하지 않는 재생목록입니다.", HttpStatus.OK);
         }
+    }
+
+    @PutMapping("/playlistDtl/{playListId}")
+    public ResponseEntity<String> updatePlaylist(@PathVariable("playListId") Long playListId, @RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
+        signageService.resourceSequence(playListId, playListAddDTO, resourceSequence);
+
+        return ResponseEntity.ok("재생목록이 정상적으로 수정되었습니다.");
     }
 }

@@ -1,5 +1,6 @@
 package com.boot.ksis.entity;
 
+import com.boot.ksis.dto.PlayListAddDTO;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -39,4 +40,9 @@ public class PlayList extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TINYINT(0)")
     @ColumnDefault("false")
     private Boolean isDefault;
+
+    public void updatePlaylist(PlayListAddDTO playListAddDTO){
+        this.fileTitle = playListAddDTO.getFileTitle();
+        this.slideTime = playListAddDTO.getSlideTime();
+    }
 }

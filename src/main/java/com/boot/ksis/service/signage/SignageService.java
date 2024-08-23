@@ -223,7 +223,29 @@ public class SignageService {
         }
     }
 
-    public List<SignageResourceDTO> playListDtl(Long playListId){
+    public void resourceSequence(Long playListId, PlayListAddDTO playListAddDTO, List<PlayListSequenceDTO> playListSequenceDTOList){
+        PlayList playList = playListRepository.findByPlaylistId(playListId);
+
+        playList.updatePlaylist(playListAddDTO);
+        playListRepository.save(playList);
+
+        playlistSequenceRepository.deleteByPlaylistId(playListId);
+
+        for(PlayListSequenceDTO playListSequenceDTO : playListSequenceDTOList){
+            EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(playListSequenceDTO.getEncodedResourceId());
+
+            PlaylistSequence playlistSequence = PlaylistSequence.builder()
+                    .playlistId(playList.getPlaylistId())
+                    .playList(playList)
+                    .encodedResource(encodedResource)
+                    .sequence(playListSequenceDTO.getSequence())
+                    .build();
+
+            playlistSequenceRepository.save(playlistSequence);
+        }
+    }
+
+    public PlayListUpdateDTO playListDtl(Long playListId){
         List<PlaylistSequence> playlistSequenceList = playlistSequenceRepository.findByPlaylistId(playListId);
         playlistSequenceList.sort(Comparator.comparingInt(PlaylistSequence::getSequence));
 
@@ -240,6 +262,13 @@ public class SignageService {
 
             signageResourceDTOList.add(signageResourceDTO);
         }
-        return signageResourceDTOList;
+
+        PlayList playList = playListRepository.findByPlaylistId(playListId);
+
+        return PlayListUpdateDTO.builder()
+                                .slideTime(playList.getSlideTime())
+                                .fileTitle(playList.getFileTitle())
+                                .SignageResourceDTO(signageResourceDTOList)
+                                .build();
     }
 }
