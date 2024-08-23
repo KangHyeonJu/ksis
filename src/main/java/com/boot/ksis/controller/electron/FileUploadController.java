@@ -5,7 +5,6 @@ import com.boot.ksis.service.upload.OriginalResourceService;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +19,6 @@ public class FileUploadController {
     private static final Logger logger = LogManager.getLogger(FileUploadController.class);
 
     private final OriginalResourceService originalResourceService;
-
-    @Value("${uploadLocation}")
-    String uploadLocation;
-
-    @Value("${thumbnailsLocation}")
-    String thumbnailsLocation;
 
     // 파일이 저장되는 경로
     @PostMapping("/filedatasave")
@@ -51,7 +44,7 @@ public class FileUploadController {
             @RequestParam("totalChunks") int totalChunks
     ){
         try{
-            // 상태를 COMPLETED로 업데이트
+            // 청크 업로드
             originalResourceService.chunkUpload(chunk, fileName, chunkIndex, totalChunks);
             return ResponseEntity.ok("청크 업로드 성공");
         } catch (Exception e){

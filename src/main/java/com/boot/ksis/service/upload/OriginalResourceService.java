@@ -77,6 +77,7 @@ public class OriginalResourceService {
         return returnDTO;
     }
 
+    // 청크 업로드
     public ResponseEntity<String> chunkUpload(MultipartFile chunk, String fileName, int chunkIndex, int totalChunks){
         int CHUNK_SIZE = 1 * 1024 * 1024;
         try{
