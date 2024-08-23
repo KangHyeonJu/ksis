@@ -1,16 +1,21 @@
 package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.dto.SignageResourceDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.file.ResourceThumbDTO;
+import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
+import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,6 +29,9 @@ public class FileBoardService {
 
     // ThumbNail 엔티티를 데이터베이스에서 조회하거나 삭제하는 데 사용되는 레포지토리
     private final ThumbNailRepository thumbNailRepository;
+
+    //encodedResource 엔티티
+    private final EncodedResourceRepository encodedResourceRepository;
 
     // 모든 파일 조회
     public List<ResourceListDTO> getAllFiles() {
@@ -41,30 +49,27 @@ public class FileBoardService {
 
     // 이미지 파일만 조회
     public List<ResourceListDTO> getImageFiles() {
-        // 이미지 파일만 조회하고, ResourceListDTO로 변환하여 반환
-        return originalResourceRepository.findByResourceType(ResourceType.IMAGE).stream()
-                .map(resource -> new ResourceListDTO(
-                        resource.getOriginalResourceId(), // 원본 파일의 ID
-                        resource.getFilePath(),           // 파일의 경로
-                        resource.getFileTitle(),          // 파일의 제목
-                        resource.getResolution(),         // 파일의 해상도
-                        resource.getFormat(),           // 파일의 포맷
-                        resource.getRegTime()))   //등록일
-                .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
+        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.IMAGE);
+        for (OriginalResource originalResource : originalResourceList) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+            ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), thumbNail.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+            resourceListDTOList.add(resource);
+        }
+        //최종적으로 생성된 resourceListDTOList 반환
+        return resourceListDTOList;
     }
 
     // 동영상 파일만 조회
     public List<ResourceListDTO> getVideoFiles() {
-        // 동영상 파일만 조회하고, ResourceListDTO로 변환하여 반환
-        return originalResourceRepository.findByResourceType(ResourceType.VIDEO).stream()
-                .map(resource -> new ResourceListDTO(
-                        resource.getOriginalResourceId(), // 원본 파일의 ID
-                        resource.getFilePath(),           // 파일의 경로
-                        resource.getFileTitle(),          // 파일의 제목
-                        resource.getResolution(),         // 파일의 해상도
-                        resource.getFormat(),           // 파일의 포맷
-                        resource.getRegTime()))   //등록일
-                .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
+        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.VIDEO);
+        for (OriginalResource originalResource : originalResourceList) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+            if (thumbNail != null) { ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), thumbNail.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+                resourceListDTOList.add(resource);}
+        }
+        return resourceListDTOList;
     }
 
     // 파일 제목 수정
@@ -78,7 +83,7 @@ public class FileBoardService {
     }
 
     @Transactional
-    // 파일 삭제 및 관련된 썸네일 삭제
+    // 파일 삭제 및 descade
     public void deleteFile(Long id) {
        OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(id);
 
@@ -87,18 +92,11 @@ public class FileBoardService {
 
         // 원본 파일 삭제
         originalResourceRepository.deleteById(id);
+
+        //인코딩 파일 삭제
+        encodedResourceRepository.deleteByOriginalResource(originalResource);
     }
 
-    // 썸네일 목록 조회
-    public List<ResourceThumbDTO> getThumbnailList() {
-        // 모든 썸네일을 조회하고, ResourceThumbDTO로 변환하여 반환
-        List<ThumbNail> thumbNails = thumbNailRepository.findAll();
-        return thumbNails.stream()
-                .map(t -> new ResourceThumbDTO(
-                        t.getThumbNailId(),            // 썸네일의 ID
-                        t.getOriginalResource().getFileTitle(), // 원본 파일의 제목
-                        t.getFilePath()))              // 썸네일의 경로
-                .collect(Collectors.toList());   // 변환된 DTO 리스트를 반환
-    }
+
 }
 

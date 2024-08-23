@@ -1,6 +1,7 @@
 package com.boot.ksis.controller.file;
 
 import com.boot.ksis.dto.file.ResourceListDTO;
+import com.boot.ksis.dto.file.ResourceThumbDTO;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.service.file.FileBoardService;
 import lombok.RequiredArgsConstructor;
@@ -39,12 +40,19 @@ public class FileBoardController {
         return ResponseEntity.ok(videoFiles);
     }
 
+    //썸네일 파일 목록 조회
+    @GetMapping("/thumbs")
+    public ResponseEntity<List<ResourceThumbDTO>> getThumbFile(@PathVariable String originalResourceId) {
+        List<ResourceThumbDTO> thumbFiles = fileBoardService.getThumbnailList();
+        return ResponseEntity.ok(thumbFiles);
+    }
+
     // 파일 제목 수정
     @PutMapping("/{originalResourceId}")
     public ResponseEntity<OriginalResource> updateFileTitle(@PathVariable Long originalResourceId, @RequestParam String newTitle) {
         Optional<OriginalResource> updatedResource = fileBoardService.updateFileTitle(originalResourceId, newTitle);
         return updatedResource
-                .map(resource -> ResponseEntity.ok(resource))
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

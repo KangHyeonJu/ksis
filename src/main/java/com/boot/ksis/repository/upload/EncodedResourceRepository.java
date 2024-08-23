@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface EncodedResourceRepository extends JpaRepository<EncodedResource, Long> {
     // 파일 이름으로 EncodedResource 조회하는 메서드
     Optional<EncodedResource> findByFileName(String fileName);
+    void deleteByOriginalResource(OriginalResource originalResource);
 }
