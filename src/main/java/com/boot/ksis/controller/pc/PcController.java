@@ -3,9 +3,6 @@ package com.boot.ksis.controller.pc;
 import com.boot.ksis.dto.PcFormDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.pc.PcService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,8 +17,6 @@ public class PcController {
     private final PcService pcService;
     private final AccountListService accountService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @GetMapping("/pc")
     public ResponseEntity<?> pcList(){
         return new ResponseEntity<>(pcService.getPcList(), HttpStatus.OK);
@@ -33,9 +28,7 @@ public class PcController {
     }
 
     @PostMapping("/pc/new")
-    public ResponseEntity<String> pcAddPost(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException {
-        List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<List<String>>() {});
-
+    public ResponseEntity<String> pcAddPost(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList") List<String> accountList) {
         pcService.saveNewPc(pcFormDto, accountList);
 
         return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
@@ -51,9 +44,7 @@ public class PcController {
     }
 
     @PatchMapping("/pc")
-    public ResponseEntity<String> pcUpdate(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException{
-        List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<>() {});
-
+    public ResponseEntity<String> pcUpdate(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList") List<String> accountList){
         pcService.updatePc(pcFormDto, accountList);
         return ResponseEntity.ok("pc가 정상적으로 수정되었습니다.");
     }

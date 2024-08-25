@@ -6,9 +6,6 @@ import com.boot.ksis.dto.SignageFormDTO;
 import com.boot.ksis.dto.SignageNoticeStatusDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +22,6 @@ public class SignageController {
     private final SignageService signageService;
     private final AccountListService accountService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     @GetMapping()
     public ResponseEntity<?> pcList(){
         return new ResponseEntity<>(signageService.getSignageList(), HttpStatus.OK);
@@ -37,9 +33,7 @@ public class SignageController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<String> pcAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException {
-        List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<List<String>>() {});
-
+    public ResponseEntity<String> pcAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
         signageFormDTO.setIsShow(false);
         signageService.saveNewSignage(signageFormDTO, accountList);
 
@@ -73,9 +67,7 @@ public class SignageController {
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<String> signageUpdate(@RequestPart("signageFormDto") SignageFormDTO signageFormDto, @RequestPart(value="accountList",required = false) String accountListJson) throws JsonProcessingException{
-        List<String> accountList = objectMapper.readValue(accountListJson, new TypeReference<>() {});
-
+    public ResponseEntity<String> signageUpdate(@RequestPart("signageFormDto") SignageFormDTO signageFormDto,  @RequestPart(value="accountList") List<String> accountList){
         signageService.updateSignage(signageFormDto, accountList);
         return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
     }
