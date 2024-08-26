@@ -1,5 +1,6 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.signage;
 
+import com.boot.ksis.dto.account.AccountDeviceDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

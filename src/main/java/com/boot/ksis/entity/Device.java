@@ -1,8 +1,8 @@
 package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.PcFormDTO;
-import com.boot.ksis.dto.SignageFormDTO;
+import com.boot.ksis.dto.pc.PcFormDTO;
+import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

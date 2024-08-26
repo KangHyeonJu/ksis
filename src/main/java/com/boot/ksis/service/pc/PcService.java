@@ -1,9 +1,9 @@
 package com.boot.ksis.service.pc;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.AccountDeviceDTO;
-import com.boot.ksis.dto.PcFormDTO;
-import com.boot.ksis.dto.DeviceListDTO;
+import com.boot.ksis.dto.account.AccountDeviceDTO;
+import com.boot.ksis.dto.pc.PcFormDTO;
+import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;

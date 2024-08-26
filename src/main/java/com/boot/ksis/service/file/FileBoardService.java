@@ -1,14 +1,13 @@
 package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.OriginalResourceDTO;
-import com.boot.ksis.dto.SignageResourceDTO;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.file.ResourceThumbDTO;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
