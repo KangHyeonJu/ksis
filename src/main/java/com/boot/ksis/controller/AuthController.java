@@ -1,6 +1,6 @@
 package com.boot.ksis.controller;
 
-import com.boot.ksis.dto.JwtTokenDTO;
+import com.boot.ksis.dto.login.JwtTokenDTO;
 import com.boot.ksis.entity.RefreshToken;
 import com.boot.ksis.repository.RefreshTokenRepository;
 import com.boot.ksis.util.JwtTokenProvider;
