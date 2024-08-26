@@ -1,8 +1,6 @@
 package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.OriginalResourceDTO;
-import com.boot.ksis.dto.SignageResourceDTO;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.file.ResourceThumbDTO;
@@ -29,7 +27,6 @@ public class FileBoardService {
 
     // OriginalResource 엔티티를 데이터베이스에서 조회하거나 저장하는 데 사용되는 레포지토리
     private final OriginalResourceRepository originalResourceRepository;
-    private final ThumbNailRepository thumbNailRepository;
 
     // ThumbNail 엔티티를 데이터베이스에서 조회하거나 삭제하는 데 사용되는 레포지토리
     private final ThumbNailRepository thumbNailRepository;

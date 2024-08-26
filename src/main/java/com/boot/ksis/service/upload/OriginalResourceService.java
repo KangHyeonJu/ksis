@@ -1,7 +1,7 @@
 package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
-import com.boot.ksis.dto.resource.OriginalResourceDTO;
+import com.boot.ksis.dto.upload.OriginalResourceDTO;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
