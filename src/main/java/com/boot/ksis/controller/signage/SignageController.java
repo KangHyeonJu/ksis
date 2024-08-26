@@ -27,6 +27,16 @@ public class SignageController {
         return new ResponseEntity<>(signageService.getSignageList(), HttpStatus.OK);
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteSignage(@RequestParam List<Long> signageIds){
+        try{
+            signageService.deleteSignage(signageIds);
+            return ResponseEntity.ok("재생장치 삭제를 성공했습니다.");
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("재생장치 삭제를 실패했습니다.", HttpStatus.OK);
+        }
+    }
+
     @GetMapping("/grid")
     public  ResponseEntity<?> signageGridList(){
         return new ResponseEntity<>(signageService.getSignageGridList(), HttpStatus.OK);

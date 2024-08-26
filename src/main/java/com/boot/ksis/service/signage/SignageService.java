@@ -15,9 +15,14 @@ import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
+import com.boot.ksis.repository.playlist.PlayListRepository;
+import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.*;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +46,11 @@ public class SignageService {
     private final PlayListRepository playListRepository;
     private final PlaylistSequenceRepository playlistSequenceRepository;
     private final EncodedResourceRepository encodedResourceRepository;
+    private final DeviceEncodeMapRepository deviceEncodeMapRepository;
+    private final DeviceNoticeMapRepository deviceNoticeMapRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public List<DeviceListDTO> getSignageList(){
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
@@ -64,7 +74,7 @@ public class SignageService {
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
         for(Device device : deviceList){
             PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
-            
+
             String thumbNailPath;
 
             if(playList != null){
@@ -300,5 +310,34 @@ public class SignageService {
                                 .fileTitle(playList.getFileTitle())
                                 .SignageResourceDTO(signageResourceDTOList)
                                 .build();
+    }
+
+    //재생장치 삭제
+    @Transactional
+    public void deleteSignage(List<Long> signageIds){
+        for(Long signage : signageIds){
+            Device device = signageRepository.findByDeviceId(signage);
+            List<PlayList> playListList = playListRepository.findByDevice(device);
+
+            for(PlayList playList : playListList){
+                //순서 삭제
+                playlistSequenceRepository.deleteByPlaylistId(playList.getPlaylistId());
+                //재생 목록 삭제
+                playListRepository.deleteById(playList.getPlaylistId());
+            }
+        }
+        //인코딩 맵 삭제
+        deviceEncodeMapRepository.deleteByDeviceIdIn(signageIds);
+
+        //계정 맵 삭제
+        accountDeviceMapRepository.deleteByDeviceIdIn(signageIds);
+
+        //공지 맵 삭제
+        deviceNoticeMapRepository.deleteByDeviceIdIn(signageIds);
+
+        entityManager.flush();
+
+        //재생장치 삭제
+        signageRepository.deleteAllByIdInBatch(signageIds);
     }
 }

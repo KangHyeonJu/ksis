@@ -1,4 +1,4 @@
-package com.boot.ksis.repository.signage;
+package com.boot.ksis.repository.playlist;
 
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.PlayList;

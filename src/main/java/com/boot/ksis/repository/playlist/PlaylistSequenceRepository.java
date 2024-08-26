@@ -1,4 +1,4 @@
-package com.boot.ksis.repository.signage;
+package com.boot.ksis.repository.playlist;
 
 import com.boot.ksis.entity.IdClass.PlaylistSequenceId;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
@@ -12,4 +12,5 @@ public interface PlaylistSequenceRepository extends JpaRepository<PlaylistSequen
     void deleteByPlaylistId(Long playlistId);
 
     PlaylistSequence findByPlaylistIdAndSequence(Long playlistId, int sequence);
+
 }
