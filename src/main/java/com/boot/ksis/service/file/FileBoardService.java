@@ -1,7 +1,9 @@
 package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.dto.OriginalResourceDTO;
 import com.boot.ksis.dto.SignageResourceDTO;
+import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.file.ResourceThumbDTO;
 import com.boot.ksis.entity.EncodedResource;
@@ -45,6 +47,21 @@ public class FileBoardService {
                         resource.getFormat(),           // 파일의 포맷
                         resource.getRegTime()))   //등록일
                 .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
+    }
+    // 특정 파일 조회
+    public List<EncodeListDTO> getResourceDtl(Long originalResourceId) {
+        List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
+
+        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+
+        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
+
+        for (EncodedResource encodedResource : encodedResources) {
+            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            resourceDetailListDTO.add(encode);
+        }
+
+        return resourceDetailListDTO;
     }
 
     // 이미지 파일만 조회

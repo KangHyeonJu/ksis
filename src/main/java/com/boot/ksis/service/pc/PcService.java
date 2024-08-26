@@ -52,7 +52,8 @@ public class PcService {
         pcRepository.save(device);
 
         for (String accountId : accountList) {
-            Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
+            Account account = accountRepository.findById(accountId)
+                    .orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
 
             AccountDeviceMap accountDeviceMap = new AccountDeviceMap();
             accountDeviceMap.setDeviceId(pcFormDto.getDeviceId());

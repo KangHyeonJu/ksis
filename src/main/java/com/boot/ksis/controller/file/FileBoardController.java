@@ -1,7 +1,9 @@
 package com.boot.ksis.controller.file;
 
+import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.file.ResourceThumbDTO;
+import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.service.file.FileBoardService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,13 @@ public class FileBoardController {
     public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
         List<ResourceListDTO> videoFiles = fileBoardService.getVideoFiles();
         return ResponseEntity.ok(videoFiles);
+    }
+    // 원본 특정 파일 상세조회 
+    @GetMapping("/{originalResourceId}")
+    public ResponseEntity<List<EncodeListDTO>> getResourceDtl (@PathVariable Long originalResourceId) {
+        //  상세 조회 서비스 호출
+        List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceDtl(originalResourceId);
+        return ResponseEntity.ok(encodeListDTO); //원본 특정 파일 상세조회값 반환
     }
 
     // 파일 제목 수정
