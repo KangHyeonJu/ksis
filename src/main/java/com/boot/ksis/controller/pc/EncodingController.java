@@ -1,16 +1,14 @@
 package com.boot.ksis.controller.pc;
 
+import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.controller.electron.FileUploadController;
-import com.boot.ksis.dto.EncodingRequestDTO;
 import com.boot.ksis.service.upload.EncodedResourceService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

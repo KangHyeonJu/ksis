@@ -4,14 +4,16 @@ import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.IdClass.PlaylistSequenceId;
 import com.boot.ksis.entity.PlayList;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "playlist_sequence")
 @IdClass(PlaylistSequenceId.class)
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PlaylistSequence {
     //재생목록 id
     @Id

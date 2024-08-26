@@ -2,7 +2,7 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.EncodingRequestDTO;
+import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
@@ -20,7 +20,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.upload;
 
 import lombok.Getter;
 import lombok.Setter;

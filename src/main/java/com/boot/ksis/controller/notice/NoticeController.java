@@ -2,6 +2,7 @@ package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,10 +12,10 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
 @RequestMapping("/api/notices")
+@RequiredArgsConstructor
 public class NoticeController {
 
-    @Autowired
-    private NoticeService noticeService;
+    private final NoticeService noticeService;
 
     // 공지 등록
     @PostMapping
