@@ -94,17 +94,16 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
+            log.info("Invalid JWT Token", e); // 서명 오류 또는 형식이 잘못된 토큰 처리
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            log.info("Expired JWT Token", e); // 토큰 만료 시 처리
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
+            log.info("Unsupported JWT Token", e); // 지원하지 않는 JWT 토큰 형식 처리
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
+            log.info("JWT claims string is empty.", e); // 토큰이 비어 있거나 잘못된 경우 처리
         }
         return false;
     }
-
 
     // accessToken
     private Claims parseClaims(String accessToken) {
@@ -117,5 +116,21 @@ public class JwtTokenProvider {
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }
+    }
+
+    public String generateAccessToken(String accountId) {
+        return Jwts.builder()
+                .setSubject(accountId)
+                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15분
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(String accountId) {
+        return Jwts.builder()
+                .setSubject(accountId)
+                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) // 7일
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 }
