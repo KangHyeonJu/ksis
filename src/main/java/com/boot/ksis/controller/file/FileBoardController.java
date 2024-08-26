@@ -40,13 +40,6 @@ public class FileBoardController {
         return ResponseEntity.ok(videoFiles);
     }
 
-    //썸네일 파일 목록 조회
-    @GetMapping("/thumbs")
-    public ResponseEntity<List<ResourceThumbDTO>> getThumbFile(@PathVariable String originalResourceId) {
-        List<ResourceThumbDTO> thumbFiles = fileBoardService.getThumbnailList();
-        return ResponseEntity.ok(thumbFiles);
-    }
-
     // 파일 제목 수정
     @PutMapping("/{originalResourceId}")
     public ResponseEntity<OriginalResource> updateFileTitle(@PathVariable Long originalResourceId, @RequestParam String newTitle) {
@@ -57,6 +50,7 @@ public class FileBoardController {
     }
 
     // 파일 삭제
+    // 삭제하면 인코딩 파일, 썸네일 다 DB에서 삭제
     @DeleteMapping("/{originalResource}")
     public ResponseEntity<Void> deleteFile(@PathVariable Long originalResource) {
         fileBoardService.deleteFile(originalResource);
