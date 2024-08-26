@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -39,52 +40,57 @@ public class EncodedResourceService {
 
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
-    public EncodedResource saveEncodingInfo(String fileName,String title, String format, String resolution){
+    public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
         createDirectoryIfNotExists(encodingLocation);
 
-        // 원본 리소스 조회
-        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
+        // 각 파일에 대한 인코딩 정보
+        encodings.forEach((fileName, request) -> {
+            request.getEncodings().forEach(encoding -> {
+                // 원본 리소스 조회
+                Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
 
-        // 파일 이름에서 확장자 제거
-        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+                // 파일 이름에서 확장자 제거
+                String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
 
-        // 파일 이름 설정
-        String outputFileName = baseName + "_" + resolution + "." + format;
+                // 파일 이름 설정
+                String outputFileName = baseName + "_" + encoding.get("resolution") + "." + encoding.get("format");
 
-        // 제목 설정
-        String encodedTitle = title + "_" + resolution + "_" + format;
+                // 제목 설정
+                String encodedTitle = request.getTitle() + "_" + encoding.get("resolution") + "_" + encoding.get("format");
 
-        // 경로 설정
-        String path = "/file/encoding/" + outputFileName;
+                // 경로 설정
+                String path = "/file/encoding/" + outputFileName;
 
-        // 파일 유형 설정 (영상 확장자 목록)
-        String[] videoExtensions = {"mp4", "avi", "mov", "mkv"};
-        String fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+                // 파일 유형 설정 (영상 확장자 목록)
+                String[] videoExtensions = {"mp4", "avi", "mov", "mkv"};
+                String fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 
-        ResourceType resourceType;
-        if (Arrays.asList(videoExtensions).contains(fileExtension)) {
-            resourceType = ResourceType.VIDEO;
-        } else {
-            resourceType = ResourceType.IMAGE;
-        }
+                ResourceType resourceType;
+                if (Arrays.asList(videoExtensions).contains(fileExtension)) {
+                    resourceType = ResourceType.VIDEO;
+                } else {
+                    resourceType = ResourceType.IMAGE;
+                }
 
-        if(originalResourceOpt.isPresent()){
-            EncodedResource encodedResource = new EncodedResource();
-            encodedResource.setOriginalResource(originalResourceOpt.get());
-            encodedResource.setFileName(outputFileName);
-            encodedResource.setFileTitle(encodedTitle);
-            encodedResource.setFilePath(path);
-            encodedResource.setFormat(format);
-            encodedResource.setResolution(resolution);
-            encodedResource.setPlayTime(originalResourceOpt.get().getPlayTime());
-            encodedResource.setResourceStatus(ResourceStatus.UPLOADING);
-            encodedResource.setResourceType(resourceType);
+                if(originalResourceOpt.isPresent()){
+                    EncodedResource encodedResource = new EncodedResource();
+                    encodedResource.setOriginalResource(originalResourceOpt.get());
+                    encodedResource.setFileName(outputFileName);
+                    encodedResource.setFileTitle(encodedTitle);
+                    encodedResource.setFilePath(path);
+                    encodedResource.setFormat(encoding.get("format"));
+                    encodedResource.setResolution(encoding.get("format"));
+                    encodedResource.setPlayTime(originalResourceOpt.get().getPlayTime());
+                    encodedResource.setResourceStatus(ResourceStatus.UPLOADING);
+                    encodedResource.setResourceType(resourceType);
 
-            // 데이터베이스 저장
-            return encodedResourceRepository.save(encodedResource);
-        }else{
-            throw new IllegalArgumentException("Original resource not found for fileName: " + fileName);
-        }
+                    // 데이터베이스 저장
+                    encodedResourceRepository.save(encodedResource);
+                }else{
+                    throw new IllegalArgumentException("Original resource not found for fileName: " + fileName);
+                }
+            });
+        });
     }
 
     // 각 파일들 인코딩 메서드
