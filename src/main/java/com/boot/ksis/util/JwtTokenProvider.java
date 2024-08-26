@@ -1,6 +1,6 @@
 package com.boot.ksis.util;
 
-import com.boot.ksis.dto.JwtTokenDTO;
+import com.boot.ksis.dto.login.JwtTokenDTO;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

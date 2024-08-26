@@ -1,7 +1,13 @@
 package com.boot.ksis.service.signage;
 
 import com.boot.ksis.constant.DeviceType;
-import com.boot.ksis.dto.*;
+import com.boot.ksis.dto.account.AccountDeviceDTO;
+import com.boot.ksis.dto.pc.DeviceListDTO;
+import com.boot.ksis.dto.playlist.*;
+import com.boot.ksis.dto.signage.SignageFormDTO;
+import com.boot.ksis.dto.signage.SignageGridDTO;
+import com.boot.ksis.dto.signage.SignageNoticeDTO;
+import com.boot.ksis.dto.signage.SignageResourceDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -50,6 +56,30 @@ public class SignageService {
 
             return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
         }).collect(Collectors.toList());
+    }
+
+    public List<SignageGridDTO> getSignageGridList(){
+        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+
+        List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
+        for(Device device : deviceList){
+            PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
+            
+            String thumbNailPath;
+
+            if(playList != null){
+                PlaylistSequence playlistSequence = playlistSequenceRepository.findByPlaylistIdAndSequence(playList.getPlaylistId(), 1);
+
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(playlistSequence.getEncodedResource().getOriginalResource());
+                thumbNailPath = thumbNail.getFilePath();
+            }else {
+                thumbNailPath = device.getDeviceName();
+            }
+            SignageGridDTO signageGridDTO = SignageGridDTO.builder().deviceId(device.getDeviceId()).deviceName(device.getDeviceName()).thumbNail(thumbNailPath).build();
+
+            signageGridDTOList.add(signageGridDTO);
+        }
+        return signageGridDTOList;
     }
 
     public void saveNewSignage(SignageFormDTO signageFormDTO, List<String> accountList){

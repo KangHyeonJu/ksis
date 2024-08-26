@@ -1,6 +1,6 @@
 package com.boot.ksis.entity;
 
-import com.boot.ksis.dto.PlayListAddDTO;
+import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

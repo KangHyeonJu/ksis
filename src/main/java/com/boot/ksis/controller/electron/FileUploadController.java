@@ -2,7 +2,7 @@ package com.boot.ksis.controller.electron;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.OriginalResourceDTO;
+import com.boot.ksis.dto.resource.OriginalResourceDTO;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.service.upload.OriginalResourceService;

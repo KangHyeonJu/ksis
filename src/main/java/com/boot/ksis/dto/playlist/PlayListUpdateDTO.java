@@ -1,4 +1,4 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.playlist;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 public class PlayListUpdateDTO {
     //인코딩리소스
-    List<SignageResourceDTO> SignageResourceDTO;
+    List<com.boot.ksis.dto.signage.SignageResourceDTO> SignageResourceDTO;
 
     //재생목록 제목
     private String fileTitle;

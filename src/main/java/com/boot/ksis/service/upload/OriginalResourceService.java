@@ -1,15 +1,11 @@
 package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
-import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.OriginalResourceDTO;
+import com.boot.ksis.dto.resource.OriginalResourceDTO;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor

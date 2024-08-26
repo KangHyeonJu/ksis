@@ -1,6 +1,6 @@
 package com.boot.ksis.controller.pc;
 
-import com.boot.ksis.dto.PcFormDTO;
+import com.boot.ksis.dto.pc.PcFormDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.pc.PcService;
 import jakarta.persistence.EntityNotFoundException;

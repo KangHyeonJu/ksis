@@ -1,21 +1,22 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.playlist;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@Builder
-public class SignageResourceDTO {
-    //리소스 아이디
+public class PlayListDtlDTO {
+    //인코딩 리소스 아이디
     private Long encodedResourceId;
 
-    //리소스 제목
+    //인코딩 리소스 제목
     private String fileTitle;
 
-    //리소스 썸네일 경로
+    //썸네일 경로
     private String thumbFilePath;
+
+    //순서
+    private int sequence;
 }

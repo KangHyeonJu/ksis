@@ -1,12 +1,11 @@
 package com.boot.ksis.controller.pc;
 
-import com.boot.ksis.dto.EncodingRequestDTO;
+import com.boot.ksis.dto.resource.EncodingRequestDTO;
 import com.boot.ksis.service.upload.EncodedResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

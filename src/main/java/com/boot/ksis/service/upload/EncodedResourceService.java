@@ -2,7 +2,7 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.EncodingRequestDTO;
+import com.boot.ksis.dto.resource.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;

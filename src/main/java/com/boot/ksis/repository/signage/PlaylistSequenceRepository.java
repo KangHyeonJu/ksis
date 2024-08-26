@@ -10,4 +10,6 @@ public interface PlaylistSequenceRepository extends JpaRepository<PlaylistSequen
     List<PlaylistSequence> findByPlaylistId(Long playlistId);
 
     void deleteByPlaylistId(Long playlistId);
+
+    PlaylistSequence findByPlaylistIdAndSequence(Long playlistId, int sequence);
 }

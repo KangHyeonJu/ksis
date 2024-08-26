@@ -1,9 +1,9 @@
 package com.boot.ksis.controller.signage;
 
-import com.boot.ksis.dto.PlayListAddDTO;
-import com.boot.ksis.dto.PlayListSequenceDTO;
-import com.boot.ksis.dto.SignageFormDTO;
-import com.boot.ksis.dto.SignageNoticeStatusDTO;
+import com.boot.ksis.dto.playlist.PlayListAddDTO;
+import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
+import com.boot.ksis.dto.signage.SignageFormDTO;
+import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,17 +23,22 @@ public class SignageController {
     private final AccountListService accountService;
 
     @GetMapping()
-    public ResponseEntity<?> pcList(){
+    public ResponseEntity<?> signageList(){
         return new ResponseEntity<>(signageService.getSignageList(), HttpStatus.OK);
     }
 
+    @GetMapping("/grid")
+    public  ResponseEntity<?> signageGridList(){
+        return new ResponseEntity<>(signageService.getSignageGridList(), HttpStatus.OK);
+    }
+
     @GetMapping("/new")
-    public ResponseEntity<?> pcAdd(){
+    public ResponseEntity<?> signageAdd(){
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
     @PostMapping("/new")
-    public ResponseEntity<String> pcAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
+    public ResponseEntity<String> signageAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
         signageFormDTO.setIsShow(false);
         signageService.saveNewSignage(signageFormDTO, accountList);
 

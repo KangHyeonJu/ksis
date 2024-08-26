@@ -1,4 +1,4 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.playlist;
 
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.PlayList;
