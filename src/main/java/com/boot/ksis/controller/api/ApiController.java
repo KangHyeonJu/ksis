@@ -1,8 +1,8 @@
 package com.boot.ksis.controller.api;
 
-import com.boot.ksis.entity.API;
+import com.boot.ksis.dto.api.ApiDTO;
 import com.boot.ksis.service.api.ApiService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,24 +11,24 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
+@RequiredArgsConstructor
 public class ApiController {
 
-    @Autowired
-    private ApiService apiService;
+    private final ApiService apiService;
 
     // API 등록
     @PostMapping("/register")
-    public ResponseEntity<API> registerAPI(@RequestBody API api) {
-        API savedAPI = apiService.saveApi(api);
-        return ResponseEntity.ok(savedAPI);
+    public ResponseEntity<ApiDTO> registerAPI(@RequestBody ApiDTO apiDTO) {
+        ApiDTO savedApiDTO = apiService.saveApi(apiDTO);
+        return ResponseEntity.ok(savedApiDTO);
     }
 
     // API 수정
     @PutMapping("/update/{id}")
-    public ResponseEntity<API> updateAPI(@PathVariable Long id, @RequestBody API api) {
-        API updatedAPI = apiService.updateApi(id, api);
-        if (updatedAPI != null) {
-            return ResponseEntity.ok(updatedAPI);
+    public ResponseEntity<ApiDTO> updateAPI(@PathVariable Long id, @RequestBody ApiDTO apiDTO) {
+        ApiDTO updatedApiDTO = apiService.updateApi(id, apiDTO);
+        if (updatedApiDTO != null) {
+            return ResponseEntity.ok(updatedApiDTO);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -43,17 +43,17 @@ public class ApiController {
 
     // 모든 API 조회
     @GetMapping("/all")
-    public ResponseEntity<List<API>> getAllAPIs() {
-        List<API> apis = apiService.getAllApis();
+    public ResponseEntity<List<ApiDTO>> getAllAPIs() {
+        List<ApiDTO> apis = apiService.getAllApis();
         return ResponseEntity.ok(apis);
     }
 
     // 특정 API 조회
     @GetMapping("/posts/{id}")
-    public ResponseEntity<API> getAPIById(@PathVariable Long id) {
-        API api = apiService.getApiById(id);
-        if (api != null) {
-            return ResponseEntity.ok(api);
+    public ResponseEntity<ApiDTO> getAPIById(@PathVariable Long id) {
+        ApiDTO apiDTO = apiService.getApiById(id);
+        if (apiDTO != null) {
+            return ResponseEntity.ok(apiDTO);
         } else {
             return ResponseEntity.notFound().build();
         }

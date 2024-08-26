@@ -15,4 +15,8 @@ public interface OriginalResourceRepository extends JpaRepository<OriginalResour
 
     // 이미지 파일만 조회
     List<OriginalResource> findByResourceType(ResourceType resourceType);
+
+    //파일 삭제
+    OriginalResource findByOriginalResourceId(Long originalResourceId);
+
 }
