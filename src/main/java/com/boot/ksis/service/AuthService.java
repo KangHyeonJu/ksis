@@ -1,6 +1,6 @@
 package com.boot.ksis.service;
 
-import com.boot.ksis.dto.JwtTokenDTO;
+import com.boot.ksis.dto.Auth.JwtTokenDTO;
 import com.boot.ksis.entity.RefreshToken;
 import com.boot.ksis.repository.RefreshTokenRepository;
 import com.boot.ksis.util.JwtTokenProvider;
@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,32 @@ public class AuthService {
             throw e;
         }
     }
+
+//    public JwtTokenDTO refreshAccessToken(String accessToken) {
+//        // 액세스 토큰에서 계정 ID 추출
+//        String accountId = jwtTokenProvider.getAccountIdFromToken(accessToken);
+//
+//        // 새 액세스 토큰 생성
+//        String newAccessToken = jwtTokenProvider.generateAccessToken(accountId);
+//
+//        // JwtTokenDTO 객체 생성 및 반환 (여기서는 새로 생성된 액세스 토큰만 반환)
+//        return JwtTokenDTO.builder()
+//                .grantType("Bearer")
+//                .accessToken(newAccessToken)
+//                .build();
+//    }
+
+//    @Transactional
+//    public JwtTokenDTO callback(String accountId){
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(accountId);
+//        System.out.println(userDetails);
+//        try {
+//                return null;
+//        } catch (Exception e){
+//            e.printStackTrace();
+//            throw e;
+//        }
+//    }
 
     @Transactional
     public void saveRefreshToken(String accountId, String refreshTokenValue) {

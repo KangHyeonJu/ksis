@@ -1,4 +1,4 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.Account;
 
 import com.boot.ksis.constant.Gender;
 import lombok.Getter;

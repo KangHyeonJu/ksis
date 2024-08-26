@@ -1,8 +1,8 @@
 package com.boot.ksis.service;
 
 import com.boot.ksis.constant.Role;
-import com.boot.ksis.dto.AccountDTO;
-import com.boot.ksis.dto.AccountListDTO;
+import com.boot.ksis.dto.Account.AccountDTO;
+import com.boot.ksis.dto.Account.AccountListDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.repository.AccountRepository;
 import com.boot.ksis.util.AESUtil;
@@ -158,7 +158,6 @@ public class AccountService {
         }
         return false;
     }
-
 
     public static boolean checkPassword(String password, String hashed) {
         return BCrypt.checkpw(password, hashed);

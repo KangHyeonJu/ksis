@@ -1,4 +1,4 @@
-package com.boot.ksis.dto;
+package com.boot.ksis.dto.Auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
