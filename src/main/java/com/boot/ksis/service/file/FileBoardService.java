@@ -56,15 +56,16 @@ public class FileBoardService {
         List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
 
         for (EncodedResource encodedResource : encodedResources) {
-            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
             resourceDetailListDTO.add(encode);
         }
 
         return resourceDetailListDTO;
     }
 
-    // 이미지 파일만 조회
-    public List<ResourceListDTO> getImageFiles() {
+    // 원본 이미지 파일만 조회
+    public List<ResourceListDTO> getRsImageFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
         List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.IMAGE);
         for (OriginalResource originalResource : originalResourceList) {
@@ -76,8 +77,21 @@ public class FileBoardService {
         return resourceListDTOList;
     }
 
-    // 동영상 파일만 조회
-    public List<ResourceListDTO> getVideoFiles() {
+    //인코딩 이미지 파일만 조회
+    public List<EncodeListDTO> getEcImageFiles() {
+        List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.IMAGE);
+        for (EncodedResource encodedResource : EncodedResourceList){
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+            EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            encodeListDTOList.add(encoded);
+        }
+
+        return encodeListDTOList;
+    }
+
+    // 원본 동영상 파일만 조회
+    public List<ResourceListDTO> getRsVideoFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
         List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.VIDEO);
         for (OriginalResource originalResource : originalResourceList) {
@@ -86,6 +100,18 @@ public class FileBoardService {
                 resourceListDTOList.add(resource);}
         }
         return resourceListDTOList;
+    }
+
+    //인코딩 동영상 파일만 조회
+    public List<EncodeListDTO> getEcVideoFiles() {
+        List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.VIDEO);
+        for (EncodedResource encodedResource : EncodedResourceList){
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+           if(thumbNail != null) {EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());}
+        }
+
+        return encodeListDTOList;
     }
 
     // 파일 제목 수정
