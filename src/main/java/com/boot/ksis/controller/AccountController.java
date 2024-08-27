@@ -1,9 +1,9 @@
 package com.boot.ksis.controller;
 
-import com.boot.ksis.dto.Account.AccountActiveDTO;
-import com.boot.ksis.dto.Account.AccountDTO;
-import com.boot.ksis.dto.Auth.JwtTokenDTO;
-import com.boot.ksis.dto.Account.LoginDTO;
+import com.boot.ksis.dto.account.AccountActiveDTO;
+import com.boot.ksis.dto.account.AccountDTO;
+import com.boot.ksis.dto.login.JwtTokenDTO;
+import com.boot.ksis.dto.login.LoginDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.service.AccountService;
 import com.boot.ksis.service.AuthService;

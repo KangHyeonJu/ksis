@@ -1,6 +1,6 @@
 package com.boot.ksis.util;
 
-import com.boot.ksis.dto.Auth.JwtTokenDTO;
+import com.boot.ksis.dto.login.JwtTokenDTO;
 import com.boot.ksis.service.AccountService;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class JwtTokenProvider {
         long now = (new Date()).getTime();
 
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 2 * 60 * 1000); // 2분
+        Date accessTokenExpiresIn = new Date(now + 15 * 60 * 1000); // 15분
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)

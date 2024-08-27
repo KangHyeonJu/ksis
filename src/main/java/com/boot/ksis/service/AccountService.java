@@ -1,10 +1,10 @@
 package com.boot.ksis.service;
 
 import com.boot.ksis.constant.Role;
-import com.boot.ksis.dto.Account.AccountDTO;
-import com.boot.ksis.dto.Account.AccountListDTO;
+import com.boot.ksis.dto.account.AccountDTO;
+import com.boot.ksis.dto.account.AccountListDTO;
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.repository.AccountRepository;
+import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.util.AESUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

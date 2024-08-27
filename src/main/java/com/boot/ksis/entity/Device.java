@@ -1,6 +1,8 @@
 package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.DeviceType;
+import com.boot.ksis.dto.pc.PcFormDTO;
+import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,11 +34,11 @@ public class Device extends BaseEntity {
     private String location;
 
     //크기
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String screenSize;
 
     //해상도
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String resolution;
 
     //상세주소
@@ -44,11 +46,27 @@ public class Device extends BaseEntity {
     private String detailAddress;
 
     //공지표시여부
-    @Column(nullable = false, columnDefinition = "TINYINT(0)")
-    @ColumnDefault("false") //공지표시 O
+    @Column(columnDefinition = "TINYINT(0)")
+    @ColumnDefault("true") //공지표시 O
     private Boolean isShow;
 
     //디바이스 유형
     @Enumerated(EnumType.STRING)
     private DeviceType deviceType;
+
+    public void updatePc(PcFormDTO pcFormDTO){
+        this.deviceName = pcFormDTO.getDeviceName();
+        this.location = pcFormDTO.getLocation();
+        this.detailAddress = pcFormDTO.getDetailAddress();
+        this.macAddress = pcFormDTO.getMacAddress();
+    }
+
+    public void updateSignage(SignageFormDTO signageFormDTO) {
+        this.deviceName = signageFormDTO.getDeviceName();
+        this.location = signageFormDTO.getLocation();
+        this.detailAddress = signageFormDTO.getDetailAddress();
+        this.macAddress = signageFormDTO.getMacAddress();
+        this.screenSize = signageFormDTO.getScreenSize();
+        this.resolution = signageFormDTO.getResolution();
+    }
 }

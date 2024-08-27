@@ -1,4 +1,4 @@
-package com.boot.ksis.dto.Account;
+package com.boot.ksis.dto.login;
 
 import lombok.Getter;
 import lombok.Setter;
