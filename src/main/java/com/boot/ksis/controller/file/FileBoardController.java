@@ -73,9 +73,15 @@ public class FileBoardController {
 
     // 파일 삭제
     // 삭제하면 인코딩 파일, 썸네일 다 DB에서 삭제
-    @DeleteMapping("/{originalResource}")
+    @DeleteMapping("/original/{originalResource}")
     public ResponseEntity<Void> deleteFile(@PathVariable Long originalResource) {
         fileBoardService.deleteFile(originalResource);
+        return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
+    }
+
+    @DeleteMapping("/encoded/{encodedResource}")
+    public ResponseEntity<Void> deleteEncodedFile(@PathVariable Long encodedResource) {
+        fileBoardService.deleteFile(encodedResource);
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
 }
