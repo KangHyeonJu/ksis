@@ -78,7 +78,7 @@ public class EncodedResourceService {
                     encodedResource.setFileTitle(encodedTitle);
                     encodedResource.setFilePath(path);
                     encodedResource.setFormat(encoding.get("format"));
-                    encodedResource.setResolution(encoding.get("format"));
+                    encodedResource.setResolution(encoding.get("resolution"));
                     encodedResource.setPlayTime(originalResourceOpt.get().getPlayTime());
                     encodedResource.setResourceStatus(ResourceStatus.UPLOADING);
                     encodedResource.setResourceType(resourceType);
