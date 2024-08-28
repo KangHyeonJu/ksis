@@ -18,9 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -172,32 +170,81 @@ public class OriginalResourceService {
         thumbNailRepository.save(thumbnail); // 썸네일 저장
     }
 
-    // 동영상 썸네일 생성 메서드
-    private void generateVideoThumbnail(String videoPath,String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException{
-        FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(videoPath);
-        try{
-            frameGrabber.start();
+//    // 동영상 썸네일 생성 메서드
+//    private void generateVideoThumbnail(String videoPath,String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException{
+//        FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(videoPath);
+//        try{
+//            frameGrabber.start();
+//
+//            // 비디오의 첫 번째 프레임을 가져옴
+//            Java2DFrameConverter converter = new Java2DFrameConverter();
+//            BufferedImage bufferedImage = converter.convert(frameGrabber.grab());
+//
+//            // 이미지를 썸네일 크기로 조정하고 파일로 저장
+//            BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
+//                    .size(200, 200)
+//                    .asBufferedImage();
+//
+//            ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
+//
+//            // 썸네일 메타데이터를 데이터베이스에 저장
+//            ThumbNail thumbnail = new ThumbNail();
+//            thumbnail.setOriginalResource(originalResource);
+//            thumbnail.setFilePath(thumbnailUrl);
+//            thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
+//
+//            thumbNailRepository.save(thumbnail); // 썸네일 저장
+//        }finally {
+//            frameGrabber.stop();
+//        }
+//    }
 
-            // 비디오의 첫 번째 프레임을 가져옴
-            Java2DFrameConverter converter = new Java2DFrameConverter();
-            BufferedImage bufferedImage = converter.convert(frameGrabber.grab());
+    // 동영상에서 썸네일 생성
+    private void generateVideoThumbnail(String videoPath, String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException {
+        // FFmpeg 명령어를 사용하여 동영상에서 프레임 추출
+        extractFrame(videoPath, thumbnailPath);
 
-            // 이미지를 썸네일 크기로 조정하고 파일로 저장
-            BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
-                    .size(200, 200)
-                    .asBufferedImage();
+        // 추출한 이미지를 썸네일 크기로 조정하고 파일로 저장
+        BufferedImage bufferedImage = ImageIO.read(new File(thumbnailPath));
+        BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
+                .size(200, 200)
+                .asBufferedImage();
+        ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
 
-            ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
+        // 썸네일 메타데이터를 데이터베이스에 저장
+        ThumbNail thumbnail = new ThumbNail();
+        thumbnail.setOriginalResource(originalResource);
+        thumbnail.setFilePath(thumbnailUrl);
+        thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
-            // 썸네일 메타데이터를 데이터베이스에 저장
-            ThumbNail thumbnail = new ThumbNail();
-            thumbnail.setOriginalResource(originalResource);
-            thumbnail.setFilePath(thumbnailUrl);
-            thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
+        thumbNailRepository.save(thumbnail); // 썸네일 저장
+    }
 
-            thumbNailRepository.save(thumbnail); // 썸네일 저장
-        }finally {
-            frameGrabber.stop();
+    // FFmpeg를 사용하여 특정 프레임 추출
+    private void extractFrame(String videoPath, String outputPath) throws IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "ffmpeg", "-i", videoPath, "-ss", "00:00:01", "-vframes", "1", outputPath
+        );
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
+
+        // FFmpeg 명령어 실행 결과 로그 읽기
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line); // 디버깅용 로그
+            }
+        }
+
+        // 프로세스 종료 대기
+        try {
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("FFmpeg process failed with exit code " + exitCode);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("FFmpeg process was interrupted", e);
         }
     }
 
