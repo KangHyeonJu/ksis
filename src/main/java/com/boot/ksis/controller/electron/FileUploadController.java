@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.*;
 
 @RestController
@@ -24,7 +25,7 @@ public class FileUploadController {
     @PostMapping("/filedatasave")
     public ResponseEntity<List<OriginalResourceDTO>> uploadFile(
             @RequestPart("dtos") List<OriginalResourceDTO> originalResourceDTOS,
-            @RequestPart("files") List<MultipartFile> files){
+            @RequestPart("files") List<MultipartFile> files) {
         try {
             // 서비스에서 파일 저장 및 데이터베이스 처리
             List<OriginalResourceDTO> returnDTO = originalResourceService.saveToDatabase(originalResourceDTOS, files);
@@ -42,12 +43,12 @@ public class FileUploadController {
             @RequestParam("fileName") String fileName,
             @RequestParam("chunkIndex") int chunkIndex,
             @RequestParam("totalChunks") int totalChunks
-    ){
-        try{
+    ) {
+        try {
             // 청크 업로드
             originalResourceService.chunkUpload(chunk, fileName, chunkIndex, totalChunks);
             return ResponseEntity.ok("청크 업로드 성공");
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("청크 파일 업로드 API", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);

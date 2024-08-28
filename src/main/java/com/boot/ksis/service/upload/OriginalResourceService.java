@@ -184,7 +184,7 @@ public class OriginalResourceService {
 
             // 이미지를 썸네일 크기로 조정하고 파일로 저장
             BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
-                    .size(200, 200)
+                    .size(800, 800)
                     .asBufferedImage();
 
             ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
