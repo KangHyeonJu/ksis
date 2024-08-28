@@ -1,6 +1,7 @@
 package com.boot.ksis.service.signage;
 
 import com.boot.ksis.constant.DeviceType;
+import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
@@ -339,5 +340,36 @@ public class SignageService {
 
         //재생장치 삭제
         signageRepository.deleteAllByIdInBatch(signageIds);
+    }
+
+    //재생목록 재생
+    public List<PlayDTO> getPlaylistPlay(Long signageId){
+        List<PlayDTO> playDTOList = new ArrayList<>();
+
+        Device device = signageRepository.findByDeviceId(signageId);
+        PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
+        List<PlaylistSequence> playlistSequenceList = playlistSequenceRepository.findByPlaylistId(playList.getPlaylistId());
+
+        for(PlaylistSequence playlistSequence : playlistSequenceList){
+            EncodedResource encodedResource = playlistSequence.getEncodedResource();
+            float playTime;
+
+            if(encodedResource.getResourceType() == ResourceType.IMAGE){
+                playTime = playList.getSlideTime();
+            }else {
+                playTime = encodedResource.getPlayTime();
+            }
+            PlayDTO playDTO = PlayDTO.builder()
+                                    .playTime(playTime)
+                                    .resourceType(encodedResource.getResourceType())
+                                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                                    .filePath(encodedResource.getFilePath())
+                                    .sequence(playlistSequence.getSequence())
+                                    .build();
+
+            playDTOList.add(playDTO);
+        }
+        playDTOList.sort(Comparator.comparingInt(PlayDTO::getSequence));
+        return playDTOList;
     }
 }

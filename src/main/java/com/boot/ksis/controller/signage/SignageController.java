@@ -176,4 +176,14 @@ public class SignageController {
 
         return ResponseEntity.ok("재생목록이 정상적으로 수정되었습니다.");
     }
+
+    @GetMapping("/play/{signageId}")
+    public ResponseEntity<?> getPlaylistPlay(@PathVariable("signageId") Long signageId){
+        try{
+            return new ResponseEntity<>(signageService.getPlaylistPlay(signageId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
+        }
+    }
+
 }
