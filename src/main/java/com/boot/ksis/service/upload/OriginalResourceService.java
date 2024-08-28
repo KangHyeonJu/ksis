@@ -69,10 +69,6 @@ public class OriginalResourceService {
             // 엔티티를 데이터베이스에 저장
             originalResourceRepository.save(originalResource);
 
-            // 파일인덱스, 파일 추가
-            dto.setFileIndex(i);
-            dto.setUserFile(file);
-
             // DTO들을 리스트에 저장
             returnDTO.add(dto);
         }

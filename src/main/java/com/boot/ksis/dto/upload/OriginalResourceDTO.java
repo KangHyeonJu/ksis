@@ -26,10 +26,6 @@ public class OriginalResourceDTO {
     private long fileSize; // 파일용량
     private ResourceStatus status; // 업로드 상태
     private ResourceType resourceType; // 이미지, 영상 구분
-    private int fileIndex;
-
-    @JsonIgnore // 이 필드는 JSON 직렬화에서 제외됩니다.
-    private MultipartFile userFile;
 
     // 엔티티에 자동으로 넣어주는 코드
     private static ModelMapper modelMapper = new ModelMapper();
