@@ -4,6 +4,7 @@ import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.file.ResourceThumbDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
+import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.service.file.FileBoardService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,7 @@ public class FileBoardController {
         return ResponseEntity.ok(videoFiles);
     }
     // 원본 특정 파일 상세조회 
-    @GetMapping("/{originalResourceId}")
+    @GetMapping("/original/{originalResourceId}")
     public ResponseEntity<List<EncodeListDTO>> getResourceDtl (@PathVariable Long originalResourceId) {
         //  상세 조회 서비스 호출
         List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceDtl(originalResourceId);
@@ -62,11 +63,20 @@ public class FileBoardController {
         return ResponseEntity.ok(videoFiles);
     }
 
-    // 파일 제목 수정
-    @PutMapping("/{originalResourceId}")
-    public ResponseEntity<OriginalResource> updateFileTitle(@PathVariable Long originalResourceId, @RequestParam String newTitle) {
-        Optional<OriginalResource> updatedResource = fileBoardService.updateFileTitle(originalResourceId, newTitle);
-        return updatedResource
+    // 원본 파일 제목 수정
+    @PutMapping("/original/{originalResourceId}")
+    public ResponseEntity<OriginalResource> updateOrFileTitle(@PathVariable Long originalResourceId, @RequestParam String newTitle) {
+        Optional<OriginalResource> updatedRsResource = fileBoardService.updateOrFileTitle(originalResourceId, newTitle);
+        return updatedRsResource
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // 인코딩 파일 제목 수정
+    @PutMapping("/encoded/{encodedResourceId}")
+    public ResponseEntity<EncodedResource> updateErFileTitle(@PathVariable Long encodedResourceId, @RequestParam String newTitle) {
+        Optional<EncodedResource> updatedEcResource = fileBoardService.updateErFileTitle(encodedResourceId, newTitle);
+        return updatedEcResource
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

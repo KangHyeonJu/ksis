@@ -34,7 +34,7 @@ public class FileBoardService {
     //encodedResource 엔티티
     private final EncodedResourceRepository encodedResourceRepository;
 
-    // 모든 파일 조회
+    // 모든 원본 파일 조회
     public List<ResourceListDTO> getAllFiles() {
         // 모든 OriginalResource 엔티티를 조회하고, ResourceListDTO로 변환하여 반환
         return originalResourceRepository.findAll().stream()
@@ -47,7 +47,7 @@ public class FileBoardService {
                         resource.getRegTime()))   //등록일
                 .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
     }
-    // 특정 파일 조회
+    // 특정 원본 파일 조회
     public List<EncodeListDTO> getResourceDtl(Long originalResourceId) {
         List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
 
@@ -114,13 +114,23 @@ public class FileBoardService {
         return encodeListDTOList;
     }
 
-    // 파일 제목 수정
-    public Optional<OriginalResource> updateFileTitle(Long id, String newTitle) {
+    // 원본 파일 제목 수정
+    public Optional<OriginalResource> updateOrFileTitle(Long id, String newTitle) {
         // 주어진 ID로 원본 파일을 찾고, 제목을 수정 후 저장
         return originalResourceRepository.findById(id)
                 .map(resource -> {
                     resource.setFileTitle(newTitle);    // 제목 수정
                     return originalResourceRepository.save(resource); // 수정된 파일 저장
+                });
+    }
+
+    // 인코딩 파일 제목 수정
+    public Optional<EncodedResource> updateErFileTitle(Long id, String newTitle) {
+        // 주어진 ID로 원본 파일을 찾고, 제목을 수정 후 저장
+        return encodedResourceRepository.findById(id)
+                .map(encoded -> {
+                    encoded.setFileTitle(newTitle);    // 제목 수정
+                    return encodedResourceRepository.save(encoded); // 수정된 파일 저장
                 });
     }
 
