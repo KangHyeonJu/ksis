@@ -8,8 +8,6 @@ import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -204,10 +202,12 @@ public class OriginalResourceService {
         // FFmpeg 명령어를 사용하여 동영상에서 프레임 추출
         extractFrame(videoPath, thumbnailPath);
 
-            // 이미지를 썸네일 크기로 조정하고 파일로 저장
-            BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
-                    .size(800, 800)
-                    .asBufferedImage();
+        // 추출한 이미지를 썸네일 크기로 조정하고 파일로 저장
+        BufferedImage bufferedImage = ImageIO.read(new File(thumbnailPath));
+        BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
+                .size(200, 200)
+                .asBufferedImage();
+        ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
 
         // 썸네일 메타데이터를 데이터베이스에 저장
         ThumbNail thumbnail = new ThumbNail();
