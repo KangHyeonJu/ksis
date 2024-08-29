@@ -4,6 +4,7 @@ import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.OriginalResource;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -28,6 +29,8 @@ public class OriginalResourceDTO {
 
     // 엔티티에 자동으로 넣어주는 코드
     private static ModelMapper modelMapper = new ModelMapper();
+
+
 
     public OriginalResource createNewSignage(){
         return modelMapper.map(this, OriginalResource.class);
