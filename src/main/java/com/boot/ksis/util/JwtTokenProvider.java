@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private final SecretKey key;
-
-    private AccountService accountService;
     private final UserDetailsService userDetailsService;
 
     // secret값 가져와서 저장 ( 생성자 주입 )
@@ -43,7 +41,7 @@ public class JwtTokenProvider {
 
     // Member 정보를 가지고 AccessToken, RefreshToken을 생성하는 메서드
     public JwtTokenDTO generateToken(Authentication authentication) {
-        // 권한 가져오기
+         // 권한 가져오기
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
@@ -52,6 +50,7 @@ public class JwtTokenProvider {
 
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + 15 * 60 * 1000); // 15분
+//        Date accessTokenExpiresIn = new Date(now +  10 * 1000); // 10초
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -62,6 +61,7 @@ public class JwtTokenProvider {
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + 7L * 24 * 60 * 60 * 1000)) // 7일
+//                .setExpiration(new Date(now +  10 * 1000)) // 10초
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -145,14 +145,4 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-
-//    public String generateRefreshToken(String accountId) {
-//        return Jwts.builder()
-//                .setSubject(accountId)
-//                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) // 7일
-//                .signWith(key, SignatureAlgorithm.HS256)
-//                .compact();
-//    }
-
-
 }
