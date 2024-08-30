@@ -47,8 +47,8 @@ public class FileBoardService {
                         resource.getRegTime()))   //등록일
                 .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
     }
-    // 특정 원본 파일 조회
-    public List<EncodeListDTO> getResourceDtl(Long originalResourceId) {
+    // 특정 이미지 원본 파일 조회
+    public List<EncodeListDTO> getResourceImgDtl(Long originalResourceId) {
         List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
 
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
@@ -58,6 +58,22 @@ public class FileBoardService {
         for (EncodedResource encodedResource : encodedResources) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
             EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            resourceDetailListDTO.add(encode);
+        }
+
+        return resourceDetailListDTO;
+    }
+
+    // 특정 영상 원본 파일 조회
+    public List<EncodeListDTO> getResourceVideoDtl(Long originalResourceId) {
+        List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
+
+        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+
+        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
+
+        for (EncodedResource encodedResource : encodedResources) {
+            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
             resourceDetailListDTO.add(encode);
         }
 
@@ -95,9 +111,8 @@ public class FileBoardService {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
         List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.VIDEO);
         for (OriginalResource originalResource : originalResourceList) {
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            if (thumbNail != null) { ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), thumbNail.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
-                resourceListDTOList.add(resource);}
+             ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+                resourceListDTOList.add(resource);
         }
         return resourceListDTOList;
     }
@@ -107,8 +122,8 @@ public class FileBoardService {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
         List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.VIDEO);
         for (EncodedResource encodedResource : EncodedResourceList){
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
-           if(thumbNail != null) {EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());}
+           EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+               encodeListDTOList.add(encoded);
         }
 
         return encodeListDTOList;
@@ -154,7 +169,6 @@ public class FileBoardService {
         EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(id);
         // 인코딩 파일 삭제
         encodedResourceRepository.deleteById(id);
-
     }
 
 

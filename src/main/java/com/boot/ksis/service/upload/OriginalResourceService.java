@@ -159,7 +159,7 @@ public class OriginalResourceService {
 
         // 이미지 파일을 읽어와서 썸네일을 생성하고 저장
         Thumbnails.of(new File(imagePath))
-                .size(200, 200) // 원하는 썸네일 크기 설정
+                .size(800, 800) // 원하는 썸네일 크기 설정
                 .outputFormat("jpg")
                 .toFile(new File(thumbnailPath));
 

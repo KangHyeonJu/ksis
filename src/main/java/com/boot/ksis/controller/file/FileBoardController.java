@@ -43,10 +43,17 @@ public class FileBoardController {
         return ResponseEntity.ok(videoFiles);
     }
     // 원본 특정 파일 상세조회 
-    @GetMapping("/original/{originalResourceId}")
-    public ResponseEntity<List<EncodeListDTO>> getResourceDtl (@PathVariable Long originalResourceId) {
+    @GetMapping("/Img/{originalResourceId}")
+    public ResponseEntity<List<EncodeListDTO>> getResourceImgDtl (@PathVariable Long originalResourceId) {
         //  상세 조회 서비스 호출
-        List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceDtl(originalResourceId);
+        List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceImgDtl(originalResourceId);
+        return ResponseEntity.ok(encodeListDTO); //원본 특정 파일 상세조회값 반환
+    }
+    // 원본 특정 파일 상세조회
+    @GetMapping("/Video/{originalResourceId}")
+    public ResponseEntity<List<EncodeListDTO>> getResourceVideoDtl (@PathVariable Long originalResourceId) {
+        //  상세 조회 서비스 호출
+        List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceVideoDtl(originalResourceId);
         return ResponseEntity.ok(encodeListDTO); //원본 특정 파일 상세조회값 반환
     }
 
@@ -92,7 +99,7 @@ public class FileBoardController {
 
     @DeleteMapping("/encoded/{encodedResource}")
     public ResponseEntity<Void> deleteEncodedFile(@PathVariable Long encodedResource) {
-        fileBoardService.deleteFile(encodedResource);
+        fileBoardService.deleteEncodedFile(encodedResource);
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
 }
