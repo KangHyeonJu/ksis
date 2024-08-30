@@ -372,4 +372,21 @@ public class SignageService {
         playDTOList.sort(Comparator.comparingInt(PlayDTO::getSequence));
         return playDTOList;
     }
+
+    //공지 목록 재생
+    public List<String> getPlayNotice(Long signageId){
+        List<String> notices = new ArrayList<>();
+        Device device = signageRepository.findByDeviceId(signageId);
+
+        if(device.getIsShow()){
+            List<DeviceNoticeMap> noticeList = deviceNoticeRepository.findByDeviceId(signageId);
+
+            for(DeviceNoticeMap deviceNoticeMap : noticeList){
+                Notice notice = deviceNoticeMap.getNotice();
+                String noticeContent = notice.getContent();
+                notices.add(noticeContent);
+            }
+        }
+        return notices;
+    }
 }

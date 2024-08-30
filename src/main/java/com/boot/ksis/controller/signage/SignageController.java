@@ -186,4 +186,13 @@ public class SignageController {
         }
     }
 
+    @GetMapping("/play/notice/{signageId}")
+    public ResponseEntity<?> getPlayNotice(@PathVariable("signageId") Long signageId){
+        try{
+            return new ResponseEntity<>(signageService.getPlayNotice(signageId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
+        }
+    }
+
 }
