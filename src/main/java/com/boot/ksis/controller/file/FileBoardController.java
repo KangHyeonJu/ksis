@@ -22,7 +22,7 @@ public class FileBoardController {
     private final FileBoardService fileBoardService;
 
     // 업로드된 원본 파일 목록 조회
-    @GetMapping
+    @GetMapping("/All/{originalResourceId}")
     public ResponseEntity<List<ResourceListDTO>> getAllFiles() {
         List<ResourceListDTO> files = fileBoardService.getAllFiles();
         return ResponseEntity.ok(files);
@@ -37,7 +37,7 @@ public class FileBoardController {
 
 
     // 업로드된 원본 동영상 파일 목록 조회
-    @GetMapping("/RsVideos")
+    @GetMapping("/RsVideos/{originalResourceId}")
     public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
         List<ResourceListDTO> videoFiles = fileBoardService.getRsVideoFiles();
         return ResponseEntity.ok(videoFiles);
