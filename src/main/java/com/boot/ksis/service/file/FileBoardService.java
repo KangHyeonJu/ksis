@@ -125,13 +125,12 @@ public class FileBoardService {
     }
 
     // 인코딩 파일 제목 수정
-    public Optional<EncodedResource> updateErFileTitle(Long id, String newTitle) {
-        // 주어진 ID로 원본 파일을 찾고, 제목을 수정 후 저장
-        return encodedResourceRepository.findById(id)
-                .map(encoded -> {
-                    encoded.setFileTitle(newTitle);    // 제목 수정
-                    return encodedResourceRepository.save(encoded); // 수정된 파일 저장
-                });
+    public void updateErFileTitle(Long id, EncodeListDTO encodeListDTO) {
+        EncodedResource encodedResource = encodedResourceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
+
+        encodedResource.setFileTitle(encodeListDTO.getFileTitle());
+        encodedResourceRepository.save(encodedResource); // 변경된 내용을 저장
     }
 
     @Transactional

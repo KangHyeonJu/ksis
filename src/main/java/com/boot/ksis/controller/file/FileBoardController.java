@@ -74,11 +74,12 @@ public class FileBoardController {
 
     // 인코딩 파일 제목 수정
     @PutMapping("/encoded/{encodedResourceId}")
-    public ResponseEntity<EncodedResource> updateErFileTitle(@PathVariable Long encodedResourceId, @RequestParam String newTitle) {
-        Optional<EncodedResource> updatedEcResource = fileBoardService.updateErFileTitle(encodedResourceId, newTitle);
-        return updatedEcResource
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Void> updateFileTitle(
+            @PathVariable Long encodedResourceId,
+            @RequestBody EncodeListDTO encodeListDTO) {
+
+        fileBoardService.updateErFileTitle(encodedResourceId, encodeListDTO);
+        return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
 
     // 파일 삭제
