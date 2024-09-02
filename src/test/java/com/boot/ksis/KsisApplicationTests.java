@@ -40,8 +40,6 @@ class KsisApplicationTests {
     private AccountRepository accountRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
-    @InjectMocks
-    private AccountService accountService;
 
     @InjectMocks
     private MacService macService;
