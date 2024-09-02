@@ -30,14 +30,21 @@ public class FileBoardController {
 
     // 업로드된 원본 이미지 파일 목록 조회
     @GetMapping("/RsImages")
-    public ResponseEntity<List<ResourceListDTO>> getImageFiles() {
+    public ResponseEntity<List<ResourceListDTO>> getRsImageFiles() {
         List<ResourceListDTO> imageFiles = fileBoardService.getRsImageFiles();
+        return ResponseEntity.ok(imageFiles);
+    }
+
+    // 업로드된 원본 이미지 파일 목록 조회
+    @GetMapping("/RsImages/{originalResourceId}")
+    public ResponseEntity<ResourceListDTO> getImageFiles(@PathVariable Long originalResourceId) {
+        ResourceListDTO imageFiles = fileBoardService.getImageFiles(originalResourceId);
         return ResponseEntity.ok(imageFiles);
     }
 
 
     // 업로드된 원본 동영상 파일 목록 조회
-    @GetMapping("/RsVideos/{originalResourceId}")
+    @GetMapping("/RsVideos")
     public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
         List<ResourceListDTO> videoFiles = fileBoardService.getRsVideoFiles();
         return ResponseEntity.ok(videoFiles);
@@ -97,6 +104,7 @@ public class FileBoardController {
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
 
+    //인코딩 파일 삭제, 인코딩 파일만 DB에서 삭제
     @DeleteMapping("/encoded/{encodedResource}")
     public ResponseEntity<Void> deleteEncodedFile(@PathVariable Long encodedResource) {
         fileBoardService.deleteEncodedFile(encodedResource);

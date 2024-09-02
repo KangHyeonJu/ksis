@@ -106,6 +106,13 @@ public class FileBoardService {
         return encodeListDTOList;
     }
 
+    //이미지 파일 인코딩 조회
+    public ResourceListDTO getImageFiles(Long originalResourceId) {
+        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+
+        return new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+    }
+
     // 원본 동영상 파일만 조회
     public List<ResourceListDTO> getRsVideoFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
