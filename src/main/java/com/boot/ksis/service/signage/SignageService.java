@@ -5,10 +5,7 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.SignageFormDTO;
-import com.boot.ksis.dto.signage.SignageGridDTO;
-import com.boot.ksis.dto.signage.SignageNoticeDTO;
-import com.boot.ksis.dto.signage.SignageResourceDTO;
+import com.boot.ksis.dto.signage.*;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -189,6 +186,9 @@ public class SignageService {
         return signageResourceDTOList;
     }
 
+//    public List<AccountResourceDTO> getAccountResourceList(){
+//
+//    }
     public void deleteEncodedResource(Long signageId, Long encodedResourceId){
         deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
     }

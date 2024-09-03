@@ -106,6 +106,15 @@ public class SignageController {
 
     }
 
+//    @GetMapping("/accountResource")
+//    public ResponseEntity<?> accountResource(){
+//        try{
+//            return new ResponseEntity<>(signageService.getAccountResourceList(), HttpStatus.OK);
+//        }catch(EntityNotFoundException e){
+//            return new ResponseEntity<>("resource를 찾을 수 없습니다.", HttpStatus.OK);
+//        }
+//    }
+
     @DeleteMapping("/resource/{signageId}/{encodedResourceId}")
     public ResponseEntity<?> deleteEncodedResource(@PathVariable("signageId") Long signageId, @PathVariable("encodedResourceId") Long encodedResourceId){
         try {
@@ -194,5 +203,8 @@ public class SignageController {
             return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
         }
     }
+
+
+
 
 }
