@@ -159,7 +159,6 @@ public class AccountService {
         return false;
     }
 
-
     public static boolean checkPassword(String password, String hashed) {
         return BCrypt.checkpw(password, hashed);
     }
