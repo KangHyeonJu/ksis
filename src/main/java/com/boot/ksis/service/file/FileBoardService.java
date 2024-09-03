@@ -1,24 +1,21 @@
 package com.boot.ksis.service.file;
 
+import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
-import com.boot.ksis.dto.file.ResourceThumbDTO;
+import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.entity.ThumbNail;
-import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +30,8 @@ public class FileBoardService {
 
     //encodedResource 엔티티
     private final EncodedResourceRepository encodedResourceRepository;
+
+
 
     // 모든 원본 파일 조회
     public List<ResourceListDTO> getAllFiles() {
@@ -178,6 +177,8 @@ public class FileBoardService {
         encodedResourceRepository.deleteById(id);
     }
 
+    }
 
-}
+
+
 
