@@ -65,7 +65,7 @@ public class AccountService {
         account.setPosition(dto.getPosition());
         account.setGender(dto.getGender());
         account.setIsActive(false);
-        account.setRole(Role.ADMIN);
+        account.setRole(Role.USER);
         return accountRepository.save(account);
     }
 
