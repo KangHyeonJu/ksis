@@ -92,10 +92,12 @@ public class OriginalResourceService {
             raf.write(chunk.getBytes()); // 청크 데이터를 파일에 기록
             raf.close();
 
-            OriginalResource originalResource = updateStatus(fileName);
-
             // 파일 저장 확인 후 썸네일 생성 및 저장 호출
             if (chunkIndex + 1 == totalChunks) {
+
+                // COMPLELTED로 업데이트
+                OriginalResource originalResource = updateStatus(fileName);
+
                 String fileExtension = getFileExtension(fileName).toLowerCase();
                 if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
                     // 동영상인 경우
