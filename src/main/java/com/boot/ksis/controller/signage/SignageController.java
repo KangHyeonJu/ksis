@@ -87,14 +87,14 @@ public class SignageController {
         return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
     }
 
-    @GetMapping("/notice/{signageId}")
-    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
-        try {
-            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
-        } catch(EntityNotFoundException e){
-            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
-        }
-    }
+//    @GetMapping("/notice/{signageId}")
+//    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+//        try {
+//            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+//        } catch(EntityNotFoundException e){
+//            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+//        }
+//    }
 
     @GetMapping("/resource/{signageId}")
     public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId){
@@ -105,6 +105,15 @@ public class SignageController {
         }
 
     }
+
+//    @GetMapping("/accountResource")
+//    public ResponseEntity<?> accountResource(){
+//        try{
+//            return new ResponseEntity<>(signageService.getAccountResourceList(), HttpStatus.OK);
+//        }catch(EntityNotFoundException e){
+//            return new ResponseEntity<>("resource를 찾을 수 없습니다.", HttpStatus.OK);
+//        }
+//    }
 
     @DeleteMapping("/resource/{signageId}/{encodedResourceId}")
     public ResponseEntity<?> deleteEncodedResource(@PathVariable("signageId") Long signageId, @PathVariable("encodedResourceId") Long encodedResourceId){
@@ -176,4 +185,26 @@ public class SignageController {
 
         return ResponseEntity.ok("재생목록이 정상적으로 수정되었습니다.");
     }
+
+    @GetMapping("/play/{signageId}")
+    public ResponseEntity<?> getPlaylistPlay(@PathVariable("signageId") Long signageId){
+        try{
+            return new ResponseEntity<>(signageService.getPlaylistPlay(signageId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/play/notice/{signageId}")
+    public ResponseEntity<?> getPlayNotice(@PathVariable("signageId") Long signageId){
+        try{
+            return new ResponseEntity<>(signageService.getPlayNotice(signageId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
+        }
+    }
+
+
+
+
 }

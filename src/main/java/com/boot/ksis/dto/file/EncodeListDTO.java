@@ -1,6 +1,8 @@
 package com.boot.ksis.dto.file;
 
+import com.boot.ksis.entity.EncodedResource;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,4 +24,11 @@ public class EncodeListDTO {
     private String format;
     //등록일
     private LocalDateTime regTime;
+
+    @Builder
+    public EncodeListDTO(EncodedResource encodedResource) {
+        this.encodedResourceId = encodedResource.getEncodedResourceId();
+        this.filePath = encodedResource.getFilePath();
+        this.fileTitle = encodedResource.getFileTitle();
+    }
 }

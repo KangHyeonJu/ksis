@@ -4,10 +4,8 @@ import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.OriginalResource;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class OriginalResourceDTO {
     private String filename; // 파일 이름(확장자까지)
     private String fileTitle; // 제목

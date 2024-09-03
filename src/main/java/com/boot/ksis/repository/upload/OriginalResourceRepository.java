@@ -13,7 +13,7 @@ public interface OriginalResourceRepository extends JpaRepository<OriginalResour
     // 파일 이름으로 OriginalResource를 조회하는 메서드
     Optional<OriginalResource> findByFileName(String fileName);
 
-    // 이미지 파일만 조회
+    // 파일 타입(이미지, 영상) 조회
     List<OriginalResource> findByResourceType(ResourceType resourceType);
 
     //파일 삭제

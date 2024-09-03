@@ -34,7 +34,7 @@ public class FileBoardService {
     //encodedResource 엔티티
     private final EncodedResourceRepository encodedResourceRepository;
 
-    // 모든 파일 조회
+    // 모든 원본 파일 조회
     public List<ResourceListDTO> getAllFiles() {
         // 모든 OriginalResource 엔티티를 조회하고, ResourceListDTO로 변환하여 반환
         return originalResourceRepository.findAll().stream()
@@ -47,8 +47,25 @@ public class FileBoardService {
                         resource.getRegTime()))   //등록일
                 .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
     }
-    // 특정 파일 조회
-    public List<EncodeListDTO> getResourceDtl(Long originalResourceId) {
+    // 특정 이미지 원본 파일 조회
+    public List<EncodeListDTO> getResourceImgDtl(Long originalResourceId) {
+        List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
+
+        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+
+        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
+
+        for (EncodedResource encodedResource : encodedResources) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            resourceDetailListDTO.add(encode);
+        }
+
+        return resourceDetailListDTO;
+    }
+
+    // 특정 영상 원본 파일 조회
+    public List<EncodeListDTO> getResourceVideoDtl(Long originalResourceId) {
         List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
 
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
@@ -63,8 +80,8 @@ public class FileBoardService {
         return resourceDetailListDTO;
     }
 
-    // 이미지 파일만 조회
-    public List<ResourceListDTO> getImageFiles() {
+    // 원본 이미지 파일만 조회
+    public List<ResourceListDTO> getRsImageFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
         List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.IMAGE);
         for (OriginalResource originalResource : originalResourceList) {
@@ -76,26 +93,66 @@ public class FileBoardService {
         return resourceListDTOList;
     }
 
-    // 동영상 파일만 조회
-    public List<ResourceListDTO> getVideoFiles() {
+    //인코딩 이미지 파일만 조회
+    public List<EncodeListDTO> getEcImageFiles() {
+        List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.IMAGE);
+        for (EncodedResource encodedResource : EncodedResourceList){
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+            EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            encodeListDTOList.add(encoded);
+        }
+
+        return encodeListDTOList;
+    }
+
+    //이미지 파일 인코딩 조회
+    public ResourceListDTO getImageFiles(Long originalResourceId) {
+        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+
+        return new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+    }
+
+    // 원본 동영상 파일만 조회
+    public List<ResourceListDTO> getRsVideoFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
         List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.VIDEO);
         for (OriginalResource originalResource : originalResourceList) {
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            if (thumbNail != null) { ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), thumbNail.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
-                resourceListDTOList.add(resource);}
+             ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+                resourceListDTOList.add(resource);
         }
         return resourceListDTOList;
     }
 
-    // 파일 제목 수정
-    public Optional<OriginalResource> updateFileTitle(Long id, String newTitle) {
+    //인코딩 동영상 파일만 조회
+    public List<EncodeListDTO> getEcVideoFiles() {
+        List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.VIDEO);
+        for (EncodedResource encodedResource : EncodedResourceList){
+           EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+               encodeListDTOList.add(encoded);
+        }
+
+        return encodeListDTOList;
+    }
+
+    // 원본 파일 제목 수정
+    public Optional<OriginalResource> updateOrFileTitle(Long id, String newTitle) {
         // 주어진 ID로 원본 파일을 찾고, 제목을 수정 후 저장
         return originalResourceRepository.findById(id)
                 .map(resource -> {
                     resource.setFileTitle(newTitle);    // 제목 수정
                     return originalResourceRepository.save(resource); // 수정된 파일 저장
                 });
+    }
+
+    // 인코딩 파일 제목 수정
+    public void updateErFileTitle(Long id, EncodeListDTO encodeListDTO) {
+        EncodedResource encodedResource = encodedResourceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
+
+        encodedResource.setFileTitle(encodeListDTO.getFileTitle());
+        encodedResourceRepository.save(encodedResource); // 변경된 내용을 저장
     }
 
     @Transactional
@@ -111,6 +168,14 @@ public class FileBoardService {
 
         //인코딩 파일 삭제
         encodedResourceRepository.deleteByOriginalResource(originalResource);
+    }
+
+    @Transactional
+    //인코딩 파일 삭제
+    public void deleteEncodedFile(Long id) {
+        EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(id);
+        // 인코딩 파일 삭제
+        encodedResourceRepository.deleteById(id);
     }
 
 
