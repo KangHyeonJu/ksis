@@ -105,6 +105,7 @@ public class AccountController {
             if (isValid) {
                 JwtTokenDTO jwtToken = authService.signIn(loginDTO.getAccountId(), loginDTO.getPassword());
                 System.out.println("Created JwtToken : " + jwtToken);
+
                 return ResponseEntity.ok(jwtToken);
             }else{
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\":false, \"message\":\"아이디 및 비밀번호 확인바람\"}");

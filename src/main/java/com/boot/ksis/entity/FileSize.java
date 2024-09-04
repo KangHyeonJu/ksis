@@ -24,8 +24,10 @@ public class FileSize {
     private int videoMaxSize;
 
     //이미지 총 용량
+    @ColumnDefault("0")
     private Long totalImage;
 
     //영상 총 용량
+    @ColumnDefault("0")
     private Long totalVideo;
 }

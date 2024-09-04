@@ -1,6 +1,7 @@
 package com.boot.ksis.service.file;
 
 import com.boot.ksis.dto.file.FileSizeDTO;
+import com.boot.ksis.dto.file.TotalFileSizeDTO;
 import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.repository.file.FileSizeRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +56,21 @@ public class FileSizeService {
         fileSize.setImageMaxSize(fileSizeDTO.getImageMaxSize());
         fileSize.setVideoMaxSize(fileSizeDTO.getVideoMaxSize());
         return fileSize;
+    }
+
+    //파일 총 용량
+    public TotalFileSizeDTO getTotalFileSize(){
+        FileSize fileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+            // 설정이 없으면 기본값으로 새로운 설정 생성
+            FileSize defaultFileSize = new FileSize();
+            defaultFileSize.setTotalVideo(0L);
+            defaultFileSize.setTotalImage(0L);
+            return fileSizeRepository.save(defaultFileSize);
+        });
+
+        return TotalFileSizeDTO.builder()
+                .totalImageSize(fileSize.getTotalImage())
+                .totalVideoSize(fileSize.getTotalVideo())
+                .build();
     }
 }

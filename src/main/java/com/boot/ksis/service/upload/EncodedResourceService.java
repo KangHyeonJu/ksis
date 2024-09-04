@@ -4,7 +4,9 @@ import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class EncodedResourceService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
+    private final FileSizeRepository fileSizeRepository;
 
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
@@ -294,6 +297,21 @@ public class EncodedResourceService {
 
                 // 데이터베이스 업데이트
                 encodedResourceRepository.save(encodedResource);
+
+                //인코딩 용량 추가
+                FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+                    // 설정이 없으면 기본값으로 새로운 설정 생성
+                    FileSize defaultFileSize = new FileSize();
+                    defaultFileSize.setTotalVideo(0L);
+                    defaultFileSize.setTotalImage(0L);
+                    return fileSizeRepository.save(defaultFileSize);
+                });
+                if(encodedResource.getResourceType() == ResourceType.IMAGE){
+                    addFileSize.setTotalImage(addFileSize.getTotalImage() + encodedResource.getFileSize());
+                }else {
+                    addFileSize.setTotalVideo(addFileSize.getTotalVideo() + encodedResource.getFileSize());
+                }
+
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }

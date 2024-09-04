@@ -5,7 +5,10 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.*;
+import com.boot.ksis.dto.signage.SignageFormDTO;
+import com.boot.ksis.dto.signage.SignageGridDTO;
+import com.boot.ksis.dto.signage.SignageNoticeDTO;
+import com.boot.ksis.dto.signage.SignageResourceDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -23,7 +26,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -35,7 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Slf4j
 public class SignageService {
     private final SignageRepository signageRepository;
     private final AccountRepository accountRepository;
