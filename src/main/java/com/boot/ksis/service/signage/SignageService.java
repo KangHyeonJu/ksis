@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class SignageService {
     private final SignageRepository signageRepository;
     private final AccountRepository accountRepository;
@@ -186,9 +188,41 @@ public class SignageService {
         return signageResourceDTOList;
     }
 
-//    public List<AccountResourceDTO> getAccountResourceList(){
-//
-//    }
+    public List<SignageResourceDTO> getAccountResourceList(String accountId){
+        List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
+
+        Account account = accountRepository.findByAccountId(accountId).orElse(null);
+
+        if(account != null){
+            System.out.println("account?!: " + account.getAccountId());
+            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByCreatedBy(account.getAccountId());
+
+            for(EncodedResource encodedResource : encodedResourceList){
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+                SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+
+                signageResourceDTOList.add(signageResourceDTO);
+            }
+        }
+
+        return signageResourceDTOList;
+    }
+
+    public void addSignageResource(Long signageId, List<Long> encodedResourceIdList){
+        Device device = signageRepository.findByDeviceId(signageId);
+        for(Long encodedResourceId : encodedResourceIdList){
+            EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(encodedResourceId);
+
+            DeviceEncodeMap deviceEncodeMap = new DeviceEncodeMap();
+            deviceEncodeMap.setEncodedResourceId(encodedResourceId);
+            deviceEncodeMap.setDeviceId(signageId);
+            deviceEncodeMap.setDevice(device);
+            deviceEncodeMap.setEncodedResource(encodedResource);
+
+            deviceEncodeMapRepository.save(deviceEncodeMap);
+        }
+    }
     public void deleteEncodedResource(Long signageId, Long encodedResourceId){
         deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
     }

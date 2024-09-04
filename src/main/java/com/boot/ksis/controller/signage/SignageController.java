@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -106,14 +107,23 @@ public class SignageController {
 
     }
 
-//    @GetMapping("/accountResource")
-//    public ResponseEntity<?> accountResource(){
-//        try{
-//            return new ResponseEntity<>(signageService.getAccountResourceList(), HttpStatus.OK);
-//        }catch(EntityNotFoundException e){
-//            return new ResponseEntity<>("resource를 찾을 수 없습니다.", HttpStatus.OK);
-//        }
-//    }
+    @GetMapping("/accountResource")
+    public ResponseEntity<?> accountResource(Principal principal){
+        try{
+            String accountId = principal.getName();
+
+            return new ResponseEntity<>(signageService.getAccountResourceList(accountId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("resource를 찾을 수 없습니다.", HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/resource/add/{signageId}")
+    public ResponseEntity<?> addSignageResource(@PathVariable("signageId") Long signageId, @RequestPart(value="encodedResourceIdList") List<Long> encodedResourceIdList){
+        signageService.addSignageResource(signageId, encodedResourceIdList);
+
+        return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
+    }
 
     @DeleteMapping("/resource/{signageId}/{encodedResourceId}")
     public ResponseEntity<?> deleteEncodedResource(@PathVariable("signageId") Long signageId, @PathVariable("encodedResourceId") Long encodedResourceId){
