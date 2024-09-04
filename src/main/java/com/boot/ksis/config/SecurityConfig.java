@@ -37,9 +37,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-                                .requestMatchers("/**").permitAll()
-                                // .requestMatchers("/", "/mac","/login").permitAll()
-                                .anyRequest().permitAll()
+                               .requestMatchers("/**").permitAll()
+                                // .requestMatchers("/", "/mac","/login", "/get-token").permitAll()
+                                // .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
@@ -54,7 +54,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        
         return new BCryptPasswordEncoder();
     }
    }

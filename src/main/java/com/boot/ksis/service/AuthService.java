@@ -1,6 +1,6 @@
 package com.boot.ksis.service;
 
-import com.boot.ksis.dto.JwtTokenDTO;
+import com.boot.ksis.dto.login.JwtTokenDTO;
 import com.boot.ksis.entity.RefreshToken;
 import com.boot.ksis.repository.RefreshTokenRepository;
 import com.boot.ksis.util.JwtTokenProvider;
@@ -51,6 +51,43 @@ public class AuthService {
         refreshToken.setTokenValue(refreshTokenValue);
 
         refreshTokenRepository.save(refreshToken);
+    }
+
+    public JwtTokenDTO refreshAccessToken(String authorizationHeader) {
+        // 액세스 토큰 추출
+        String accessToken = extractAccessToken(authorizationHeader);
+        System.out.println("Received accessToken: " + accessToken);
+
+        // 토큰에서 계정정보 추출 및 계정아이디에 해당하는 리프레시 토큰 조회
+        String accountId = jwtTokenProvider.getAccountIdFromToken(accessToken);
+        String refreshToken = getRefreshTokenByAccountId(accountId);
+        System.out.println("Received accountId: " + accountId);
+        System.out.println("Received refreshToken: " + refreshToken);
+
+        // 리프레시 토큰 검증
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            return null;
+        }
+
+        // 액세스 토큰 갱신
+        String newAccessToken = jwtTokenProvider.generateAccessToken(accountId);
+        System.out.println("Generated new Access Token: " + newAccessToken);
+
+        return JwtTokenDTO.builder()
+                .grantType("Bearer")
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    private String extractAccessToken(String authorizationHeader) {
+        return authorizationHeader.substring(7).trim();
+    }
+
+    private String getRefreshTokenByAccountId(String accountId) {
+        return refreshTokenRepository.findByAccountId(accountId)
+                .map(RefreshToken::getTokenValue)
+                .orElse(null);
     }
 
 }

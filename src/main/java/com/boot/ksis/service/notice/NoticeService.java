@@ -22,6 +22,7 @@ public class NoticeService {
         Notice notice = new Notice(); // 새로운 공지 엔티티 생성
         notice.setTitle(noticeDTO.getTitle()); // 제목 설정
         notice.setContent(noticeDTO.getContent()); // 내용 설정
+        notice.setCreatedBy(noticeDTO.getAccountId());//작성자 설정
         notice.setStartDate(noticeDTO.getStartDate()); // 노출 시작일 설정
         notice.setEndDate(noticeDTO.getEndDate()); // 노출 종료일 설정
 
@@ -30,6 +31,7 @@ public class NoticeService {
 
         // 저장된 공지의 ID와 시간을 NoticeDTO에 설정
         noticeDTO.setNoticeId(savedNotice.getNoticeId());
+        noticeDTO.setAccountId(savedNotice.getCreatedBy());
         noticeDTO.setRegTime(savedNotice.getRegTime()); // 등록 시간 설정
         noticeDTO.setUpdateTime(savedNotice.getUpdateTime()); // 수정 시간 설정
         return noticeDTO; // 저장된 공지 정보를 포함한 DTO 반환
@@ -43,6 +45,7 @@ public class NoticeService {
             Notice notice = optionalNotice.get(); // 공지 가져오기
             notice.setTitle(noticeDTO.getTitle()); // 제목 업데이트
             notice.setContent(noticeDTO.getContent()); // 내용 업데이트
+            notice.setModifiedBy(noticeDTO.getAccountId());//수정한 사람 아이디 업데이트
             notice.setStartDate(noticeDTO.getStartDate()); // 노출 시작일 업데이트
             notice.setEndDate(noticeDTO.getEndDate()); // 노출 종료일 업데이트
 
