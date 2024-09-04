@@ -1,19 +1,16 @@
 package com.boot.ksis.controller.file;
 
 import com.boot.ksis.dto.file.EncodeListDTO;
+import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
-import com.boot.ksis.dto.file.ResourceThumbDTO;
-import com.boot.ksis.dto.notice.NoticeDTO;
-import com.boot.ksis.dto.upload.EncodingRequestDTO;
-import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.service.file.FileBoardService;
-import com.boot.ksis.service.upload.EncodedResourceService;
+import com.boot.ksis.service.file.FileEncodingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +21,7 @@ import java.util.Optional;
 public class FileBoardController {
 
     private final FileBoardService fileBoardService;
-    private final EncodedResourceService encodedResourceService;
+    private final FileEncodingService fileEncodingService;
 
     // 업로드된 원본 파일 목록 조회
     @GetMapping("/All/{originalResourceId}")
@@ -116,23 +113,18 @@ public class FileBoardController {
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
 
-    /*// 인코딩 요청을 처리하는 엔드포인트
+    // 인코딩 요청을 처리하는 엔드포인트
     @PostMapping("/encoding/{originalResourceId}")
-    public ResponseEntity<String> encodeByOriginalResourceId(
-            @PathVariable Long originalResourceId,
-            @RequestBody Map<String, EncodingRequestDTO> encodings) {
-
+    public ResponseEntity<String> imageEncodingBoard(
+            @PathVariable("originalResourceId") Long originalResourceId,
+            @RequestBody OriginResourceListDTO originResourceListDTO) {
         try {
-            // 인코딩 서비스 메서드 호출
-            encodedResourceService.encodeByOriginalResourceId(originalResourceId, encodings);
-            return ResponseEntity.ok("인코딩을 성공적으로 다음 아이디를 통해 시작했습니다.: " + originalResourceId);
-        } catch (IllegalArgumentException e) {
-            // 원본 리소스를 찾지 못한 경우 처리
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            // 기타 예외 처리
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during encoding: " + e.getMessage());
+            // 서비스 메서드 호출
+            fileEncodingService.imageEncodingBoard(originalResourceId, originResourceListDTO);
+            return ResponseEntity.ok("Image encoding started successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Image encoding failed: " + e.getMessage());
         }
-    }*/
+    }
 
 }
