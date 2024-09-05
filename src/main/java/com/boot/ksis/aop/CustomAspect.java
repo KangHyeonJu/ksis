@@ -20,7 +20,7 @@ public class CustomAspect {
     private final AccountRepository accountRepository;
     private final ActivityLogRepository activityLogRepository;
     @Around("@annotation(CustomAnnotation)")
-    public Object logTrigger(ProceedingJoinPoint joinPoint) throws Throwable{
+    public Object activityLogTrigger(ProceedingJoinPoint joinPoint) throws Throwable{
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
 
