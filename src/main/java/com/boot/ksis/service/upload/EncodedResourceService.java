@@ -9,6 +9,7 @@ import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
