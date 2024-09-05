@@ -90,4 +90,7 @@ public class AuthService {
                 .orElse(null);
     }
 
+    public void deleteRefreshToken(String accountId){
+        refreshTokenRepository.deleteByAccountId(accountId);
+    }
 }

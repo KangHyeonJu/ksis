@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
 //                                .requestMatchers("/**").permitAll()
-                                .requestMatchers("/", "/mac","/login", "/get-token").permitAll()
+                                .requestMatchers( "/mac","/login", "/get-token", "/api/download").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

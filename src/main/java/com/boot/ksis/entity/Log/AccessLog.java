@@ -24,5 +24,6 @@ public class AccessLog extends BaseEntity {
     private Account account;
 
     //접근카테고리
+    @Enumerated(EnumType.STRING) // DB 내 String으로 표시
     private Category category;
 }
