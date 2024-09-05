@@ -32,8 +32,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
+
+    //test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'com.h2database:h2:2.2.224'
+    runtimeOnly 'com.h2database:h2'
+
     //thumbnail
     implementation 'net.coobird:thumbnailator:0.4.14'
     // JavaCV dependencies

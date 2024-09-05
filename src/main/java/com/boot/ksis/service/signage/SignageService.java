@@ -53,8 +53,17 @@ public class SignageService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<DeviceListDTO> getSignageList(){
-        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+    public List<DeviceListDTO> getSignageList(String accountId){
+        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<Device> deviceList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
+            Device device = accountDeviceMap.getDevice();
+            if(device.getDeviceType() == DeviceType.SIGNAGE){
+                deviceList.add(device);
+            }
+        }
 
         return deviceList.stream().map(device -> {
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
@@ -69,10 +78,20 @@ public class SignageService {
         }).collect(Collectors.toList());
     }
 
-    public List<SignageGridDTO> getSignageGridList(){
-        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+    public List<SignageGridDTO> getSignageGridList(String accountId){
+        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<Device> deviceList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
+            Device device = accountDeviceMap.getDevice();
+            if(device.getDeviceType() == DeviceType.SIGNAGE){
+                deviceList.add(device);
+            }
+        }
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
+
         for(Device device : deviceList){
             PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
 
