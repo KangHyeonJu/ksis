@@ -114,16 +114,30 @@ public class FileBoardController {
     }
 
     // 인코딩 요청을 처리하는 엔드포인트
-    @PostMapping("/encoding/{originalResourceId}")
+    @PostMapping("/img/encoding/{originalResourceId}")
     public ResponseEntity<String> imageEncodingBoard(
             @PathVariable("originalResourceId") Long originalResourceId,
             @RequestBody OriginResourceListDTO originResourceListDTO) {
         try {
             // 서비스 메서드 호출
             fileEncodingService.imageEncodingBoard(originalResourceId, originResourceListDTO);
-            return ResponseEntity.ok("Image encoding started successfully.");
+            return ResponseEntity.ok("이미지 인코딩이 성공적으로 시작되었습니다 . ");
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Image encoding failed: " + e.getMessage());
+            return ResponseEntity.status(500).body("이미지 인코딩 실패 : " + e.getMessage());
+        }
+    }
+
+    // 인코딩 요청을 처리하는 엔드포인트
+    @PostMapping("/video/encoding/{originalResourceId}")
+    public ResponseEntity<String> videoEncodingBoard(
+            @PathVariable("originalResourceId") Long originalResourceId,
+            @RequestBody OriginResourceListDTO originResourceListDTO) {
+        try {
+            // 서비스 메서드 호출
+            fileEncodingService.videoEncodingBoard(originalResourceId, originResourceListDTO);
+            return ResponseEntity.ok("영상 인코딩이 성공적으로 시작되었습니다 . ");
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("영상 인코딩 실패 : " + e.getMessage());
         }
     }
 
