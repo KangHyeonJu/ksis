@@ -106,7 +106,7 @@ public class FileBoardService {
     }
 
     //이미지 파일 인코딩 조회
-    public ResourceListDTO getImageFiles(Long originalResourceId) {
+    public ResourceListDTO getResourceFiles(Long originalResourceId) {
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
 
         return new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());

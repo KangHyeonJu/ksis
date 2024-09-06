@@ -167,7 +167,6 @@ public class FileEncodingService {
     }
 
     // 영상 인코딩
-    // 영상 인코딩
     public void videoEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
         String baseName = originResourceListDTO.getFileTitle(); // 파일 제목 가져오기
         String originalFilePath = originResourceListDTO.getFilePath(); // 원본 파일 경로 가져오기
@@ -244,6 +243,7 @@ public class FileEncodingService {
         encodedResource.setFileTitle(baseName + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
         encodedResource.setResolution(originResourceListDTO.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
+        encodedResource.setPlayTime(originalResource.getPlayTime());
         encodedResource.setRegTime(LocalDateTime.now());
         encodedResource.setResourceType(originalResource.getResourceType());
         encodedResource.setResourceStatus(ResourceStatus.UPLOADING); // 인코딩 진행 중 상태

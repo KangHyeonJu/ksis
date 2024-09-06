@@ -28,6 +28,8 @@ public class OriginResourceListDTO {
     private String format;
     //파일 사이즈
     private int fileSize;
+    //플레이타임
+    private float playTime;
     //등록일
     private LocalDateTime regTime;
 }

@@ -38,10 +38,10 @@ public class FileBoardController {
     }
 
     // 업로드된 원본 이미지 파일 목록 조회
-    @GetMapping("/RsImages/{originalResourceId}")
-    public ResponseEntity<ResourceListDTO> getImageFiles(@PathVariable Long originalResourceId) {
-        ResourceListDTO imageFiles = fileBoardService.getImageFiles(originalResourceId);
-        return ResponseEntity.ok(imageFiles);
+    @GetMapping("/files/{originalResourceId}")
+    public ResponseEntity<ResourceListDTO> getResourceFiles(@PathVariable Long originalResourceId) {
+        ResourceListDTO allFiles = fileBoardService.getResourceFiles(originalResourceId);
+        return ResponseEntity.ok(allFiles);
     }
 
 

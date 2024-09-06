@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.notice;
 
+import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;

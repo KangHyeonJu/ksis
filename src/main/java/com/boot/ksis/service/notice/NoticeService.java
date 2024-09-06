@@ -1,7 +1,10 @@
 package com.boot.ksis.service.notice;
 
+import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
+import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.Notice;
+import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +19,12 @@ public class NoticeService {
 
 
     private final NoticeRepository noticeRepository;
+    private final DeviceNoticeMapRepository deviceNoticeMapRepository;
 
     // 공지 등록
     public NoticeDTO createNotice(NoticeDTO noticeDTO) {
+
+
         Notice notice = new Notice(); // 새로운 공지 엔티티 생성
         notice.setTitle(noticeDTO.getTitle()); // 제목 설정
         notice.setContent(noticeDTO.getContent()); // 내용 설정
@@ -71,6 +77,7 @@ public class NoticeService {
                 .map(notice -> {
                     NoticeDTO dto = new NoticeDTO();
                     dto.setNoticeId(notice.getNoticeId()); // 공지 아이디 설정
+                    dto.setAccountId(notice.getCreatedBy());//
                     dto.setTitle(notice.getTitle()); // 제목 설정
                     dto.setContent(notice.getContent()); // 내용 설정
                     dto.setStartDate(notice.getStartDate()); // 노출 시작일 설정

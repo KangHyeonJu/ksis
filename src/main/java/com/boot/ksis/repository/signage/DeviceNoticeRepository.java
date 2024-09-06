@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface DeviceNoticeRepository extends JpaRepository<DeviceNoticeMap, DeviceNoticeId> {
     List<DeviceNoticeMap> findByDeviceId(Long deviceId);
+    void deleteByDeviceIdIn(List<Long> deviceIds);
 }
