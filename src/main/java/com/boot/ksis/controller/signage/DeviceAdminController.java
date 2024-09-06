@@ -38,13 +38,16 @@ public class DeviceAdminController {
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
-    @CustomAnnotation(activityDetail = "재생장치 추가")
+    @CustomAnnotation(activityDetail = "재생장치 등록")
     @PostMapping("/signage/new")
     public ResponseEntity<String> signageAddPost(@RequestPart("signageFormDto") SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
-        signageFormDTO.setIsShow(false);
-        signageService.saveNewSignage(signageFormDTO, accountList);
-
-        return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
+        if(signageService.checkMacAddress(signageFormDTO)){
+            signageFormDTO.setIsShow(false);
+            signageService.saveNewSignage(signageFormDTO, accountList);
+            return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
+        }else {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 MAC주소입니다.");
+        }
     }
 
     @GetMapping("/pc/new")
@@ -55,9 +58,12 @@ public class DeviceAdminController {
     @CustomAnnotation(activityDetail = "일반 PC 등록")
     @PostMapping("/pc/new")
     public ResponseEntity<String> pcAddPost(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList") List<String> accountList) {
-        pcService.saveNewPc(pcFormDto, accountList);
-
-        return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
+        if(pcService.checkMacAddress(pcFormDto)){
+            pcService.saveNewPc(pcFormDto, accountList);
+            return ResponseEntity.ok("pc가 정상적으로 등록되었습니다.");
+        }else {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 MAC주소입니다.");
+        }
     }
 
     @CustomAnnotation(activityDetail = "일반 PC 삭제")

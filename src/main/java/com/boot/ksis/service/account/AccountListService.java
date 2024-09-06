@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +13,6 @@ public class AccountListService {
     private final AccountRepository accountRepository;
 
     public List<Account> getAccountList(){
-        return accountRepository.findAll();
+        return accountRepository.findByIsActive(false);
     }
 }

@@ -65,8 +65,12 @@ public class SignageController {
     @CustomAnnotation(activityDetail = "재생장치 수정")
     @PatchMapping("/update")
     public ResponseEntity<String> signageUpdate(@RequestPart("signageFormDto") SignageFormDTO signageFormDto,  @RequestPart(value="accountList") List<String> accountList){
-        signageService.updateSignage(signageFormDto, accountList);
-        return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
+        if(signageService.checkUpdateMacAddress(signageFormDto)){
+            signageService.updateSignage(signageFormDto, accountList);
+            return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
+        }else {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 MAC주소입니다.");
+        }
     }
 
 //    @GetMapping("/notice/{signageId}")

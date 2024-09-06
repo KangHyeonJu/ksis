@@ -37,7 +37,11 @@ public class PcController {
     @CustomAnnotation(activityDetail = "일반 PC 수정")
     @PatchMapping()
     public ResponseEntity<String> pcUpdate(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList") List<String> accountList){
-        pcService.updatePc(pcFormDto, accountList);
-        return ResponseEntity.ok("pc가 정상적으로 수정되었습니다.");
+        if(pcService.checkUpdateMacAddress(pcFormDto)){
+            pcService.updatePc(pcFormDto, accountList);
+            return ResponseEntity.ok("pc가 정상적으로 수정되었습니다.");
+        }else {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 MAC주소입니다.");
+        }
     }
 }

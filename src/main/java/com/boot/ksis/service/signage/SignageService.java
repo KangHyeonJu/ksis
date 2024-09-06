@@ -131,6 +131,22 @@ public class SignageService {
         }
     }
 
+    public boolean checkMacAddress(SignageFormDTO signageFormDTO){
+        Device device = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
+
+        return device == null;
+    }
+
+    public boolean checkUpdateMacAddress(SignageFormDTO signageFormDTO){
+        Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow();
+
+        Device checkDevice = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
+
+        if(checkDevice == null){
+            return true;
+        }else return Objects.equals(device.getMacAddress(), signageFormDTO.getMacAddress());
+    }
+
     public void updateSignage(SignageFormDTO signageFormDTO, List<String> accountList){
         Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow(EntityNotFoundException::new);
         device.updateSignage(signageFormDTO);
