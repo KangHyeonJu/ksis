@@ -2,6 +2,7 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.controller.sse.SseController;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
@@ -9,7 +10,6 @@ import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -37,6 +37,7 @@ public class EncodedResourceService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
+    private final SseController sseController;
 
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
@@ -295,6 +296,9 @@ public class EncodedResourceService {
 
                 // 데이터베이스 업데이트
                 encodedResourceRepository.save(encodedResource);
+
+                // 클라이언트로 인코딩 완료 알림 전송
+                sseController.sendEvent(encodedResource.getFileTitle());
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
