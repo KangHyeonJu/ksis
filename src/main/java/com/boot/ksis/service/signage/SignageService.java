@@ -21,6 +21,7 @@ import com.boot.ksis.repository.playlist.PlayListRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.*;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
+import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
@@ -49,6 +50,7 @@ public class SignageService {
     private final EncodedResourceRepository encodedResourceRepository;
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
     private final DeviceNoticeMapRepository deviceNoticeMapRepository;
+    private final OriginalResourceRepository originalResourceRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -230,18 +232,21 @@ public class SignageService {
         Account account = accountRepository.findByAccountId(accountId).orElse(null);
 
         if(account != null){
-            System.out.println("account?!: " + account.getAccountId());
-            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByCreatedBy(account.getAccountId());
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccount(account);
 
-            for(EncodedResource encodedResource : encodedResourceList){
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
 
-                SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+            for(OriginalResource originalResource : originalResourceList){
+                List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResource(originalResource);
 
-                signageResourceDTOList.add(signageResourceDTO);
+                for(EncodedResource encodedResource : encodedResourceList){
+                    ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+                    SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+
+                    signageResourceDTOList.add(signageResourceDTO);
+                }
             }
         }
-
         return signageResourceDTOList;
     }
 

@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+
 @Component
 @Aspect
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class CustomAspect {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Account account = accountRepository.findByAccountId(authentication.getName()).orElse(null);
-        ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail(activityDetail).build();
+        ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail(activityDetail).dateTime(LocalDateTime.now()).build();
         activityLogRepository.save(activityLog);
     }
 }
