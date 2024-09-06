@@ -5,7 +5,6 @@ import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
-import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ import java.util.Map;
 @RequestMapping("/signage")
 public class SignageController {
     private final SignageService signageService;
-    private final AccountListService accountService;
 
     @GetMapping()
     public ResponseEntity<?> signageList(Principal principal){
@@ -31,35 +29,10 @@ public class SignageController {
         return new ResponseEntity<>(signageService.getSignageList(accountId), HttpStatus.OK);
     }
 
-    @CustomAnnotation(activityDetail = "재생장치 삭제")
-    @DeleteMapping
-    public ResponseEntity<?> deleteSignage(@RequestParam List<Long> signageIds){
-        try{
-            signageService.deleteSignage(signageIds);
-            return ResponseEntity.ok("재생장치 삭제를 성공했습니다.");
-        }catch(EntityNotFoundException e){
-            return new ResponseEntity<>("재생장치 삭제를 실패했습니다.", HttpStatus.OK);
-        }
-    }
-
     @GetMapping("/grid")
     public  ResponseEntity<?> signageGridList(Principal principal){
         String accountId = principal.getName();
         return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
-    }
-
-    @GetMapping("/new")
-    public ResponseEntity<?> signageAdd(){
-        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
-    }
-
-    @CustomAnnotation(activityDetail = "재생장치 추가")
-    @PostMapping("/new")
-    public ResponseEntity<String> signageAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
-        signageFormDTO.setIsShow(false);
-        signageService.saveNewSignage(signageFormDTO, accountList);
-
-        return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
     }
 
     @GetMapping("/{signageId}")
