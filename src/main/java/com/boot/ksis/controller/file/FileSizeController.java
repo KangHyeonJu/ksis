@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.file;
 
+import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.file.FileSizeDTO;
 import com.boot.ksis.service.file.FileSizeService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class FileSizeController {
     }
 
     // 파일 크기 설정 업데이트
+    @CustomAnnotation(activityDetail = "파일 최대 용량 설정")
     @PutMapping
     public ResponseEntity<FileSizeDTO> updateFileSize(@RequestBody FileSizeDTO fileSizeDTO) {
         FileSizeDTO updatedFileSizeDTO = fileSizeService.updateFileSize(fileSizeDTO);

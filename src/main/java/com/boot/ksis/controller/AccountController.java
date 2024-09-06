@@ -1,5 +1,6 @@
 package com.boot.ksis.controller;
 
+import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.account.AccountActiveDTO;
 import com.boot.ksis.dto.account.AccountDTO;
 import com.boot.ksis.dto.login.JwtTokenDTO;
@@ -26,6 +27,7 @@ public class AccountController {
     private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
     @PostMapping("/account")
+    @CustomAnnotation(activityDetail = "계정 등록")
     public ResponseEntity<?> createAccount(@RequestBody AccountDTO accountDTO) {
         try {
             System.out.println("Received AccountDTO: " + accountDTO);
@@ -51,6 +53,7 @@ public class AccountController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "계정 수정")
     @PutMapping("/account/{accountId}")
     public ResponseEntity<String> updateAccount(@PathVariable String accountId, @RequestBody AccountDTO accountDTO) throws Exception {
         try {
@@ -68,6 +71,7 @@ public class AccountController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "계정 상태 변경")
     @PutMapping("/account/{accountId}/active")
     public ResponseEntity<?> toggleAccountActiveStatus(
             @PathVariable String accountId,
