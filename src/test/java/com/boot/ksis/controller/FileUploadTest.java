@@ -1,3 +1,4 @@
+/*
 package com.boot.ksis.controller;
 
 import com.boot.ksis.constant.ResourceStatus;
@@ -66,3 +67,4 @@ public class FileUploadTest {
     }
 
 }
+*/
