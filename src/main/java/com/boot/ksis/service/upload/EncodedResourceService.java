@@ -13,6 +13,8 @@ import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -42,6 +44,7 @@ public class EncodedResourceService {
     private final OriginalResourceRepository originalResourceRepository;
     private final FileSizeRepository fileSizeRepository;
 
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -300,20 +303,8 @@ public class EncodedResourceService {
                 // 데이터베이스 업데이트
                 encodedResourceRepository.save(encodedResource);
 
-                //인코딩 용량 추가
-                FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
-                    // 설정이 없으면 기본값으로 새로운 설정 생성
-                    FileSize defaultFileSize = new FileSize();
-                    defaultFileSize.setTotalVideo(0L);
-                    defaultFileSize.setTotalImage(0L);
-                    return fileSizeRepository.save(defaultFileSize);
-                });
-                if(encodedResource.getResourceType() == ResourceType.IMAGE){
-                    addFileSize.setTotalImage(addFileSize.getTotalImage() + encodedResource.getFileSize());
-                }else {
-                    addFileSize.setTotalVideo(addFileSize.getTotalVideo() + encodedResource.getFileSize());
-                }
-
+                // WebSocket을 통해 "/topic/encoding-status"로 메시지 전송
+                simpMessagingTemplate.convertAndSend("/topic/encoding-status", outputFileName);
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
