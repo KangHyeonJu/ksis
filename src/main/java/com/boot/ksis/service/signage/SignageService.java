@@ -16,7 +16,6 @@ import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
-import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.playlist.PlayListRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.*;
@@ -49,7 +48,6 @@ public class SignageService {
     private final PlaylistSequenceRepository playlistSequenceRepository;
     private final EncodedResourceRepository encodedResourceRepository;
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
-    private final DeviceNoticeMapRepository deviceNoticeMapRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
     @PersistenceContext
@@ -409,7 +407,7 @@ public class SignageService {
         accountDeviceMapRepository.deleteByDeviceIdIn(signageIds);
 
         //공지 맵 삭제
-        deviceNoticeMapRepository.deleteByDeviceIdIn(signageIds);
+        deviceNoticeRepository.deleteByDeviceIdIn(signageIds);
 
         entityManager.flush();
 

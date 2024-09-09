@@ -1,6 +1,7 @@
 package com.boot.ksis.dto.file;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,10 +9,15 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
-public class ResourceListDTO {
+public class OriginResourceListDTO {
     //원본 아이디
     private Long originalResourceId;
+    //작성자
+    private String accountId;
+    //파일 이름
+    private String fileName;
     //경로
     private String filePath;
     //제목
@@ -20,6 +26,11 @@ public class ResourceListDTO {
     private String resolution;
     //포맷
     private String format;
+    //파일 사이즈
+    private int fileSize;
+    //플레이타임
+    private float playTime;
     //등록일
     private LocalDateTime regTime;
 }
+

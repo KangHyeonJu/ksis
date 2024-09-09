@@ -2,6 +2,8 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.dto.file.OriginResourceListDTO;
+import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.FileSize;
@@ -337,4 +339,6 @@ public class EncodedResourceService {
             dir.mkdirs(); // 디렉토리를 생성 (상위 디렉토리도 포함)
         }
     }
+
+
 }

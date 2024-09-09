@@ -8,8 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class ResourceThumbDTO {
-    //원본 아이디
-    private Long originalResourceId;
 
     //리소스 아이디
     private Long encodedResourceId;
