@@ -5,7 +5,6 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Log.AccessLog;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.log.AccessLogRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +15,12 @@ public class AccessLogService {
     private final AccountRepository accountRepository;
 
     public void saveAccessLog(AccessLogDTO accessLogDTO) {
-        Account account = accountRepository.findById(String.valueOf(accessLogDTO.getAccountId()))
-                .orElseThrow(() -> new EntityNotFoundException("Account not found"));
+        Account account = accountRepository.findById(accessLogDTO.getAccountId()).orElseThrow(null);
 
         AccessLog accessLog = new AccessLog();
         accessLog.setAccount(account);  // 조회된 Account 엔티티 설정
         accessLog.setCategory(accessLogDTO.getCategory());
+
         accessLogRepository.save(accessLog);
     }
 }

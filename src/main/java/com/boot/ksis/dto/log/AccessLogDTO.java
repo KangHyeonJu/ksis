@@ -9,6 +9,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class AccessLogDTO {
-    private Long accountId;
+    private String accountId;
     private Category category;
 }
