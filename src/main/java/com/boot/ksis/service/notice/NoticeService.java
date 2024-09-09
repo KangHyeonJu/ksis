@@ -9,6 +9,7 @@ import com.boot.ksis.repository.DeviceRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
@@ -26,13 +29,7 @@ public class NoticeService {
     private final DeviceRepository deviceRepository;
     private final DeviceNoticeMapRepository deviceNoticeMapRepository;
 
-    public NoticeService(NoticeRepository noticeRepository, AccountRepository accountRepository,
-                         DeviceRepository deviceRepository, DeviceNoticeMapRepository deviceNoticeMapRepository) {
-        this.noticeRepository = noticeRepository;
-        this.accountRepository = accountRepository;
-        this.deviceRepository = deviceRepository;
-        this.deviceNoticeMapRepository = deviceNoticeMapRepository;
-    }
+
 
     // 공지 등록 메서드
     @Transactional
