@@ -20,7 +20,6 @@ import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
@@ -53,8 +52,6 @@ public class EncodedResourceService {
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
     private final FileSizeRepository fileSizeRepository;
-
-    private final SimpMessagingTemplate simpMessagingTemplate;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -325,8 +322,6 @@ public class EncodedResourceService {
 
                 // 클라이언트로 인코딩 완료 알림 전송
                 sseController.sendEvent(encodedResource.getFileTitle());
-                // WebSocket을 통해 "/topic/encoding-status"로 메시지 전송
-                simpMessagingTemplate.convertAndSend("/topic/encoding-status", outputFileName);
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
