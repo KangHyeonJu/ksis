@@ -5,10 +5,7 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.SignageFormDTO;
-import com.boot.ksis.dto.signage.SignageGridDTO;
-import com.boot.ksis.dto.signage.SignageNoticeDTO;
-import com.boot.ksis.dto.signage.SignageResourceDTO;
+import com.boot.ksis.dto.signage.*;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -20,6 +17,7 @@ import com.boot.ksis.repository.playlist.PlayListRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.*;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
+import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
@@ -47,13 +45,22 @@ public class SignageService {
     private final PlaylistSequenceRepository playlistSequenceRepository;
     private final EncodedResourceRepository encodedResourceRepository;
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
-
+    private final OriginalResourceRepository originalResourceRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<DeviceListDTO> getSignageList(){
-        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+    public List<DeviceListDTO> getSignageList(String accountId){
+        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<Device> deviceList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
+            Device device = accountDeviceMap.getDevice();
+            if(device.getDeviceType() == DeviceType.SIGNAGE){
+                deviceList.add(device);
+            }
+        }
 
         return deviceList.stream().map(device -> {
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
@@ -68,10 +75,20 @@ public class SignageService {
         }).collect(Collectors.toList());
     }
 
-    public List<SignageGridDTO> getSignageGridList(){
-        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+    public List<SignageGridDTO> getSignageGridList(String accountId){
+        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<Device> deviceList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
+            Device device = accountDeviceMap.getDevice();
+            if(device.getDeviceType() == DeviceType.SIGNAGE){
+                deviceList.add(device);
+            }
+        }
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
+
         for(Device device : deviceList){
             PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
 
@@ -109,6 +126,22 @@ public class SignageService {
 
             accountDeviceMapRepository.save(accountDeviceMap);
         }
+    }
+
+    public boolean checkMacAddress(SignageFormDTO signageFormDTO){
+        Device device = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
+
+        return device == null;
+    }
+
+    public boolean checkUpdateMacAddress(SignageFormDTO signageFormDTO){
+        Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow();
+
+        Device checkDevice = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
+
+        if(checkDevice == null){
+            return true;
+        }else return Objects.equals(device.getMacAddress(), signageFormDTO.getMacAddress());
     }
 
     public void updateSignage(SignageFormDTO signageFormDTO, List<String> accountList){
@@ -188,6 +221,44 @@ public class SignageService {
         return signageResourceDTOList;
     }
 
+    public List<SignageResourceDTO> getAccountResourceList(String accountId){
+        List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
+
+        Account account = accountRepository.findByAccountId(accountId).orElse(null);
+
+        if(account != null){
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccount(account);
+
+
+            for(OriginalResource originalResource : originalResourceList){
+                List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResource(originalResource);
+
+                for(EncodedResource encodedResource : encodedResourceList){
+                    ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+                    SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+
+                    signageResourceDTOList.add(signageResourceDTO);
+                }
+            }
+        }
+        return signageResourceDTOList;
+    }
+
+    public void addSignageResource(Long signageId, List<Long> encodedResourceIdList){
+        Device device = signageRepository.findByDeviceId(signageId);
+        for(Long encodedResourceId : encodedResourceIdList){
+            EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(encodedResourceId);
+
+            DeviceEncodeMap deviceEncodeMap = new DeviceEncodeMap();
+            deviceEncodeMap.setEncodedResourceId(encodedResourceId);
+            deviceEncodeMap.setDeviceId(signageId);
+            deviceEncodeMap.setDevice(device);
+            deviceEncodeMap.setEncodedResource(encodedResource);
+
+            deviceEncodeMapRepository.save(deviceEncodeMap);
+        }
+    }
     public void deleteEncodedResource(Long signageId, Long encodedResourceId){
         deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
     }

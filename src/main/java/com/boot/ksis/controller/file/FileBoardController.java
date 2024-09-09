@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.file;
 
+import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
@@ -44,7 +45,6 @@ public class FileBoardController {
         return ResponseEntity.ok(allFiles);
     }
 
-
     // 업로드된 원본 동영상 파일 목록 조회
     @GetMapping("/RsVideos")
     public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
@@ -80,6 +80,7 @@ public class FileBoardController {
     }
 
     // 원본 파일 제목 수정
+    @CustomAnnotation(activityDetail = "원본 파일 제목 수정")
     @PutMapping("/original/{originalResourceId}")
     public ResponseEntity<OriginalResource> updateOrFileTitle(@PathVariable Long originalResourceId, @RequestParam String newTitle) {
         Optional<OriginalResource> updatedRsResource = fileBoardService.updateOrFileTitle(originalResourceId, newTitle);
@@ -89,6 +90,7 @@ public class FileBoardController {
     }
 
     // 인코딩 파일 제목 수정
+    @CustomAnnotation(activityDetail = "인코딩 파일 제목 수정")
     @PutMapping("/encoded/{encodedResourceId}")
     public ResponseEntity<Void> updateFileTitle(
             @PathVariable Long encodedResourceId,
@@ -100,6 +102,7 @@ public class FileBoardController {
 
     // 파일 삭제
     // 삭제하면 인코딩 파일, 썸네일 다 DB에서 삭제
+    @CustomAnnotation(activityDetail = "원본 파일 삭제")
     @DeleteMapping("/original/{originalResource}")
     public ResponseEntity<Void> deleteFile(@PathVariable Long originalResource) {
         fileBoardService.deleteFile(originalResource);
@@ -107,6 +110,7 @@ public class FileBoardController {
     }
 
     //인코딩 파일 삭제, 인코딩 파일만 DB에서 삭제
+    @CustomAnnotation(activityDetail = "인코딩 파일 삭제")
     @DeleteMapping("/encoded/{encodedResource}")
     public ResponseEntity<Void> deleteEncodedFile(@PathVariable Long encodedResource) {
         fileBoardService.deleteEncodedFile(encodedResource);

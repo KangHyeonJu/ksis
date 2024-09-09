@@ -1,6 +1,7 @@
 package com.boot.ksis.repository.upload;
 
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.OriginalResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -19,4 +20,5 @@ public interface OriginalResourceRepository extends JpaRepository<OriginalResour
     //파일 삭제
     OriginalResource findByOriginalResourceId(Long originalResourceId);
 
+    List<OriginalResource> findByAccount(Account account);
 }

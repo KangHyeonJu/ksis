@@ -10,4 +10,6 @@ public interface SignageRepository extends JpaRepository<Device, Long> {
     List<Device> findByDeviceType(DeviceType deviceType);
 
     Device findByDeviceId(Long deviceId);
+
+    Device findByMacAddress(String macAddress);
 }

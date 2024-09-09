@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.electron;
 
+import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
 import com.boot.ksis.service.upload.OriginalResourceService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class FileUploadController {
     private final OriginalResourceService originalResourceService;
 
     // 파일이 저장되는 경로
+    @CustomAnnotation(activityDetail = "파일 등록")
     @PostMapping("/filedatasave")
     public ResponseEntity<List<OriginalResourceDTO>> uploadFile(
             @RequestPart("dtos") List<OriginalResourceDTO> originalResourceDTOS,

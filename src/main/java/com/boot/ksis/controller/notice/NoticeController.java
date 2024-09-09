@@ -26,6 +26,7 @@ public class NoticeController {
     }
 
     // 공지 수정
+    @CustomAnnotation(activityDetail = "공지 수정")
     @PutMapping("/{noticeId}")
     public ResponseEntity<NoticeDTO> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeDTO noticeDTO) {
         // 공지 수정 서비스 호출
@@ -34,6 +35,7 @@ public class NoticeController {
     }
 
     // 공지 삭제
+    @CustomAnnotation(activityDetail = "공지 삭제")
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
         // 공지 삭제 서비스 호출

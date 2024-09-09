@@ -1,10 +1,10 @@
 package com.boot.ksis.controller.signage;
 
+import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
-import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -20,39 +21,18 @@ import java.util.Map;
 @RequestMapping("/signage")
 public class SignageController {
     private final SignageService signageService;
-    private final AccountListService accountService;
 
     @GetMapping()
-    public ResponseEntity<?> signageList(){
-        return new ResponseEntity<>(signageService.getSignageList(), HttpStatus.OK);
-    }
+    public ResponseEntity<?> signageList(Principal principal){
+        String accountId = principal.getName();
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteSignage(@RequestParam List<Long> signageIds){
-        try{
-            signageService.deleteSignage(signageIds);
-            return ResponseEntity.ok("재생장치 삭제를 성공했습니다.");
-        }catch(EntityNotFoundException e){
-            return new ResponseEntity<>("재생장치 삭제를 실패했습니다.", HttpStatus.OK);
-        }
+        return new ResponseEntity<>(signageService.getSignageList(accountId), HttpStatus.OK);
     }
 
     @GetMapping("/grid")
-    public  ResponseEntity<?> signageGridList(){
-        return new ResponseEntity<>(signageService.getSignageGridList(), HttpStatus.OK);
-    }
-
-    @GetMapping("/new")
-    public ResponseEntity<?> signageAdd(){
-        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
-    }
-
-    @PostMapping("/new")
-    public ResponseEntity<String> signageAddPost(@RequestPart("signageFormDto")SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
-        signageFormDTO.setIsShow(false);
-        signageService.saveNewSignage(signageFormDTO, accountList);
-
-        return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
+    public  ResponseEntity<?> signageGridList(Principal principal){
+        String accountId = principal.getName();
+        return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
     }
 
     @GetMapping("/{signageId}")
@@ -73,6 +53,7 @@ public class SignageController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "재생장치 공지표시여부 수정")
     @PutMapping("/update/{signageId}")
     public ResponseEntity<String> signagePut(@PathVariable Long signageId, @RequestBody SignageNoticeStatusDTO signageNoticeStatusDTO) {
         System.out.println("signageNoticeStatusDTO: " + signageNoticeStatusDTO.isShowNotice());
@@ -81,10 +62,15 @@ public class SignageController {
         return ResponseEntity.ok("재생장치 공지표시 상태가 정상적으로 수정되었습니다.");
     }
 
+    @CustomAnnotation(activityDetail = "재생장치 수정")
     @PatchMapping("/update")
     public ResponseEntity<String> signageUpdate(@RequestPart("signageFormDto") SignageFormDTO signageFormDto,  @RequestPart(value="accountList") List<String> accountList){
-        signageService.updateSignage(signageFormDto, accountList);
-        return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
+        if(signageService.checkUpdateMacAddress(signageFormDto)){
+            signageService.updateSignage(signageFormDto, accountList);
+            return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
+        }else {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 MAC주소입니다.");
+        }
     }
 
 //    @GetMapping("/notice/{signageId}")
@@ -106,6 +92,26 @@ public class SignageController {
 
     }
 
+    @GetMapping("/accountResource")
+    public ResponseEntity<?> accountResource(Principal principal){
+        try{
+            String accountId = principal.getName();
+
+            return new ResponseEntity<>(signageService.getAccountResourceList(accountId), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("resource를 찾을 수 없습니다.", HttpStatus.OK);
+        }
+    }
+
+    @CustomAnnotation(activityDetail = "재생장치 resource 추가")
+    @PostMapping("/resource/add/{signageId}")
+    public ResponseEntity<?> addSignageResource(@PathVariable("signageId") Long signageId, @RequestPart(value="encodedResourceIdList") List<Long> encodedResourceIdList){
+        signageService.addSignageResource(signageId, encodedResourceIdList);
+
+        return ResponseEntity.ok("encodedResource 정상적으로 등록되었습니다.");
+    }
+
+    @CustomAnnotation(activityDetail = "재생장치 resource 삭제")
     @DeleteMapping("/resource/{signageId}/{encodedResourceId}")
     public ResponseEntity<?> deleteEncodedResource(@PathVariable("signageId") Long signageId, @PathVariable("encodedResourceId") Long encodedResourceId){
         try {
@@ -126,6 +132,7 @@ public class SignageController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "재생목록 선택")
     @PutMapping("/playlist/{signageId}")
     public ResponseEntity<String> selectPlaylist(@PathVariable("signageId") Long signageId, @RequestBody Map<String, Long> playlistId){
         Long selectedPlaylist = playlistId.get("selectedPlaylist");
@@ -143,6 +150,7 @@ public class SignageController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "재생목록 삭제")
     @DeleteMapping("/playlist")
     public ResponseEntity<?> deletePlaylist(@RequestParam Long playlistId){
         try {
@@ -154,6 +162,7 @@ public class SignageController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "재생목록 추가")
     @PostMapping("/playlist")
     public ResponseEntity<String> addPlaylist(@RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
         signageService.addPlaylist(playListAddDTO, resourceSequence);
@@ -170,6 +179,7 @@ public class SignageController {
         }
     }
 
+    @CustomAnnotation(activityDetail = "재생목록 수정")
     @PutMapping("/playlistDtl/{playListId}")
     public ResponseEntity<String> updatePlaylist(@PathVariable("playListId") Long playListId, @RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
         signageService.resourceSequence(playListId, playListAddDTO, resourceSequence);
@@ -194,5 +204,4 @@ public class SignageController {
             return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
         }
     }
-
 }

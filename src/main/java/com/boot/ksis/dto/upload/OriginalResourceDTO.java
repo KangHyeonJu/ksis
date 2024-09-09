@@ -2,6 +2,7 @@ package com.boot.ksis.dto.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.OriginalResource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Setter
 @RequiredArgsConstructor
 public class OriginalResourceDTO {
+    private String account; // 사용자 계정
     private String filename; // 파일 이름(확장자까지)
     private String fileTitle; // 제목
     private String filePath; // 경로

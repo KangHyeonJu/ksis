@@ -6,11 +6,15 @@ import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -38,7 +42,9 @@ public class EncodedResourceService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
+    private final FileSizeRepository fileSizeRepository;
 
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -296,6 +302,9 @@ public class EncodedResourceService {
 
                 // 데이터베이스 업데이트
                 encodedResourceRepository.save(encodedResource);
+
+                // WebSocket을 통해 "/topic/encoding-status"로 메시지 전송
+                simpMessagingTemplate.convertAndSend("/topic/encoding-status", outputFileName);
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
