@@ -37,9 +37,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-                               .requestMatchers("/**").permitAll()
-//                                 .requestMatchers("/total/**", "/mac","/login", "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**").permitAll()
-//                                .requestMatchers("/admin/**").hasRole("ADMIN")
+//                               .requestMatchers("/**").permitAll()
+                                 .requestMatchers("/total/**", "/mac","/login", "/get-token", "/signage/**",
+                                         "/pc/**", "/file/**", "/api/**", "/events").permitAll()
+                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
