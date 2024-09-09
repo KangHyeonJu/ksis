@@ -176,6 +176,14 @@ public class FileBoardService {
 
     }
 
+    @Transactional
+    //인코딩 파일 삭제
+    public void deleteEncodedFile(Long id) {
+        EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(id);
+        // 인코딩 파일 삭제
+        encodedResourceRepository.deleteById(id);
+    }
+
 
 
 

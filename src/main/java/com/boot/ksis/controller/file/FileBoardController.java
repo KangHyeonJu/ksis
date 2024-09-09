@@ -45,7 +45,6 @@ public class FileBoardController {
         return ResponseEntity.ok(allFiles);
     }
 
-
     // 업로드된 원본 동영상 파일 목록 조회
     @GetMapping("/RsVideos")
     public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
