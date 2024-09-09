@@ -1,10 +1,7 @@
 package com.boot.ksis.controller.notice;
 
-import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,18 +9,20 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
-@RequestMapping("/api/notices")
-@RequiredArgsConstructor
+@RequestMapping("/notices")
 public class NoticeController {
 
     private final NoticeService noticeService;
 
-    // 공지 등록
-    @PostMapping
-    public ResponseEntity<NoticeDTO> createNotice(@RequestBody NoticeDTO noticeDTO) {
-        // 공지 등록 서비스 호출
-        NoticeDTO createdNotice = noticeService.createNotice(noticeDTO);
-        return ResponseEntity.ok(createdNotice); // 성공 시 등록된 공지 반환
+    public NoticeController(NoticeService noticeService) {
+        this.noticeService = noticeService;
+    }
+
+    // 공지 등록 API
+    @PostMapping("/register")
+    public ResponseEntity<Long> registerNotice(@RequestBody NoticeDTO noticeDTO) {
+        Long noticeId = noticeService.registerNotice(noticeDTO);
+        return ResponseEntity.ok(noticeId);
     }
 
     // 공지 수정

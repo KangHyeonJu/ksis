@@ -6,9 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap, DeviceNoticeId> {
-
-    List<DeviceNoticeMap> findByNoticeId(Long noticeId);
-
-
+public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap, Long> {
 }
