@@ -75,6 +75,22 @@ public class SignageService {
         }).collect(Collectors.toList());
     }
 
+    public List<DeviceListDTO> getSignageAll(){
+        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+
+        return deviceList.stream().map(device -> {
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+                    .stream()
+                    .map(map -> {
+                        Account account = map.getAccount();
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
+                    })
+                    .collect(Collectors.toList());
+
+            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
+        }).collect(Collectors.toList());
+    }
+
     public List<SignageGridDTO> getSignageGridList(String accountId){
         List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
 
@@ -86,6 +102,31 @@ public class SignageService {
                 deviceList.add(device);
             }
         }
+
+        List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
+            PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
+
+            String thumbNailPath;
+
+            if(playList != null){
+                PlaylistSequence playlistSequence = playlistSequenceRepository.findByPlaylistIdAndSequence(playList.getPlaylistId(), 1);
+
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(playlistSequence.getEncodedResource().getOriginalResource());
+                thumbNailPath = thumbNail.getFilePath();
+            }else {
+                thumbNailPath = device.getDeviceName();
+            }
+            SignageGridDTO signageGridDTO = SignageGridDTO.builder().deviceId(device.getDeviceId()).deviceName(device.getDeviceName()).thumbNail(thumbNailPath).build();
+
+            signageGridDTOList.add(signageGridDTO);
+        }
+        return signageGridDTOList;
+    }
+
+    public List<SignageGridDTO> getSignageGridAll(){
+        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 

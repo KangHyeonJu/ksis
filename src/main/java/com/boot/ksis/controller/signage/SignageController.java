@@ -23,16 +23,25 @@ public class SignageController {
     private final SignageService signageService;
 
     @GetMapping()
-    public ResponseEntity<?> signageList(Principal principal){
+    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role){
         String accountId = principal.getName();
 
-        return new ResponseEntity<>(signageService.getSignageList(accountId), HttpStatus.OK);
+        if(role.contains("ADMIN")){
+            return new ResponseEntity<>(signageService.getSignageAll(), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(signageService.getSignageList(accountId), HttpStatus.OK);
+        }
     }
 
     @GetMapping("/grid")
-    public  ResponseEntity<?> signageGridList(Principal principal){
+    public  ResponseEntity<?> signageGridList(Principal principal, @RequestParam String role){
         String accountId = principal.getName();
-        return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
+
+        if(role.contains("ADMIN")){
+            return new ResponseEntity<>(signageService.getSignageGridAll(), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
+        }
     }
 
     @GetMapping("/{signageId}")

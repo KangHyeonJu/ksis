@@ -30,8 +30,18 @@ public class CustomAspect {
 
         String activityDetail = customAnnotation.activityDetail();
 
-        addActivityLog(activityDetail);
-
+        if(activityDetail.contains("인코딩") || activityDetail.contains("업로드")){
+            Object[] args = joinPoint.getArgs();
+            String accountId = null;
+            for (Object arg : args) {
+                if (arg instanceof String) {
+                    accountId = (String) arg;
+                    resourceActivityLog(activityDetail, accountId);
+                }
+            }
+        }else {
+            addActivityLog(activityDetail);
+        }
         return joinPoint.proceed();
     }
 
@@ -39,6 +49,12 @@ public class CustomAspect {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Account account = accountRepository.findByAccountId(authentication.getName()).orElse(null);
+        ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail(activityDetail).dateTime(LocalDateTime.now()).build();
+        activityLogRepository.save(activityLog);
+    }
+
+    private void resourceActivityLog(String activityDetail, String accountId) {
+        Account account = accountRepository.findByAccountId(accountId).orElse(null);
         ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail(activityDetail).dateTime(LocalDateTime.now()).build();
         activityLogRepository.save(activityLog);
     }
