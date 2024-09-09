@@ -24,6 +24,7 @@ public class NoticeService {
     // 공지 등록
     public NoticeDTO createNotice(NoticeDTO noticeDTO) {
 
+        System.out.println("공지 등록 시작 : " + noticeDTO);
 
         Notice notice = new Notice(); // 새로운 공지 엔티티 생성
         notice.setTitle(noticeDTO.getTitle()); // 제목 설정
@@ -40,6 +41,7 @@ public class NoticeService {
         noticeDTO.setAccountId(savedNotice.getCreatedBy());
         noticeDTO.setRegTime(savedNotice.getRegTime()); // 등록 시간 설정
         noticeDTO.setUpdateTime(savedNotice.getUpdateTime()); // 수정 시간 설정
+        System.out.println("공지 등록 끝 : " + savedNotice);
         return noticeDTO; // 저장된 공지 정보를 포함한 DTO 반환
     }
 
