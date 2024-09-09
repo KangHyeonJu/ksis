@@ -82,14 +82,14 @@ public class SignageController {
         }
     }
 
-//    @GetMapping("/notice/{signageId}")
-//    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
-//        try {
-//            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
-//        } catch(EntityNotFoundException e){
-//            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
-//        }
-//    }
+    @GetMapping("/notice/{signageId}")
+    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+        try {
+            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+        } catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
 
     @GetMapping("/resource/{signageId}")
     public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId){
