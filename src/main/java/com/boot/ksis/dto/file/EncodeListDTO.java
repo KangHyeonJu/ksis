@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class EncodeListDTO {
     //인코딩 아이디
     private Long encodedResourceId;
@@ -25,10 +26,4 @@ public class EncodeListDTO {
     //등록일
     private LocalDateTime regTime;
 
-    @Builder
-    public EncodeListDTO(EncodedResource encodedResource) {
-        this.encodedResourceId = encodedResource.getEncodedResourceId();
-        this.filePath = encodedResource.getFilePath();
-        this.fileTitle = encodedResource.getFileTitle();
-    }
 }

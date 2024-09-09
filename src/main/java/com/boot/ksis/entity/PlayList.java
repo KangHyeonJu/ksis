@@ -23,11 +23,6 @@ public class PlayList extends BaseEntity {
     @JoinColumn(name = "device_id")
     private Device device;
 
-    //계정 아이디
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id")
-    private Account account;
-
     //슬라이드 시간
     @ColumnDefault("5")
     private int slideTime;

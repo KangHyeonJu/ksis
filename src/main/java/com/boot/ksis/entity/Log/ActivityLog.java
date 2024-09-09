@@ -1,16 +1,20 @@
 package com.boot.ksis.entity.Log;
 
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "activity_log")
 @Getter
 @Setter
-public class ActivityLog extends BaseEntity {
+@NoArgsConstructor
+public class ActivityLog{
     //액티비티
     @Id
     @Column(name = "activity_log_id")
@@ -24,4 +28,14 @@ public class ActivityLog extends BaseEntity {
 
     //활동기록
     private String activityDetail;
+
+    //활동시간
+    private LocalDateTime dateTime;
+
+    @Builder
+    public ActivityLog(Account account, String activityDetail, LocalDateTime dateTime){
+        this.account = account;
+        this.activityDetail = activityDetail;
+        this.dateTime = dateTime;
+    }
 }

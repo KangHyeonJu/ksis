@@ -4,7 +4,9 @@ import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.account.AccountDTO;
 import com.boot.ksis.dto.account.AccountListDTO;
 import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.Visit;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.account.VisitRepository;
 import com.boot.ksis.util.AESUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +27,8 @@ public class AccountService {
     private final SecretKeySpec keySpec;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
+
+    private final VisitRepository visitRepository;
 
     public boolean validateCredentials(String accountId, String password) {
         if (accountId == null || accountId.trim().isEmpty()) {
@@ -38,6 +43,11 @@ public class AccountService {
         if (Boolean.TRUE.equals(account.getIsActive())) {
             return false;
         }
+
+        //방문자 수 추가
+        Visit visit = new Visit();
+        visit.setVisitDate(LocalDate.now());
+        visitRepository.save(visit);
 
         return passwordEncoder.matches(password, account.getPassword());
     }

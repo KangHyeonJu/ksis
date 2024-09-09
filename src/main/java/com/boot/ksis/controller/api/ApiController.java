@@ -1,5 +1,6 @@
 package com.boot.ksis.controller.api;
 
+import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.api.ApiDTO;
 import com.boot.ksis.service.api.ApiService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class ApiController {
     private final ApiService apiService;
 
     // API 등록
+    @CustomAnnotation(activityDetail = "API 등록")
     @PostMapping("/register")
     public ResponseEntity<ApiDTO> registerAPI(@RequestBody ApiDTO apiDTO) {
         ApiDTO savedApiDTO = apiService.saveApi(apiDTO);
@@ -24,6 +26,7 @@ public class ApiController {
     }
 
     // API 수정
+    @CustomAnnotation(activityDetail = "API 수정")
     @PutMapping("/update/{id}")
     public ResponseEntity<ApiDTO> updateAPI(@PathVariable Long id, @RequestBody ApiDTO apiDTO) {
         ApiDTO updatedApiDTO = apiService.updateApi(id, apiDTO);
@@ -35,6 +38,7 @@ public class ApiController {
     }
 
     // API 삭제
+    @CustomAnnotation(activityDetail = "API 삭제")
     @DeleteMapping("/posts/{id}")
     public ResponseEntity<Void> deleteAPI(@PathVariable Long id) {
         apiService.deleteApi(id);

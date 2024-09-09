@@ -1,9 +1,15 @@
 package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
+import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
+import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
+import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +33,8 @@ public class OriginalResourceService {
 
     private final OriginalResourceRepository originalResourceRepository;
     private final ThumbNailRepository thumbNailRepository;
+    private final FileSizeRepository fileSizeRepository;
+    private final AccountRepository accountRepository;
 
     @Value("${uploadLocation}")
     String uploadLocation;
@@ -48,6 +56,10 @@ public class OriginalResourceService {
         for(int i = 0; i < files.size(); i++){
             MultipartFile file = files.get(i);
             OriginalResourceDTO dto = originalResourceDTOS.get(i);
+
+            // accountId를 통해 Account 엔티티를 데이터베이스에서 조회
+            Account account = accountRepository.findById(dto.getAccount())
+                    .orElseThrow(() -> new RuntimeException("Account not found"));
             
             // DTO 넣을 값들 설정
             String uuidFileName = UUID.randomUUID().toString() + "." + dto.getFormat(); // 파일 이름 생성
@@ -61,6 +73,7 @@ public class OriginalResourceService {
 
             // DTO 값들을 엔티티에 넣어준다
             OriginalResource originalResource = dto.createNewSignage();
+            originalResource.setAccount(account); // 조회된 account 설정
             
             // 엔티티를 데이터베이스에 저장
             originalResourceRepository.save(originalResource);
@@ -130,6 +143,21 @@ public class OriginalResourceService {
 
         // 변경된 상태를 데이터베이스에 저장
         originalResourceRepository.save(originalResource);
+
+        //원본 용량 추가
+        FileSize fileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+            // 설정이 없으면 기본값으로 새로운 설정 생성
+            FileSize defaultFileSize = new FileSize();
+            defaultFileSize.setTotalVideo(0L);
+            defaultFileSize.setTotalImage(0L);
+            return fileSizeRepository.save(defaultFileSize);
+        });
+
+        if(originalResource.getResourceType() == ResourceType.IMAGE){
+            fileSize.setTotalImage(fileSize.getTotalImage() + originalResource.getFileSize());
+        }else {
+            fileSize.setTotalVideo(fileSize.getTotalVideo() + originalResource.getFileSize());
+        }
 
         return originalResource;
     }

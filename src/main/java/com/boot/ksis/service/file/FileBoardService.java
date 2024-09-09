@@ -3,11 +3,8 @@ package com.boot.ksis.service.file;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
-import com.boot.ksis.dto.file.ResourceThumbDTO;
 import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
 import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
@@ -33,6 +30,8 @@ public class FileBoardService {
 
     //encodedResource 엔티티
     private final EncodedResourceRepository encodedResourceRepository;
+
+
 
     // 모든 원본 파일 조회
     public List<ResourceListDTO> getAllFiles() {
@@ -107,7 +106,7 @@ public class FileBoardService {
     }
 
     //이미지 파일 인코딩 조회
-    public ResourceListDTO getImageFiles(Long originalResourceId) {
+    public ResourceListDTO getResourceFiles(Long originalResourceId) {
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
 
         return new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
@@ -156,7 +155,7 @@ public class FileBoardService {
     }
 
     @Transactional
-    // 파일 삭제 및 descade
+    // 파일 삭제 및 관련된 썸네일 삭제
     public void deleteFile(Long id) {
        OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(id);
 
@@ -165,9 +164,6 @@ public class FileBoardService {
 
         // 원본 파일 삭제
         originalResourceRepository.deleteById(id);
-
-        //인코딩 파일 삭제
-        encodedResourceRepository.deleteByOriginalResource(originalResource);
     }
 
     @Transactional
@@ -177,7 +173,9 @@ public class FileBoardService {
         // 인코딩 파일 삭제
         encodedResourceRepository.deleteById(id);
     }
-
-
 }
+
+
+
+
 
