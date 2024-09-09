@@ -1,5 +1,6 @@
 package com.boot.ksis.dto.notice;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

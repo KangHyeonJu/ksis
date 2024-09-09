@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap, DeviceNoticeId> {
 
+    List<DeviceNoticeMap> findByNoticeId(Long noticeId);
 
 
 }
