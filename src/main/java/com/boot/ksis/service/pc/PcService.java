@@ -2,8 +2,8 @@ package com.boot.ksis.service.pc;
 
 import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
-import com.boot.ksis.dto.pc.PcFormDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
+import com.boot.ksis.dto.pc.PcFormDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
@@ -17,7 +17,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,8 +33,17 @@ public class PcService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<DeviceListDTO> getPcList(){
-        List<Device> devices = pcRepository.findByDeviceType(DeviceType.PC);
+    public List<DeviceListDTO> getPcList(String accountId){
+        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<Device> devices = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
+            Device device = accountDeviceMap.getDevice();
+            if(device.getDeviceType() == DeviceType.PC){
+                devices.add(device);
+            }
+        }
 
         return devices.stream().map(device -> {
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
@@ -64,6 +75,22 @@ public class PcService {
 
             accountDeviceMapRepository.save(accountDeviceMap);
         }
+    }
+
+    public boolean checkMacAddress(PcFormDTO pcFormDTO){
+        Device device = pcRepository.findByMacAddress(pcFormDTO.getMacAddress());
+
+        return device == null;
+    }
+
+    public boolean checkUpdateMacAddress(PcFormDTO pcFormDTO){
+        Device device = pcRepository.findById(pcFormDTO.getDeviceId()).orElseThrow();
+
+        Device checkDevice = pcRepository.findByMacAddress(pcFormDTO.getMacAddress());
+
+        if(checkDevice == null){
+            return true;
+        }else return Objects.equals(device.getMacAddress(), pcFormDTO.getMacAddress());
     }
 
     public void updatePc(PcFormDTO pcFormDto, List<String> accountList){

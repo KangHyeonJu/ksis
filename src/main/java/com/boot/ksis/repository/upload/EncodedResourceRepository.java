@@ -22,4 +22,6 @@ public interface EncodedResourceRepository extends JpaRepository<EncodedResource
 
     // 파일 타입(이미지, 영상) 조회
     List<EncodedResource> findByResourceType(ResourceType resourceType);
+
+    List<EncodedResource> findByCreatedBy(String accountId);
 }

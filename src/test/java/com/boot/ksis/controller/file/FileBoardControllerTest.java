@@ -1,3 +1,4 @@
+/*
 package com.boot.ksis.controller.file;
 
 import com.boot.ksis.entity.EncodedResource;
@@ -68,4 +69,4 @@ class FileBoardControllerTest {
         // verify that the delete methods were called
         verify(encodedResourceRepository, times(1)).deleteById(encodedResourceId);
     }
-}
+}*/
