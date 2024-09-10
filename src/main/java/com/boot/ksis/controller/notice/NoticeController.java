@@ -1,16 +1,13 @@
 package com.boot.ksis.controller.notice;
 
-import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
 @RequestMapping("/notices")
 public class NoticeController {
 
@@ -22,15 +19,12 @@ public class NoticeController {
 
     // 공지 등록 API
     @PostMapping("/register")
-    public ResponseEntity<Long> registerNotice(@RequestBody NoticeDTO noticeDTO, Principal principal) {
-        // 로그인된 사용자의 계정 ID를 Principal로부터 가져와서 공지 등록에 사용
-        Long noticeId = noticeService.registerNotice(noticeDTO, principal);
+    public ResponseEntity<Long> registerNotice(@RequestBody NoticeDTO noticeDTO) {
+        Long noticeId = noticeService.registerNotice(noticeDTO);
         return ResponseEntity.ok(noticeId);
     }
 
-
     // 공지 수정
-    @CustomAnnotation(activityDetail = "공지 수정")
     @PutMapping("/{noticeId}")
     public ResponseEntity<NoticeDTO> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeDTO noticeDTO) {
         // 공지 수정 서비스 호출
@@ -39,7 +33,6 @@ public class NoticeController {
     }
 
     // 공지 삭제
-    @CustomAnnotation(activityDetail = "공지 삭제")
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
         // 공지 삭제 서비스 호출
