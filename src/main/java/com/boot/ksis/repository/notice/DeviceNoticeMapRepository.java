@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap, Long> {
 
-    @Query("SELECT new com.boot.ksis.dto.pc.DeviceListDTO(d.deviceId, d.deviceName) FROM Device d WHERE d.device.Id = :deviceId") //추가로직 필요없으므로 DTO에 바로 받아 넣기
-    List<DeviceListDTO> findByDeviceId(@Param("deviceId") Long deviceId);
+    //디바이스 아이디로 디바이스이름 device엔티티에서 찾아서 리스트 형태로 가져오기
+    @Query("SELECT d.deviceName FROM Device d WHERE d.deviceId = :deviceId")
+    List<String> findDeviceNamesByDeviceId(String deviceId);
 }

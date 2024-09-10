@@ -6,6 +6,7 @@ import com.boot.ksis.service.notice.NoticeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,10 +22,12 @@ public class NoticeController {
 
     // 공지 등록 API
     @PostMapping("/register")
-    public ResponseEntity<Long> registerNotice(@RequestBody NoticeDTO noticeDTO) {
-        Long noticeId = noticeService.registerNotice(noticeDTO);
+    public ResponseEntity<Long> registerNotice(@RequestBody NoticeDTO noticeDTO, Principal principal) {
+        // 로그인된 사용자의 계정 ID를 Principal로부터 가져와서 공지 등록에 사용
+        Long noticeId = noticeService.registerNotice(noticeDTO, principal);
         return ResponseEntity.ok(noticeId);
     }
+
 
     // 공지 수정
     @CustomAnnotation(activityDetail = "공지 수정")

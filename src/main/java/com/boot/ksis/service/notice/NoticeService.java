@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,14 +34,13 @@ public class NoticeService {
 
     // 공지 등록 메서드
     @Transactional
-    public Long registerNotice(NoticeDTO noticeDTO) {
-        // 작성자 정보 가져오기
-        Account account = accountRepository.findById(noticeDTO.getAccountId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 계정 ID입니다."));
+    public Long registerNotice(NoticeDTO noticeDTO, Principal principal) {
+        // 로그인한 사용자의 계정 ID 가져오기
+        String accountId = principal.getName();
 
-        // 디바이스 정보 가져오기
-        Device device = deviceRepository.findById(noticeDTO.getDeviceId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 디바이스 ID입니다."));
+        // 작성자 정보 가져오기
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 계정 ID입니다."));
 
         // 공지 엔티티 생성 및 저장
         Notice notice = new Notice();
@@ -51,19 +51,28 @@ public class NoticeService {
         notice.setAccount(account); // 작성자 정보 저장
         notice.setRegTime(LocalDateTime.now()); // 등록 시간 저장
 
+        // 공지 저장
         Notice savedNotice = noticeRepository.save(notice);
+
+        // 디바이스 정보 가져오기
+        Device device = deviceRepository.findById(noticeDTO.getDeviceId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 디바이스 ID입니다."));
 
         // DeviceNoticeMap 저장
         DeviceNoticeMap deviceNoticeMap = new DeviceNoticeMap();
-        deviceNoticeMap.setDeviceId(device.getDeviceId());
-        deviceNoticeMap.setNoticeId(savedNotice.getNoticeId());
-        deviceNoticeMap.setDevice(device);
-        deviceNoticeMap.setNotice(savedNotice);
+        deviceNoticeMap.setDeviceId(device.getDeviceId());  // Device 엔티티에서 가져온 deviceId 설정
+        deviceNoticeMap.setNoticeId(savedNotice.getNoticeId());  // 저장된 Notice 엔티티의 noticeId 설정
+        deviceNoticeMap.setDevice(device);  // Device 엔티티 설정
+        deviceNoticeMap.setNotice(savedNotice);  // Notice 엔티티 설정
 
+        // DeviceNoticeMap 저장
         deviceNoticeMapRepository.save(deviceNoticeMap);
 
         return savedNotice.getNoticeId();
     }
+
+
+
 
 
     // 공지 수정
