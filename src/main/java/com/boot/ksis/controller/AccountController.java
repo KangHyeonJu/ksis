@@ -8,21 +8,22 @@ import com.boot.ksis.dto.login.LoginDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.service.AccountService;
 import com.boot.ksis.service.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 public class AccountController {
 
-    @Autowired
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
@@ -43,12 +44,39 @@ public class AccountController {
     }
 
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<AccountDTO> getAccount(@PathVariable String accountId) throws Exception {
-        System.out.println("accountId : " + accountId);
-        AccountDTO account = accountService.getAccountById(accountId);
-        if (account != null) {
-            return ResponseEntity.ok(account);
-        } else {
+    public ResponseEntity<AccountDTO> getAccount(@PathVariable String accountId,
+                                                 Authentication authentication) throws Exception {
+        try {
+            // 현재 인증된 사용자 정보 가져오기
+            User currentUser = (User) authentication.getPrincipal();
+
+            // 관리자 여부 확인
+            boolean isAdmin = currentUser.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+            // 관리자일 경우 모든 계정 접근 가능
+            if (isAdmin) {
+                AccountDTO account = accountService.getAccountById(accountId);
+                if (account != null) {
+                    return ResponseEntity.ok(account);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            } else {
+                // 일반 사용자의 경우, accountId가 현재 사용자 ID와 일치하는지 확인
+                if (!currentUser.getUsername().equals(accountId)) {
+                    return ResponseEntity.notFound().build();
+                }
+
+                AccountDTO account = accountService.getAccountById(accountId);
+                if (account != null) {
+                    return ResponseEntity.ok(account);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
@@ -95,8 +123,16 @@ public class AccountController {
     }
 
     @GetMapping("/accountList")
-    public ResponseEntity<?> accountList() {
-        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
+    public ResponseEntity<?> accountList(Authentication authentication) {
+        User currentUser = (User) authentication.getPrincipal();
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
     }
 
     @PostMapping("/login")
