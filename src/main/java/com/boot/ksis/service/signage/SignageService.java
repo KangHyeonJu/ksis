@@ -500,7 +500,7 @@ public class SignageService {
                 LocalDate startDate = notice.getStartDate();
                 LocalDate endDate = notice.getEndDate();
 
-                if(startDate.isBefore(nowDate) && startDate.isEqual(nowDate) && endDate.isAfter(nowDate) && endDate.isEqual(nowDate)){
+                if((startDate.isBefore(nowDate) || startDate.isEqual(nowDate)) && (endDate.isAfter(nowDate) || endDate.isEqual(nowDate))){
                     String noticeContent = notice.getContent();
                     notices.add(noticeContent);
                 }
