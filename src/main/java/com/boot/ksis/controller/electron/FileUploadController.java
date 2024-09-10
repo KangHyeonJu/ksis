@@ -22,11 +22,11 @@ public class FileUploadController {
     private final OriginalResourceService originalResourceService;
 
     // 파일이 저장되는 경로
-    @CustomAnnotation(activityDetail = "파일 등록")
-    @PostMapping("/filedatasave")
+    @CustomAnnotation(activityDetail = "파일 업로드")
+    @PostMapping("/filedatasave/{accountId}")
     public ResponseEntity<List<OriginalResourceDTO>> uploadFile(
             @RequestPart("dtos") List<OriginalResourceDTO> originalResourceDTOS,
-            @RequestPart("files") List<MultipartFile> files) {
+            @RequestPart("files") List<MultipartFile> files, @PathVariable("accountId") String accountId) {
         try {
             // 서비스에서 파일 저장 및 데이터베이스 처리
             List<OriginalResourceDTO> returnDTO = originalResourceService.saveToDatabase(originalResourceDTOS, files);

@@ -11,4 +11,6 @@ import java.util.Map;
 public class EncodingRequestDTO {
     private List<Map<String, String>> encodings;
     private String title;
+
+    private String accountId;
 }

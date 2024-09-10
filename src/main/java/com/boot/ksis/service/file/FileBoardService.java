@@ -4,8 +4,10 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
+import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
@@ -30,6 +32,8 @@ public class FileBoardService {
 
     //encodedResource 엔티티
     private final EncodedResourceRepository encodedResourceRepository;
+
+    private final FileSizeRepository fileSizeRepository;
 
 
 
@@ -159,6 +163,14 @@ public class FileBoardService {
     public void deleteFile(Long id) {
        OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(id);
 
+        //용량 삭제
+        FileSize fileSize = fileSizeRepository.findByFileSizeId(1);
+
+        if(fileSize != null){
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+            fileSize.setTotalImage(fileSize.getTotalImage() - originalResource.getFileSize()-thumbNail.getFileSize());
+        }
+
         // 먼저 관련된 썸네일을 삭제
         thumbNailRepository.deleteByOriginalResource(originalResource);
 
@@ -170,6 +182,14 @@ public class FileBoardService {
     //인코딩 파일 삭제
     public void deleteEncodedFile(Long id) {
         EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(id);
+
+        //용량 삭제
+        FileSize fileSize = fileSizeRepository.findByFileSizeId(1);
+
+        if(fileSize != null){
+            fileSize.setTotalImage(fileSize.getTotalImage() - encodedResource.getFileSize());
+        }
+
         // 인코딩 파일 삭제
         encodedResourceRepository.deleteById(id);
     }

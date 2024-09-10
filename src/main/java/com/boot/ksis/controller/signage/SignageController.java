@@ -23,16 +23,25 @@ public class SignageController {
     private final SignageService signageService;
 
     @GetMapping()
-    public ResponseEntity<?> signageList(Principal principal){
+    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role){
         String accountId = principal.getName();
 
-        return new ResponseEntity<>(signageService.getSignageList(accountId), HttpStatus.OK);
+        if(role.contains("ADMIN")){
+            return new ResponseEntity<>(signageService.getSignageAll(), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(signageService.getSignageList(accountId), HttpStatus.OK);
+        }
     }
 
     @GetMapping("/grid")
-    public  ResponseEntity<?> signageGridList(Principal principal){
+    public  ResponseEntity<?> signageGridList(Principal principal, @RequestParam String role){
         String accountId = principal.getName();
-        return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
+
+        if(role.contains("ADMIN")){
+            return new ResponseEntity<>(signageService.getSignageGridAll(), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
+        }
     }
 
     @GetMapping("/{signageId}")
@@ -73,14 +82,14 @@ public class SignageController {
         }
     }
 
-//    @GetMapping("/notice/{signageId}")
-//    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
-//        try {
-//            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
-//        } catch(EntityNotFoundException e){
-//            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
-//        }
-//    }
+    @GetMapping("/notice/{signageId}")
+    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+        try {
+            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+        } catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
 
     @GetMapping("/resource/{signageId}")
     public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId){
