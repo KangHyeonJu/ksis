@@ -3,15 +3,20 @@ package com.boot.ksis.controller.notification;
 import com.boot.ksis.dto.notification.UploadNotificationDTO;
 import com.boot.ksis.dto.notification.AccountNotificationDTO;
 import com.boot.ksis.service.notification.NotificationService;
+import com.boot.ksis.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
@@ -20,13 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class NotificationController {
 
     private final NotificationService notificationService;
-
-    // SSE 통신으로 알림 개수 응답
-    @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamNotifications(Principal principal) {
-        String accountId = principal.getName();
-        return notificationService.addEmitter(accountId);
-    }
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 원본 업로드 알림 데이터베이스 저장
     @PostMapping("/upload/notification")
@@ -56,6 +55,14 @@ public class NotificationController {
         int unreadCount = notificationService.countNotification(accountId);
 
         return ResponseEntity.ok(unreadCount);
+    }
+
+    // Authorization 헤더에서 토큰을 추출하는 메서드
+    private String resolveToken(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        return null;
     }
 
 }
