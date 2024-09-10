@@ -2,8 +2,17 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.controller.sse.SseController;
+import com.boot.ksis.dto.notification.UploadNotificationDTO;
+import com.boot.ksis.dto.file.OriginResourceListDTO;
+import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.Notification;
+import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.file.FileSizeRepository;
@@ -11,7 +20,7 @@ import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -39,9 +48,10 @@ public class EncodedResourceService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
+    private final SseController sseController;
+    private final AccountRepository accountRepository;
+    private final NotificationRepository notificationRepository;
     private final FileSizeRepository fileSizeRepository;
-
-    private final SimpMessagingTemplate simpMessagingTemplate;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -105,6 +115,8 @@ public class EncodedResourceService {
             request.getEncodings().forEach(encoding -> {
                 String format = encoding.get("format");
                 String resolution = encoding.get("resolution");
+                String accountId = request.getAccountId(); // accountId 가져오기
+                String resourceType = "";
 
                 try {
                     // 파일의 MIME 타입을 확인
@@ -115,13 +127,21 @@ public class EncodedResourceService {
                     if (mimeType != null && mimeType.startsWith("video/")) {
                         // 비디오 파일이면 비디오 인코딩 수행
                         encodeVideo(inputFile, format, resolution);
+
+                        resourceType = "VIDEO";
                     } else {
                         // 그렇지 않으면 이미지 인코딩 수행
                         encodeImage(inputFile, format, resolution);
+
+                        resourceType = "IMAGE";
                     }
 
                     // 인코딩 완료 후 상태 및 파일 용량 업데이트
                     updateEncodingStatus(fileName, format, resolution);
+
+                    // 인코딩 알림 데이터베이스 저장
+                    encodingNotification(accountId, fileName, format, resolution, resourceType);
+
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -314,9 +334,8 @@ public class EncodedResourceService {
                     addFileSize.setTotalVideo(addFileSize.getTotalVideo() + encodedResource.getFileSize());
                 }
 
-
-                // WebSocket을 통해 "/topic/encoding-status"로 메시지 전송
-                simpMessagingTemplate.convertAndSend("/topic/encoding-status", outputFileName);
+                // 클라이언트로 인코딩 완료 알림 전송
+                sseController.sendEvent(encodedResource.getFileTitle());
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
@@ -343,5 +362,34 @@ public class EncodedResourceService {
         }
     }
 
+    // 인코딩 업로드 알림 데이터베이스 저장
+    public void encodingNotification(String accountId, String fileName, String format, String resolution, String resourceType){
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        // 파일 이름에서 확장자 제거
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+        // 파일 이름 설정
+        String outputFileName = baseName + "_" + resolution + "." + format;
+
+        // 데이터베이스에서 인코딩된 리소스 조회
+        Optional<EncodedResource> encodedResourceOpt = encodedResourceRepository.findByFileName(outputFileName);
+
+        EncodedResource encodedResource = encodedResourceOpt.get();
+
+        String message = encodedResource.getFileTitle() + "_" + resolution + "_" + format + " 인코딩 성공";
+
+        ResourceType Type = ResourceType.valueOf(resourceType);
+
+        Notification notification = new Notification();
+        notification.setIsRead(false);
+        notification.setAccount(account);
+        notification.setMessage(message);
+        notification.setResourceType(Type);
+
+        notificationRepository.save(notification);
+    }
 
 }
