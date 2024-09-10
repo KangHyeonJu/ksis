@@ -1,7 +1,6 @@
 package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
 @RequestMapping("/api/notices")
 @RequiredArgsConstructor
 public class NoticeController {

@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
 @RequestMapping("/api/filesize")
 @RequiredArgsConstructor
 public class FileSizeController {

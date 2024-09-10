@@ -51,11 +51,14 @@ public class SignageService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    //담당자로 등록된 재생장치 목록 조회
     public List<DeviceListDTO> getSignageList(String accountId){
+        //계정-디바이스 맵핑 테이블에서 계정아이디로 디바이스 목록을 가져옴
         List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
 
         List<Device> deviceList = new ArrayList<>();
 
+        //가져온 재생장치 목록 중 SIGNAGE에 해당하는 디바이스만 추가
         for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
             Device device = accountDeviceMap.getDevice();
             if(device.getDeviceType() == DeviceType.SIGNAGE){
@@ -63,7 +66,9 @@ public class SignageService {
             }
         }
 
+        //해당 디바이스의 정보를 DTO에 담아서 return
         return deviceList.stream().map(device -> {
+            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
@@ -76,10 +81,14 @@ public class SignageService {
         }).collect(Collectors.toList());
     }
 
+    //모든 재생장치 조회
     public List<DeviceListDTO> getSignageAll(){
+        //디바이스 목록에서 SIGNAGE만 조회
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
 
+        //해당 디바이스의 정보를 DTO에 담아서 return
         return deviceList.stream().map(device -> {
+            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
@@ -92,11 +101,14 @@ public class SignageService {
         }).collect(Collectors.toList());
     }
 
+    //담당자로 등록된 재생장치 목록 조회
     public List<SignageGridDTO> getSignageGridList(String accountId){
+        //계정-디바이스 맵핑 테이블에서 계정아이디로 디바이스 목록을 가져옴
         List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
 
         List<Device> deviceList = new ArrayList<>();
 
+        //가져온 재생장치 목록 중 SIGNAGE에 해당하는 디바이스만 추가
         for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
             Device device = accountDeviceMap.getDevice();
             if(device.getDeviceType() == DeviceType.SIGNAGE){
@@ -107,18 +119,22 @@ public class SignageService {
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
         for(Device device : deviceList){
+            //디바이스에 선택된 재생목록 가져오기
             PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
 
             String thumbNailPath;
 
             if(playList != null){
+                //재생목록에서 첫 번째 파일 가져오기
                 PlaylistSequence playlistSequence = playlistSequenceRepository.findByPlaylistIdAndSequence(playList.getPlaylistId(), 1);
 
+                //해당 파일의 썸네일 경로 가져오기
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(playlistSequence.getEncodedResource().getOriginalResource());
                 thumbNailPath = thumbNail.getFilePath();
             }else {
                 thumbNailPath = device.getDeviceName();
             }
+            //DTO에 정보 담아서 return
             SignageGridDTO signageGridDTO = SignageGridDTO.builder().deviceId(device.getDeviceId()).deviceName(device.getDeviceName()).thumbNail(thumbNailPath).build();
 
             signageGridDTOList.add(signageGridDTO);
@@ -126,24 +142,30 @@ public class SignageService {
         return signageGridDTOList;
     }
 
+    //모든 재생장치 조회
     public List<SignageGridDTO> getSignageGridAll(){
+        //디바이스 목록에서 SIGNAGE만 조회
         List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
         for(Device device : deviceList){
+            //디바이스에 선택된 재생목록 가져오기
             PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
 
             String thumbNailPath;
 
             if(playList != null){
+                //재생목록에서 첫 번째 파일 가져오기
                 PlaylistSequence playlistSequence = playlistSequenceRepository.findByPlaylistIdAndSequence(playList.getPlaylistId(), 1);
 
+                //해당 파일의 썸네일 경로 가져오기
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(playlistSequence.getEncodedResource().getOriginalResource());
                 thumbNailPath = thumbNail.getFilePath();
             }else {
                 thumbNailPath = device.getDeviceName();
             }
+            //DTO에 정보 담아서 return
             SignageGridDTO signageGridDTO = SignageGridDTO.builder().deviceId(device.getDeviceId()).deviceName(device.getDeviceName()).thumbNail(thumbNailPath).build();
 
             signageGridDTOList.add(signageGridDTO);
@@ -151,11 +173,13 @@ public class SignageService {
         return signageGridDTOList;
     }
 
+    //재생장치 등록
     public void saveNewSignage(SignageFormDTO signageFormDTO, List<String> accountList){
         Device device = signageFormDTO.createNewSignage();
 
         signageRepository.save(device);
 
+        //담당자로 선택한 계정 목록을 계정-디바이스 맵핑테이블에 추가
         for (String accountId : accountList) {
             Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
 
@@ -170,12 +194,14 @@ public class SignageService {
         }
     }
 
+    //재생장치 등록 시 MAC 주소 중복 검증
     public boolean checkMacAddress(SignageFormDTO signageFormDTO){
         Device device = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
 
         return device == null;
     }
 
+    //재생장치 수정 시 MAC 주소 중복 검증(기존 MAC 주소는 제외시키기)
     public boolean checkUpdateMacAddress(SignageFormDTO signageFormDTO){
         Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow();
 
@@ -186,12 +212,16 @@ public class SignageService {
         }else return Objects.equals(device.getMacAddress(), signageFormDTO.getMacAddress());
     }
 
+    //재생장치 수정
     public void updateSignage(SignageFormDTO signageFormDTO, List<String> accountList){
+        //디바이스 아이디로 디바이스 조회 후 업데이트
         Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow(EntityNotFoundException::new);
         device.updateSignage(signageFormDTO);
 
+        //기존 담당자 목록 삭제
         accountDeviceMapRepository.deleteByDeviceId(device.getDeviceId());
 
+        //담당자로 선택한 계정 목록을 계정-디바이스 맵핑테이블에 추가
         for (String accountId : accountList) {
             Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
 
@@ -208,10 +238,13 @@ public class SignageService {
         signageRepository.save(device);
     }
 
+    //재생장치 기존 정보 조회
     @Transactional
     public SignageFormDTO getSignageDtl(Long signageId){
+        //디바이스 아이디로 디바이스 조회
         Device device = signageRepository.findById(signageId).orElseThrow(EntityNotFoundException::new);
 
+        //계정-디바이스 맵핑 테이블에서 디바이스 아이디로 담당자 목록 조회
         List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                 .stream()
                 .map(map -> {
@@ -223,6 +256,7 @@ public class SignageService {
         return SignageFormDTO.of(device, accountDTOList);
     }
 
+    //재생장치 공지 표시 여부 수정
     @Transactional
     public void updateSignageStatus(Long signageId, boolean isShow) {
         Device device = signageRepository.findById(signageId)
@@ -231,15 +265,21 @@ public class SignageService {
         signageRepository.save(device);
     }
 
+    //재생장치 공지 목록 조회
     public List<SignageNoticeDTO> getSignageNotice(Long signageId){
         List<SignageNoticeDTO> signageNoticeDTOList = new ArrayList<>();
 
+        //디바이스-공지 맵핑 테이블에서 디바이스 아이디가 있는 공지 목록 조회
         List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeRepository.findByDeviceId(signageId);
+
 
         for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
             Notice notice = deviceNoticeMap.getNotice();
+
+            //공지 작성자 아이디, 이름
             AccountDeviceDTO accountDeviceDTO = new AccountDeviceDTO(notice.getAccount().getAccountId(), notice.getAccount().getName());
 
+            //공지 목록을 DTO에 담아서 return
             SignageNoticeDTO signageNoticeDTO = new SignageNoticeDTO(notice.getNoticeId(), notice.getTitle(), accountDeviceDTO, notice.getRegTime(), notice.getStartDate(), notice.getEndDate());
 
             signageNoticeDTOList.add(signageNoticeDTO);
@@ -247,15 +287,20 @@ public class SignageService {
         return signageNoticeDTOList;
     }
 
+    //재생장치에 등록된 파일 조회
     public List<SignageResourceDTO> getResourceList(Long signageId){
         List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
 
+        //디바이스-인코딩 맵핑 테이블에서 디바이스 아이디로 인코딩 resource 목록 조회
         List<DeviceEncodeMap> deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId);
 
         for(DeviceEncodeMap deviceEncodeMap : deviceEncodeMaps){
             EncodedResource encodedResource = deviceEncodeMap.getEncodedResource();
 
+            //인코딩 resource의 썸네일 경로
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+            //인코딩 resource 목록을 DTO에 담아서 return
             SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
 
             signageResourceDTOList.add(signageResourceDTO);
@@ -263,21 +308,25 @@ public class SignageService {
         return signageResourceDTOList;
     }
 
+    //본인이 업로드한 파일 조회
     public List<SignageResourceDTO> getAccountResourceList(String accountId){
         List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
 
         Account account = accountRepository.findByAccountId(accountId).orElse(null);
 
         if(account != null){
+            //계정으로 업로드한 원본 resource 목록 조회
             List<OriginalResource> originalResourceList = originalResourceRepository.findByAccount(account);
 
-
+            //원본 resource로 인코딩 resource 목록 조회
             for(OriginalResource originalResource : originalResourceList){
                 List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResource(originalResource);
 
+                //인코딩 resource 썸네일 경로
                 for(EncodedResource encodedResource : encodedResourceList){
                     ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
 
+                    //인코딩 resource 목록을 DTO에 담아서 return
                     SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
 
                     signageResourceDTOList.add(signageResourceDTO);
@@ -287,8 +336,12 @@ public class SignageService {
         return signageResourceDTOList;
     }
 
+    //재생장치에 resource 추가
     public void addSignageResource(Long signageId, List<Long> encodedResourceIdList){
+        //디바이스 아이디롤 디바이스 조회
         Device device = signageRepository.findByDeviceId(signageId);
+
+        //추가한 인코딩 resource를 디바이스-인코딩 맵핑 테이블에 추가
         for(Long encodedResourceId : encodedResourceIdList){
             EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(encodedResourceId);
 
@@ -301,10 +354,14 @@ public class SignageService {
             deviceEncodeMapRepository.save(deviceEncodeMap);
         }
     }
+
+    //재생장치에 등록된 resource 삭제
     public void deleteEncodedResource(Long signageId, Long encodedResourceId){
+        //디바이스-인코딩 맵핑 테이블에서 삭제
         deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
     }
 
+    //
     public List<PlayListDTO> getPlaylistList(Long signageId){
         Device device = signageRepository.findByDeviceId(signageId);
         List<PlayList> playLists = playListRepository.findByDevice(device);
