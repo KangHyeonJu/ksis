@@ -25,6 +25,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -492,10 +493,17 @@ public class SignageService {
         if(device.getIsShow()){
             List<DeviceNoticeMap> noticeList = deviceNoticeRepository.findByDeviceId(signageId);
 
+            LocalDate nowDate = LocalDate.now();
+
             for(DeviceNoticeMap deviceNoticeMap : noticeList){
                 Notice notice = deviceNoticeMap.getNotice();
-                String noticeContent = notice.getContent();
-                notices.add(noticeContent);
+                LocalDate startDate = notice.getStartDate();
+                LocalDate endDate = notice.getEndDate();
+
+                if(startDate.isBefore(nowDate) && startDate.isEqual(nowDate) && endDate.isAfter(nowDate) && endDate.isEqual(nowDate)){
+                    String noticeContent = notice.getContent();
+                    notices.add(noticeContent);
+                }
             }
         }
         return notices;
