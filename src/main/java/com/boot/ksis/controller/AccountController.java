@@ -122,17 +122,9 @@ public class AccountController {
         }
     }
 
-    @GetMapping("/accountList")
-    public ResponseEntity<?> accountList(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        boolean isAdmin = currentUser.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-
-        if (isAdmin) {
-            return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
+    @GetMapping("/admin/accountList")
+    public ResponseEntity<?> accountList() {
+        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
     @PostMapping("/login")
