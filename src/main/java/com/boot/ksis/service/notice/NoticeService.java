@@ -1,5 +1,6 @@
 package com.boot.ksis.service.notice;
 
+import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;

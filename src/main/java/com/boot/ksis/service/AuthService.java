@@ -4,6 +4,7 @@ import com.boot.ksis.dto.login.JwtTokenDTO;
 import com.boot.ksis.entity.RefreshToken;
 import com.boot.ksis.repository.RefreshTokenRepository;
 import com.boot.ksis.util.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -78,6 +79,26 @@ public class AuthService {
                 .accessToken(newAccessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    // 토큰 검증 및 로그아웃 상태 확인
+    public boolean checkAccessToken(HttpServletRequest request) {
+        String token = resolveToken(request);  // 요청에서 토큰 추출
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            return true;  // 토큰이 없거나 유효하지 않음 -> 로그아웃 처리 필요
+        }
+
+        String accountId = jwtTokenProvider.getAccountIdFromToken(token);  // 토큰에서 accountId 추출
+        return !refreshTokenRepository.existsByAccountId(accountId);  // 리프레시 토큰이 없으면 로그아웃 상태
+    }
+
+    // 요청에서 액세스 토큰 추출
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);  // "Bearer " 이후의 실제 토큰 반환
+        }
+        return null;  // 토큰이 없으면 null 반환
     }
 
     private String extractAccessToken(String authorizationHeader) {

@@ -1,5 +1,7 @@
 package com.boot.ksis.controller.notice;
 
+import com.boot.ksis.aop.CustomAnnotation;
+import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class NoticeController {
     }
 
     // 공지 수정
+    @CustomAnnotation(activityDetail = "공지 수정")
     @PutMapping("/{noticeId}")
     public ResponseEntity<NoticeDTO> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeDTO noticeDTO) {
         // 공지 수정 서비스 호출
@@ -33,6 +36,7 @@ public class NoticeController {
     }
 
     // 공지 삭제
+    @CustomAnnotation(activityDetail = "공지 삭제")
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
         // 공지 삭제 서비스 호출

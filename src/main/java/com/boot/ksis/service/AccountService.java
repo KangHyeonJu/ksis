@@ -66,16 +66,16 @@ public class AccountService {
         String encryptedBirthDate = AESUtil.encrypt(dto.getBirthDate(), keySpec);
         account.setBirthDate(encryptedBirthDate);
 
-        // EmergencyTel 암호화
-        String encryptedEmergencyTel = AESUtil.encrypt(dto.getEmergencyTel(), keySpec);
-        account.setEmergencyTel(encryptedEmergencyTel);
+        // BusinessTel 암호화
+        String encryptedBusinessTel = AESUtil.encrypt(dto.getBusinessTel(), keySpec);
+        account.setBusinessTel(encryptedBusinessTel);
 
-        account.setBusinessTel(dto.getBusinessTel());
+        account.setEmergencyTel(dto.getEmergencyTel());
         account.setEmail(dto.getEmail());
         account.setPosition(dto.getPosition());
         account.setGender(dto.getGender());
         account.setIsActive(false);
-        account.setRole(Role.USER);
+        account.setRole(Role.ADMIN);
         return accountRepository.save(account);
     }
 
@@ -90,11 +90,11 @@ public class AccountService {
         String decryptedBirthDate = AESUtil.decrypt(account.getBirthDate(), keySpec);
         dto.setBirthDate(decryptedBirthDate);
 
-        // EmergencyTel 복호화
-        String decryptedEmergencyTel = AESUtil.decrypt(account.getEmergencyTel(), keySpec);
-        dto.setEmergencyTel(decryptedEmergencyTel);
+        // BusinessTel 복호화
+        String decryptedBusinessTel = AESUtil.decrypt(account.getBusinessTel(), keySpec);
+        dto.setBusinessTel(decryptedBusinessTel);
 
-        dto.setBusinessTel(account.getBusinessTel());
+        dto.setEmergencyTel(account.getEmergencyTel());
         dto.setEmail(account.getEmail());
         dto.setPosition(account.getPosition());
         dto.setGender(account.getGender());
@@ -109,7 +109,16 @@ public class AccountService {
                     AccountListDTO dto = new AccountListDTO();
                     dto.setAccountId(account.getAccountId());
                     dto.setName(account.getName());
-                    dto.setBusinessTel(account.getBusinessTel());
+
+                    // BusinessTel 복호화
+                    String decryptedBusinessTel;
+                    try {
+                        decryptedBusinessTel = AESUtil.decrypt(account.getBusinessTel(), keySpec);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    dto.setBusinessTel(decryptedBusinessTel);
+
                     dto.setIsActive(account.getIsActive());
                     return dto;
                 })
@@ -150,13 +159,13 @@ public class AccountService {
                 existingAccount.setBirthDate(encryptedBirthDate);
             }
 
-            // 긴급 연락처 암호화
-            if (updatedDto.getEmergencyTel() != null) {
-                String encryptedEmergencyTel = AESUtil.encrypt(updatedDto.getEmergencyTel(), keySpec);
-                existingAccount.setEmergencyTel(encryptedEmergencyTel);
+            // 업무 연락처 암호화
+            if (updatedDto.getBusinessTel() != null) {
+                String encryptedBusinessTel = AESUtil.encrypt(updatedDto.getBusinessTel(), keySpec);
+                existingAccount.setBusinessTel(encryptedBusinessTel);
             }
 
-            existingAccount.setBusinessTel(updatedDto.getBusinessTel());
+            existingAccount.setEmergencyTel(updatedDto.getEmergencyTel());
             existingAccount.setEmail(updatedDto.getEmail());
             existingAccount.setPosition(updatedDto.getPosition());
             existingAccount.setGender(updatedDto.getGender());
