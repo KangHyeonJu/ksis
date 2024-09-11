@@ -102,7 +102,7 @@ public class AccountController {
         }
     }
 
-    @GetMapping("/admin/accountList")
+    @GetMapping("/accountList")
     public ResponseEntity<?> accountList() {
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }

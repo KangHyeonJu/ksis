@@ -37,11 +37,11 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-//                               .requestMatchers("/**").permitAll()
+                               .requestMatchers("/**").permitAll()
                                 //  .requestMatchers("/log/**", "/access-log", "/resourceList/**", "/total/**", "/mac","/login", "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**","/notices/**" ).permitAll()
                                 // .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .requestMatchers("/total/**", "/mac","/login", "/get-token", "/signage/**",
-                                         "/pc/**", "/file/**", "/api/**", "/events").permitAll()
+                                         "/pc/**", "/file/**", "/api/**", "/events", "/sse/**").permitAll()
                                  .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )
