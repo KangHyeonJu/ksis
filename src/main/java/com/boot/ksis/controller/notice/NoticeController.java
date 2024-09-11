@@ -1,9 +1,8 @@
 package com.boot.ksis.controller.notice;
 
-import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.service.notice.NoticeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,23 +10,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/notices")
+@RequiredArgsConstructor
 public class NoticeController {
 
     private final NoticeService noticeService;
 
-    public NoticeController(NoticeService noticeService) {
-        this.noticeService = noticeService;
-    }
-
-    // 공지 등록 API
-    @PostMapping("/register")
-    public ResponseEntity<Long> registerNotice(@RequestBody NoticeDTO noticeDTO) {
-        Long noticeId = noticeService.registerNotice(noticeDTO);
-        return ResponseEntity.ok(noticeId);
+    // 공지 등록
+    @PostMapping
+    public ResponseEntity<NoticeDTO> createNotice(@RequestBody NoticeDTO noticeDTO) {
+        // 공지 등록 서비스 호출
+        NoticeDTO createdNotice = noticeService.createNotice(noticeDTO);
+        return ResponseEntity.ok(createdNotice); // 성공 시 등록된 공지 반환
     }
 
     // 공지 수정
-    @CustomAnnotation(activityDetail = "공지 수정")
     @PutMapping("/{noticeId}")
     public ResponseEntity<NoticeDTO> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeDTO noticeDTO) {
         // 공지 수정 서비스 호출
@@ -36,7 +32,6 @@ public class NoticeController {
     }
 
     // 공지 삭제
-    @CustomAnnotation(activityDetail = "공지 삭제")
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
         // 공지 삭제 서비스 호출
@@ -45,7 +40,7 @@ public class NoticeController {
     }
 
     // 공지 조회 (전체)
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<NoticeDTO>> getAllNotices() {
         // 공지 전체 조회 서비스 호출
         List<NoticeDTO> notices = noticeService.getAllNotices();
