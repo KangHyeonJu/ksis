@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,10 +22,7 @@ public class NoticeDTO {
     private String name;
 
     // 재생장치 아이디
-    private Long deviceId;
-
-    //재생장치 이름
-    private String deviceName;
+    private List<Long> deviceIds;
 
     // 제목
     private String title;
