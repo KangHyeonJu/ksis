@@ -19,14 +19,9 @@ public class MacController {
     @PostMapping("/mac")
     public ResponseEntity<?> verifyMac(@RequestBody Map<String, String> payload) {
         String macAddress = payload.get("mac");
-        System.out.println("Received MAC Address: " + macAddress);
-
         Map<String, Object> response = macService.verifyMacAddress(macAddress);
-
-        if ((boolean) response.get("success")) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
+        return (boolean) response.get("success")
+                ? ResponseEntity.ok(response)
+                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }

@@ -1,10 +1,6 @@
 package com.boot.ksis.controller;
 
 import com.boot.ksis.dto.login.JwtTokenDTO;
-import com.boot.ksis.entity.RefreshToken;
-import com.boot.ksis.repository.RefreshTokenRepository;
-import com.boot.ksis.util.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
 import com.boot.ksis.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +23,9 @@ public class AuthController {
             JwtTokenDTO tokenDTO = authService.refreshAccessToken(authorizationHeader);
             return ResponseEntity.ok(tokenDTO);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
