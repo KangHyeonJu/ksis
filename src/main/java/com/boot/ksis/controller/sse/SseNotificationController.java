@@ -31,6 +31,7 @@ public class SseNotificationController {
 
             emitter.onCompletion(() -> emitterService.removeEmitter(userId));
             emitter.onTimeout(() -> emitterService.removeEmitter(userId));
+            emitter.onError((e) -> emitterService.removeEmitter(userId));
 
             return emitter;
         } else {
