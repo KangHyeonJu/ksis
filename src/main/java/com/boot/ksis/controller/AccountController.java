@@ -46,34 +46,14 @@ public class AccountController {
     @GetMapping("/account/{accountId}")
     public ResponseEntity<AccountDTO> getAccount(@PathVariable String accountId,
                                                  Authentication authentication) throws Exception {
-        try {
-            // 현재 인증된 사용자 정보 가져오기
+        try{
             User currentUser = (User) authentication.getPrincipal();
 
-            // 관리자 여부 확인
-            boolean isAdmin = currentUser.getAuthorities().stream()
-                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
-
-            // 관리자일 경우 모든 계정 접근 가능
-            if (isAdmin) {
+            if (authService.isAuthorized(currentUser, accountId)) {
                 AccountDTO account = accountService.getAccountById(accountId);
-                if (account != null) {
-                    return ResponseEntity.ok(account);
-                } else {
-                    return ResponseEntity.notFound().build();
-                }
+                return account != null ? ResponseEntity.ok(account) : ResponseEntity.notFound().build();
             } else {
-                // 일반 사용자의 경우, accountId가 현재 사용자 ID와 일치하는지 확인
-                if (!currentUser.getUsername().equals(accountId)) {
-                    return ResponseEntity.notFound().build();
-                }
-
-                AccountDTO account = accountService.getAccountById(accountId);
-                if (account != null) {
-                    return ResponseEntity.ok(account);
-                } else {
-                    return ResponseEntity.notFound().build();
-                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();  // 권한이 없을 경우 403 반환
             }
         } catch (Exception e) {
             e.printStackTrace();

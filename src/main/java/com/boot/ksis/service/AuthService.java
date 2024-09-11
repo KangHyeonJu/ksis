@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,5 +114,14 @@ public class AuthService {
 
     public void deleteRefreshToken(String accountId){
         refreshTokenRepository.deleteByAccountId(accountId);
+    }
+
+    // 관리자이거나 현재 사용자의 계정인지 체크하는 메서드
+    public boolean isAuthorized(User currentUser, String accountId) {
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        // 관리자이거나 사용자가 자신의 계정에 접근하는 경우 true 반환
+        return isAdmin || currentUser.getUsername().equals(accountId);
     }
 }
