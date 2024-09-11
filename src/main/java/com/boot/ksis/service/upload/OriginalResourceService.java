@@ -3,13 +3,14 @@ package com.boot.ksis.service.upload;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
+import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.Notification;
 import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
-import com.boot.ksis.repository.file.FileSizeRepository;
-import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -196,36 +198,17 @@ public class OriginalResourceService {
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbNailRepository.save(thumbnail); // 썸네일 저장
-    }
 
-//    // 동영상 썸네일 생성 메서드
-//    private void generateVideoThumbnail(String videoPath,String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException{
-//        FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(videoPath);
-//        try{
-//            frameGrabber.start();
-//
-//            // 비디오의 첫 번째 프레임을 가져옴
-//            Java2DFrameConverter converter = new Java2DFrameConverter();
-//            BufferedImage bufferedImage = converter.convert(frameGrabber.grab());
-//
-//            // 이미지를 썸네일 크기로 조정하고 파일로 저장
-//            BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
-//                    .size(200, 200)
-//                    .asBufferedImage();
-//
-//            ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
-//
-//            // 썸네일 메타데이터를 데이터베이스에 저장
-//            ThumbNail thumbnail = new ThumbNail();
-//            thumbnail.setOriginalResource(originalResource);
-//            thumbnail.setFilePath(thumbnailUrl);
-//            thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
-//
-//            thumbNailRepository.save(thumbnail); // 썸네일 저장
-//        }finally {
-//            frameGrabber.stop();
-//        }
-//    }
+        //인코딩 용량 추가
+        FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+            // 설정이 없으면 기본값으로 새로운 설정 생성
+            FileSize defaultFileSize = new FileSize();
+            defaultFileSize.setTotalVideo(0L);
+            defaultFileSize.setTotalImage(0L);
+            return fileSizeRepository.save(defaultFileSize);
+        });
+        addFileSize.setTotalImage(addFileSize.getTotalImage() + thumbnail.getFileSize());
+    }
 
     // 동영상에서 썸네일 생성
     private void generateVideoThumbnail(String videoPath, String thumbnailPath, String thumbnailUrl, OriginalResource originalResource) throws IOException {
@@ -246,6 +229,16 @@ public class OriginalResourceService {
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbNailRepository.save(thumbnail); // 썸네일 저장
+
+        //인코딩 용량 추가
+        FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+            // 설정이 없으면 기본값으로 새로운 설정 생성
+            FileSize defaultFileSize = new FileSize();
+            defaultFileSize.setTotalVideo(0L);
+            defaultFileSize.setTotalImage(0L);
+            return fileSizeRepository.save(defaultFileSize);
+        });
+        addFileSize.setTotalImage(addFileSize.getTotalImage() + thumbnail.getFileSize());
     }
 
     // FFmpeg를 사용하여 특정 프레임 추출

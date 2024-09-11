@@ -19,10 +19,14 @@ public class PcController {
     private final PcService pcService;
 
     @GetMapping()
-    public ResponseEntity<?> pcList(Principal principal){
+    public ResponseEntity<?> pcList(Principal principal, @RequestParam String role){
         String accountId = principal.getName();
 
-        return new ResponseEntity<>(pcService.getPcList(accountId), HttpStatus.OK);
+        if(role.contains("ADMIN")){
+            return new ResponseEntity<>(pcService.getPcAll(), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(pcService.getPcList(accountId), HttpStatus.OK);
+        }
     }
 
     @GetMapping("/{pcId}")

@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000") // React 애플리케이션의 주소
 @RequiredArgsConstructor
 public class ApiController {
 

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+
 public class NoticeDTO {
     // 공지 아이디
     private Long noticeId;
@@ -18,6 +19,9 @@ public class NoticeDTO {
 
     //계정 이름
     private String name;
+
+    // 재생장치 아이디
+    private Long deviceId;
 
     //재생장치 이름
     private String deviceName;

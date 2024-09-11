@@ -2,48 +2,72 @@ package com.boot.ksis.service.notice;
 
 import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
+import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.Notice;
+import com.boot.ksis.repository.DeviceRepository;
+import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
-import lombok.RequiredArgsConstructor;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class NoticeService {
 
-
     private final NoticeRepository noticeRepository;
+    private final AccountRepository accountRepository;
+    private final DeviceRepository deviceRepository;
     private final DeviceNoticeMapRepository deviceNoticeMapRepository;
 
-    // 공지 등록
-    public NoticeDTO createNotice(NoticeDTO noticeDTO) {
+    public NoticeService(NoticeRepository noticeRepository, AccountRepository accountRepository,
+                         DeviceRepository deviceRepository, DeviceNoticeMapRepository deviceNoticeMapRepository) {
+        this.noticeRepository = noticeRepository;
+        this.accountRepository = accountRepository;
+        this.deviceRepository = deviceRepository;
+        this.deviceNoticeMapRepository = deviceNoticeMapRepository;
+    }
 
-        System.out.println("공지 등록 시작 : " + noticeDTO);
+    // 공지 등록 메서드
+    @Transactional
+    public Long registerNotice(NoticeDTO noticeDTO) {
+        // 작성자 정보 가져오기
+        Account account = accountRepository.findById(noticeDTO.getAccountId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 계정 ID입니다."));
 
-        Notice notice = new Notice(); // 새로운 공지 엔티티 생성
-        notice.setTitle(noticeDTO.getTitle()); // 제목 설정
-        notice.setContent(noticeDTO.getContent()); // 내용 설정
-        notice.setCreatedBy(noticeDTO.getAccountId());//작성자 설정
-        notice.setStartDate(noticeDTO.getStartDate()); // 노출 시작일 설정
-        notice.setEndDate(noticeDTO.getEndDate()); // 노출 종료일 설정
+        // 디바이스 정보 가져오기
+        Device device = deviceRepository.findById(noticeDTO.getDeviceId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 디바이스 ID입니다."));
 
-        // 공지 저장
+        // 공지 엔티티 생성 및 저장
+        Notice notice = new Notice();
+        notice.setTitle(noticeDTO.getTitle());
+        notice.setContent(noticeDTO.getContent());
+        notice.setStartDate(noticeDTO.getStartDate());
+        notice.setEndDate(noticeDTO.getEndDate());
+        notice.setAccount(account); // 작성자 정보 저장
+        notice.setRegTime(LocalDateTime.now()); // 등록 시간 저장
+
         Notice savedNotice = noticeRepository.save(notice);
 
-        // 저장된 공지의 ID와 시간을 NoticeDTO에 설정
-        noticeDTO.setNoticeId(savedNotice.getNoticeId());
-        noticeDTO.setAccountId(savedNotice.getCreatedBy());
-        noticeDTO.setRegTime(savedNotice.getRegTime()); // 등록 시간 설정
-        noticeDTO.setUpdateTime(savedNotice.getUpdateTime()); // 수정 시간 설정
-        System.out.println("공지 등록 끝 : " + savedNotice);
-        return noticeDTO; // 저장된 공지 정보를 포함한 DTO 반환
+        // DeviceNoticeMap 저장
+        DeviceNoticeMap deviceNoticeMap = new DeviceNoticeMap();
+        deviceNoticeMap.setDeviceId(device.getDeviceId());
+        deviceNoticeMap.setNoticeId(savedNotice.getNoticeId());
+        deviceNoticeMap.setDevice(device);
+        deviceNoticeMap.setNotice(savedNotice);
+
+        deviceNoticeMapRepository.save(deviceNoticeMap);
+
+        return savedNotice.getNoticeId();
     }
+
 
     // 공지 수정
     public NoticeDTO updateNotice(Long noticeId, NoticeDTO noticeDTO) {

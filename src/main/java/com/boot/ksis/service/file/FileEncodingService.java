@@ -3,7 +3,9 @@ package com.boot.ksis.service.file;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class FileEncodingService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
+    private final FileSizeRepository fileSizeRepository;
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(String resolution) {
@@ -158,6 +161,17 @@ public class FileEncodingService {
                 encoded.setResourceStatus(ResourceStatus.COMPLETED);
                 encodedResourceRepository.save(encoded);
                 System.out.println("이미지 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
+
+                //인코딩 용량 추가
+                FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+                    // 설정이 없으면 기본값으로 새로운 설정 생성
+                    FileSize defaultFileSize = new FileSize();
+                    defaultFileSize.setTotalVideo(0L);
+                    defaultFileSize.setTotalImage(0L);
+                    return fileSizeRepository.save(defaultFileSize);
+                });
+                addFileSize.setTotalImage(addFileSize.getTotalImage() + encodedResource.getFileSize());
+
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName);
             }
@@ -262,6 +276,16 @@ public class FileEncodingService {
                 encoded.setResourceStatus(ResourceStatus.COMPLETED); // 인코딩 완료 상태
                 encodedResourceRepository.save(encoded); // EncodedResource 업데이트
                 System.out.println("영상 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
+
+                //인코딩 용량 추가
+                FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
+                    // 설정이 없으면 기본값으로 새로운 설정 생성
+                    FileSize defaultFileSize = new FileSize();
+                    defaultFileSize.setTotalVideo(0L);
+                    defaultFileSize.setTotalImage(0L);
+                    return fileSizeRepository.save(defaultFileSize);
+                });
+                addFileSize.setTotalVideo(addFileSize.getTotalImage() + encodedResource.getFileSize());
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName); // EncodedResource가 없을 때
             }

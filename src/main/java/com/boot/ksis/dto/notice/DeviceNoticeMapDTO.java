@@ -14,9 +14,6 @@ public class DeviceNoticeMapDTO {
     //디바이스 id
     private Long deviceId;
 
-    //디바이스 이름
-    private String deviceName;
-
     //공지 id
     private Long noticeId;
 }

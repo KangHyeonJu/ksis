@@ -22,6 +22,7 @@ public class DeviceAdminController {
     private final AccountListService accountService;
     private final PcService pcService;
 
+    //재생장치 삭제
     @CustomAnnotation(activityDetail = "재생장치 삭제")
     @DeleteMapping("/signage/delete")
     public ResponseEntity<?> deleteSignage(@RequestParam List<Long> signageIds){
@@ -33,14 +34,17 @@ public class DeviceAdminController {
         }
     }
 
+    //재생장치 등록 시 USER 목록 조회
     @GetMapping("/signage/new")
     public ResponseEntity<?> signageAdd(){
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
+    //재생장치 등록
     @CustomAnnotation(activityDetail = "재생장치 등록")
     @PostMapping("/signage/new")
     public ResponseEntity<String> signageAddPost(@RequestPart("signageFormDto") SignageFormDTO signageFormDTO, @RequestPart(value="accountList") List<String> accountList){
+       //MAC 주소 중복 검증
         if(signageService.checkMacAddress(signageFormDTO)){
             signageFormDTO.setIsShow(false);
             signageService.saveNewSignage(signageFormDTO, accountList);
@@ -50,11 +54,13 @@ public class DeviceAdminController {
         }
     }
 
+    //PC 등록 시 USER 목록 조회
     @GetMapping("/pc/new")
     public ResponseEntity<?> pcAdd(){
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
+    //PC 등록
     @CustomAnnotation(activityDetail = "일반 PC 등록")
     @PostMapping("/pc/new")
     public ResponseEntity<String> pcAddPost(@RequestPart("pcFormDto") PcFormDTO pcFormDto, @RequestPart(value="accountList") List<String> accountList) {
@@ -66,6 +72,7 @@ public class DeviceAdminController {
         }
     }
 
+    //PC 삭제
     @CustomAnnotation(activityDetail = "일반 PC 삭제")
     @DeleteMapping("/pc/delete")
     public ResponseEntity<?> deletePcs(@RequestParam List<Long> pcIds) {

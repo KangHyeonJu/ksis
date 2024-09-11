@@ -58,6 +58,22 @@ public class PcService {
         }).collect(Collectors.toList());
     }
 
+    public List<DeviceListDTO> getPcAll(){
+        List<Device> devices = pcRepository.findByDeviceType(DeviceType.PC);
+
+        return devices.stream().map(device -> {
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+                    .stream()
+                    .map(map -> {
+                        Account account = map.getAccount();
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
+                    })
+                    .collect(Collectors.toList());
+
+            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
+        }).collect(Collectors.toList());
+    }
+
     public void saveNewPc(PcFormDTO pcFormDto, List<String> accountList){
         Device device = pcFormDto.createNewPc();
         pcRepository.save(device);
