@@ -2,10 +2,7 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.controller.sse.SseController;
-import com.boot.ksis.dto.notification.UploadNotificationDTO;
-import com.boot.ksis.dto.file.OriginResourceListDTO;
-import com.boot.ksis.dto.file.ResourceListDTO;
+import com.boot.ksis.controller.sse.SseEncodingController;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
@@ -14,13 +11,12 @@ import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
+import com.boot.ksis.service.sse.SseNotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -48,10 +44,11 @@ public class EncodedResourceService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
-    private final SseController sseController;
+    private final SseEncodingController sseEncodingController;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
     private final FileSizeRepository fileSizeRepository;
+    private final SseNotificationEmitterService sseNotificationEmitterService;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -335,7 +332,12 @@ public class EncodedResourceService {
                 }
 
                 // 클라이언트로 인코딩 완료 알림 전송
-                sseController.sendEvent(encodedResource.getFileTitle());
+                sseEncodingController.sendEvent(encodedResource.getFileTitle());
+
+                System.out.println("인코딩 알람 sse 통신 아이디 시도하는 사람" + encodedResource.getOriginalResource().getAccount().getAccountId());
+
+                // 알림 개수 업데이트
+                sseNotificationEmitterService.sendToUser(encodedResource.getOriginalResource().getAccount().getAccountId(), "Notification Updated");
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
