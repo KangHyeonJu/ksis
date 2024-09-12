@@ -32,6 +32,12 @@ public class FileEncodingService {
     @Value("${encodingLocation}")
     String encodingLocation;
 
+    @Value("${ffmpegPath}")
+    String ffmpegPath;
+
+    @Value("${filePath}")
+    String dbFilePath;
+
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
     private final FileSizeRepository fileSizeRepository;
@@ -79,10 +85,10 @@ public class FileEncodingService {
         String originalFilePath = originResourceListDTO.getFilePath();
 
         // 파일 경로에서 /file/ 부분 제거
-        String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
+        String filePathWithoutPrefix = originalFilePath.replace(dbFilePath + "/", "");
 
         // 새로운 파일 경로 생성
-        String inputFilePath = "C:" + File.separator + "ksis-file" + File.separator + filePathWithoutPrefix;
+        String inputFilePath = encodingLocation + filePathWithoutPrefix;
 
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation + File.separator + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
@@ -94,10 +100,10 @@ public class FileEncodingService {
         switch (originResourceListDTO.getFormat().toLowerCase()) {
             case "png":
             case "bmp":
-                command = new String[]{"ffmpeg", "-i", inputFilePath, "-vf", scaleFilter, outputFileName};
+                command = new String[]{ffmpegPath, "-i", inputFilePath, "-vf", scaleFilter, outputFileName};
                 break;
             case "jpg":
-                command = new String[]{"ffmpeg", "-i", inputFilePath, "-vf", scaleFilter, "-q:v", "2", outputFileName};
+                command = new String[]{ffmpegPath, "-i", inputFilePath, "-vf", scaleFilter, "-q:v", "2", outputFileName};
                 break;
             default:
                 throw new IOException("지원되지 않는 이미지 형식: " + originResourceListDTO.getFormat());
@@ -128,7 +134,7 @@ public class FileEncodingService {
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
         String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
-        String filePath = "/file/encoding/" + fileName;
+        String filePath = dbFilePath + "/encoding/" + fileName;
 
         // Optional 처리로 null 방지
         Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
@@ -186,10 +192,10 @@ public class FileEncodingService {
         String originalFilePath = originResourceListDTO.getFilePath(); // 원본 파일 경로 가져오기
 
         // 파일 경로에서 /file/ 부분 제거
-        String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
+        String filePathWithoutPrefix = originalFilePath.replace(dbFilePath + "/", "");
 
         // 새로운 파일 경로 생성
-        String inputFilePath = "C:" + File.separator + "ksis-file" + File.separator + filePathWithoutPrefix;
+        String inputFilePath = encodingLocation + filePathWithoutPrefix;
 
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation + File.separator + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
@@ -202,17 +208,17 @@ public class FileEncodingService {
         String command;
         switch (originResourceListDTO.getFormat().toLowerCase()) {
             case "mov":
-                command = String.format("ffmpeg -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format(ffmpegPath + " -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
                 break;
             case "avi":
-                command = String.format("ffmpeg -i %s -vf %s -c:v libxvid -c:a libmp3lame %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format(ffmpegPath + " -i %s -vf %s -c:v libxvid -c:a libmp3lame %s", inputFilePath, scaleFilter, outputFileName);
                 break;
             case "mkv":
-                command = String.format("ffmpeg -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format(ffmpegPath + " -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
                 break;
             default:
                 // 기본적으로 mp4로 인코딩
-                command = String.format("ffmpeg -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format(ffmpegPath + " -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
                 break;
         }
 
@@ -242,7 +248,7 @@ public class FileEncodingService {
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
         String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
-        String filePath = "/file/encoding/" + fileName;
+        String filePath = dbFilePath + "/encoding/" + fileName;
 
         // Optional 처리로 null 방지
         Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);

@@ -4,13 +4,11 @@ import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.Notification;
 import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.entity.ThumbNail;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.file.FileSizeRepository;
-import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -43,6 +40,13 @@ public class OriginalResourceService {
 
     @Value("${thumbnailsLocation}")
     String thumbnailsLocation;
+
+    @Value("${ffmpegPath}")
+    String ffmpegPath;
+
+    @Value("${filePath}")
+    String dbFilePath;
+
 
     // 파일 메타데이터 저장
     public List<OriginalResourceDTO> saveToDatabase(
@@ -65,7 +69,7 @@ public class OriginalResourceService {
             
             // DTO 넣을 값들 설정
             String uuidFileName = UUID.randomUUID().toString() + "." + dto.getFormat(); // 파일 이름 생성
-            String filePath = "/file/uploads/" + uuidFileName; // 파일 경로 설정
+            String filePath = dbFilePath + "/uploads/" + uuidFileName; // 파일 경로 설정
             long fileSize = file.getSize(); // 파일 용량 설정
 
             // DTO 업데이트
@@ -97,7 +101,7 @@ public class OriginalResourceService {
             String fileNameUUID = UUID.randomUUID().toString() + ".jpg";
 
             String thumbnailPath = thumbnailsLocation + fileNameUUID;
-            String thumbnailUrl = "/file/thumbnails/" + fileNameUUID;
+            String thumbnailUrl = dbFilePath + "/thumbnails/" + fileNameUUID;
 
             File file = new File(filePath);
 
@@ -244,7 +248,7 @@ public class OriginalResourceService {
     // FFmpeg를 사용하여 특정 프레임 추출
     private void extractFrame(String videoPath, String outputPath) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg", "-i", videoPath, "-ss", "00:00:01", "-vframes", "1", outputPath
+                ffmpegPath, "-i", videoPath, "-ss", "00:00:01", "-vframes", "1", outputPath
         );
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
