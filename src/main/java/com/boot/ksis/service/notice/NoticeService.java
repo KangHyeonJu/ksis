@@ -2,6 +2,7 @@ package com.boot.ksis.service.notice;
 
 import com.boot.ksis.dto.notice.DeviceListDTO;
 import com.boot.ksis.dto.notice.DeviceNoticeDTO;
+import com.boot.ksis.dto.notice.NewNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
@@ -131,38 +132,35 @@ public class NoticeService {
     }
 
     // 공지 상세 조회
-    public NoticeDTO getNoticeById(Long noticeId) {
-        Optional<Notice> optionalNotice = noticeRepository.findById(noticeId);
+    public NewNoticeDTO getNoticeById(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId).orElse(null);
+        NewNoticeDTO dto = new NewNoticeDTO();
+            if (notice != null) {
+                dto.setNoticeId(notice.getNoticeId());
+                dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
+                dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+                dto.setTitle(notice.getTitle());
+                dto.setContent(notice.getContent());
+                dto.setRegDate(notice.getRegTime());
+                dto.setStartDate(notice.getStartDate());
+                dto.setEndDate(notice.getEndDate());
 
-        if (optionalNotice.isPresent()) {
-            Notice notice = optionalNotice.get();
-            NoticeDTO dto = new NoticeDTO();
-            dto.setNoticeId(notice.getNoticeId());
-            dto.setTitle(notice.getTitle());
-            dto.setContent(notice.getContent());
-            dto.setStartDate(notice.getStartDate());
-            dto.setEndDate(notice.getEndDate());
-            dto.setRegTime(notice.getRegTime());
-            dto.setUpdateTime(notice.getUpdateTime());
+                // 디바이스 정보 설정
+                List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
 
-            // 작성자 정보 설정
-            if (notice.getAccount() != null) {
-                dto.setAccountId(notice.getAccount().getAccountId());
-                dto.setName(notice.getAccount().getName());
+                List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
+                for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
+                    Device device = deviceNoticeMap.getDevice();
+
+                    DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(),
+                            device.getDeviceName());
+
+                    deviceNoticeDTOList.add(deviceNoticeDTO);
+                }
+                dto.setDeviceList(deviceNoticeDTOList);
             }
 
-            // 디바이스 정보 설정
-            List<Long> deviceIds = new ArrayList<>();
-            List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(noticeId);
-            for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
-                deviceIds.add(deviceNoticeMap.getDeviceId());
-            }
-            dto.setDeviceIds(deviceIds);
-
-            return dto;
-        } else {
-            throw new RuntimeException("해당 공지를 찾을 수 없습니다.");
-        }
+        return dto;
     }
 
     // 공지에 대한 디바이스 매핑 저장 로직

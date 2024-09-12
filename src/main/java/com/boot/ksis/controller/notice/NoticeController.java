@@ -2,6 +2,7 @@ package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.notice.DeviceListDTO;
+import com.boot.ksis.dto.notice.NewNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.service.notice.NoticeService;
@@ -79,7 +80,7 @@ public class NoticeController {
     public ResponseEntity<?> getNoticeById(@PathVariable Long noticeId) {
         try {
             // 공지 상세 조회 서비스 호출
-            NoticeDTO notice = noticeService.getNoticeById(noticeId);
+            NewNoticeDTO notice = noticeService.getNoticeById(noticeId);
             return ResponseEntity.ok(notice); // 성공 시 상세 공지 반환
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 공지 없음 예외 처리
