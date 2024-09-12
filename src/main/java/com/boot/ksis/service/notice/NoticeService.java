@@ -165,6 +165,7 @@ public class NoticeService {
 
 
     // 공지 수정
+    @Transactional
     public void updateNotice(Long noticeId, NoticeDTO noticeDTO) {
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다: " + noticeId));
 
