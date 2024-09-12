@@ -6,9 +6,11 @@ import com.boot.ksis.controller.sse.SseEncodingController;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.repository.file.FileSizeRepository;
@@ -49,6 +51,7 @@ public class EncodedResourceService {
     private final NotificationRepository notificationRepository;
     private final FileSizeRepository fileSizeRepository;
     private final SseNotificationEmitterService sseNotificationEmitterService;
+    private final UploadLogRepository uploadLogRepository;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -335,6 +338,15 @@ public class EncodedResourceService {
                 sseEncodingController.sendEvent(encodedResource.getFileTitle());
 
                 System.out.println("인코딩 알람 sse 통신 아이디 시도하는 사람" + encodedResource.getOriginalResource().getAccount().getAccountId());
+
+                // 업로드 로그 저장
+                String accountId = encodedResource.getOriginalResource().getAccount().getAccountId();
+                Account account = accountRepository.findByAccountId(accountId).orElseThrow(null);
+
+                UploadLog uploadLog = new UploadLog();
+                uploadLog.setMessage(encodedResource.getFileTitle() + " 인코딩 완료");
+                uploadLog.setAccount(account);
+                uploadLogRepository.save(uploadLog);
 
                 // 알림 개수 업데이트
                 sseNotificationEmitterService.sendToUser(encodedResource.getOriginalResource().getAccount().getAccountId(), "Notification Updated");
