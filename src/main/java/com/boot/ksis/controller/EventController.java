@@ -40,8 +40,6 @@ public class EventController {
     }
 
     public void sendLogoutEvent(String accountId) {
-        System.out.println("received event : " + accountId);
-
         List<SseEmitter> currentEmitters = new ArrayList<>(emitters);
         for (SseEmitter emitter : currentEmitters) {
             try {

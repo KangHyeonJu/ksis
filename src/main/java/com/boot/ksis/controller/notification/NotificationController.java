@@ -26,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 원본 업로드 알림 데이터베이스 저장
     @PostMapping("/upload/notification")
@@ -58,6 +59,14 @@ public class NotificationController {
         int unreadCount = notificationService.countNotification(accountId);
 
         return ResponseEntity.ok(unreadCount);
+    }
+
+    // Authorization 헤더에서 토큰을 추출하는 메서드
+    private String resolveToken(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        return null;
     }
 
 }
