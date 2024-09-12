@@ -75,11 +75,13 @@ public class NoticeService {
         List<Notice> notices = noticeRepository.findAll();
         List<DeviceListDTO> noticeDTOList = new ArrayList<>();
 
+
         for (Notice notice : notices) {
             DeviceListDTO dto = new DeviceListDTO();
             dto.setNoticeId(notice.getNoticeId());
             dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
             dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+            dto.setRole(notice.getAccount()!=null ? notice.getAccount().getRole() : null);
             dto.setTitle(notice.getTitle());
             dto.setRegDate(notice.getRegTime());
 
