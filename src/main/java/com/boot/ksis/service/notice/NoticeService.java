@@ -2,7 +2,7 @@ package com.boot.ksis.service.notice;
 
 import com.boot.ksis.dto.notice.DeviceListDTO;
 import com.boot.ksis.dto.notice.DeviceNoticeDTO;
-import com.boot.ksis.dto.notice.NewNoticeDTO;
+import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
@@ -13,16 +13,21 @@ import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
 import com.boot.ksis.repository.signage.SignageRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     private final NoticeRepository noticeRepository;
@@ -63,38 +68,7 @@ public class NoticeService {
 
     }
 
-    // 공지 수정
-    public NoticeDTO updateNotice(Long noticeId, NoticeDTO noticeDTO) {
-        Optional<Notice> optionalNotice = noticeRepository.findById(noticeId);
 
-        if (optionalNotice.isPresent()) {
-            Notice notice = optionalNotice.get();
-            notice.setTitle(noticeDTO.getTitle());
-            notice.setContent(noticeDTO.getContent());
-            notice.setModifiedBy(noticeDTO.getName()); // 수정자 설정
-            notice.setStartDate(noticeDTO.getStartDate());
-            notice.setEndDate(noticeDTO.getEndDate());
-
-            // 기존 디바이스 매핑 삭제 후 새로운 매핑 저장
-            deviceNoticeMapRepository.deleteByNoticeId(noticeId); // 기존 매핑 삭제
-            saveDeviceNoticeMaps(noticeDTO.getDeviceIds(), notice); // 새로운 매핑 저장
-
-            // 공지 수정 후 저장
-            Notice updatedNotice = noticeRepository.save(notice);
-
-            // 수정된 정보를 NoticeDTO에 반영
-            noticeDTO.setUpdateTime(updatedNotice.getUpdateTime());
-            return noticeDTO;
-        } else {
-            throw new RuntimeException("해당 공지를 찾을 수 없습니다.");
-        }
-    }
-
-    // 공지 삭제
-    public void deleteNotice(Long noticeId) {
-        deviceNoticeMapRepository.deleteByNoticeId(noticeId); // 매핑된 디바이스 삭제
-        noticeRepository.deleteById(noticeId); // 공지 삭제
-    }
 
     // 공지 조회 (전체)
     public List<DeviceListDTO> getAllNotices() {
@@ -132,9 +106,9 @@ public class NoticeService {
     }
 
     // 공지 상세 조회
-    public NewNoticeDTO getNoticeById(Long noticeId) {
+    public DetailNoticeDTO getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId).orElse(null);
-        NewNoticeDTO dto = new NewNoticeDTO();
+        DetailNoticeDTO dto = new DetailNoticeDTO();
             if (notice != null) {
                 dto.setNoticeId(notice.getNoticeId());
                 dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
@@ -178,4 +152,38 @@ public class NoticeService {
             deviceNoticeMapRepository.save(deviceNoticeMap);
         }
     }
+
+    @Transactional
+    // 공지 삭제
+    public void deleteNotice(Long noticeId) {
+        // 해당 공지에 대한 디바이스 매핑 삭제
+        deviceNoticeMapRepository.deleteByNoticeId(noticeId);
+
+        // 공지 삭제
+        noticeRepository.deleteByNoticeId(noticeId);
+    }
+
+
+    // 공지 수정
+    public void updateNotice(Long noticeId, NoticeDTO noticeDTO) {
+        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다: " + noticeId));
+
+        // 기존 공지 정보 업데이트
+        Account account = accountRepository.findByAccountId(noticeDTO.getAccountId()).orElse(null);
+        notice.setTitle(noticeDTO.getTitle());
+        notice.setContent(noticeDTO.getContent());
+        notice.setAccount(account);
+        notice.setStartDate(noticeDTO.getStartDate());
+        notice.setEndDate(noticeDTO.getEndDate());
+
+        // 공지 저장
+        noticeRepository.save(notice);
+
+        // 기존 디바이스 매핑 삭제
+        deviceNoticeMapRepository.deleteByNoticeId(noticeId);
+
+        // 새 디바이스 매핑 저장
+        saveDeviceNoticeMaps(noticeDTO.getDeviceIds(), notice);
+    }
+
 }

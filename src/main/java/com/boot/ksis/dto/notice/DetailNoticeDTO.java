@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class NewNoticeDTO {
+public class DetailNoticeDTO {
 
         //공지 id
         private Long noticeId;
