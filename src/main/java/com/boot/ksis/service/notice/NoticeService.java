@@ -1,6 +1,8 @@
 package com.boot.ksis.service.notice;
 
-import com.boot.ksis.dto.notice.DeviceNoticeMapDTO;
+import com.boot.ksis.dto.notice.DeviceListDTO;
+import com.boot.ksis.dto.notice.DeviceNoticeDTO;
+import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
@@ -10,148 +12,179 @@ import com.boot.ksis.repository.DeviceRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
+import com.boot.ksis.repository.signage.SignageRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class NoticeService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
 
     private final NoticeRepository noticeRepository;
     private final AccountRepository accountRepository;
-    private final DeviceRepository deviceRepository;
     private final DeviceNoticeMapRepository deviceNoticeMapRepository;
+    private final DeviceRepository deviceRepository;
+    private final SignageRepository signageRepository;
 
-    public NoticeService(NoticeRepository noticeRepository, AccountRepository accountRepository,
-                         DeviceRepository deviceRepository, DeviceNoticeMapRepository deviceNoticeMapRepository) {
-        this.noticeRepository = noticeRepository;
-        this.accountRepository = accountRepository;
-        this.deviceRepository = deviceRepository;
-        this.deviceNoticeMapRepository = deviceNoticeMapRepository;
+    // 공지 등록
+    public void createNotice(NoticeDTO noticeDTO) {
+
+        Account account = accountRepository.findByAccountId(noticeDTO.getAccountId()).orElse(null);
+
+        Notice notice = new Notice(); // 새로운 공지 엔티티 생성
+        notice.setTitle(noticeDTO.getTitle()); // 제목 설정
+        notice.setContent(noticeDTO.getContent()); // 내용 설정
+        notice.setAccount(account);//작성자 아이디
+        notice.setCreatedBy(noticeDTO.getName());//작성자 이름
+        notice.setStartDate(noticeDTO.getStartDate()); // 노출 시작일 설정
+        notice.setEndDate(noticeDTO.getEndDate()); // 노출 종료일 설정
+
+        // 공지 저장
+        noticeRepository.save(notice);
+
+        // 디바이스 리스트 작성
+        for(Long deviceId : noticeDTO.getDeviceIds()) {
+            Device device = deviceRepository.findById(deviceId).orElseThrow(()->new RuntimeException("디바이스를 찾을 수 없습니다 : "+deviceId));
+
+            DeviceNoticeMap deviceNoticeMap = new DeviceNoticeMap();
+            deviceNoticeMap.setDeviceId(deviceId);
+            deviceNoticeMap.setNoticeId(notice.getNoticeId());
+
+            deviceNoticeMap.setDevice(device);
+            deviceNoticeMap.setNotice(notice);
+
+            deviceNoticeMapRepository.save(deviceNoticeMap);
+        }
+
     }
 
-    // 공지 등록 메서드
+
+
+    // 공지 조회 (전체)
+    public List<DeviceListDTO> getAllNotices() {
+        List<Notice> notices = noticeRepository.findAll();
+        List<DeviceListDTO> noticeDTOList = new ArrayList<>();
+
+        for (Notice notice : notices) {
+            DeviceListDTO dto = new DeviceListDTO();
+            dto.setNoticeId(notice.getNoticeId());
+            dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
+            dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+            dto.setTitle(notice.getTitle());
+            dto.setRegDate(notice.getRegTime());
+
+            // 디바이스 정보 설정
+            List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
+
+            List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
+            for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
+                Device device = deviceNoticeMap.getDevice();
+
+                DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(),
+                        device.getDeviceName());
+
+                deviceNoticeDTOList.add(deviceNoticeDTO);
+            }
+            dto.setDeviceList(deviceNoticeDTOList);
+
+
+            noticeDTOList.add(dto);
+
+        }
+
+        return noticeDTOList;
+    }
+
+    // 공지 상세 조회
+    public DetailNoticeDTO getNoticeById(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId).orElse(null);
+        DetailNoticeDTO dto = new DetailNoticeDTO();
+            if (notice != null) {
+                dto.setNoticeId(notice.getNoticeId());
+                dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
+                dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+                dto.setTitle(notice.getTitle());
+                dto.setContent(notice.getContent());
+                dto.setRegDate(notice.getRegTime());
+                dto.setStartDate(notice.getStartDate());
+                dto.setEndDate(notice.getEndDate());
+
+                // 디바이스 정보 설정
+                List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
+
+                List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
+                for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
+                    Device device = deviceNoticeMap.getDevice();
+
+                    DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(),
+                            device.getDeviceName());
+
+                    deviceNoticeDTOList.add(deviceNoticeDTO);
+                }
+                dto.setDeviceList(deviceNoticeDTOList);
+            }
+
+        return dto;
+    }
+
+    // 공지에 대한 디바이스 매핑 저장 로직
+    private void saveDeviceNoticeMaps(List<Long> deviceIds, Notice notice) {
+        for (Long deviceId : deviceIds) {
+            Device device = deviceRepository.findById(deviceId)
+                    .orElseThrow(() -> new RuntimeException("디바이스를 찾을 수 없습니다: " + deviceId));
+
+            DeviceNoticeMap deviceNoticeMap = new DeviceNoticeMap();
+            deviceNoticeMap.setDeviceId(deviceId);
+            deviceNoticeMap.setNoticeId(notice.getNoticeId());
+            deviceNoticeMap.setDevice(device);
+            deviceNoticeMap.setNotice(notice);
+
+            deviceNoticeMapRepository.save(deviceNoticeMap);
+        }
+    }
+
     @Transactional
-    public Long registerNotice(NoticeDTO noticeDTO) {
-        // 작성자 정보 가져오기
-        Account account = accountRepository.findById(noticeDTO.getAccountId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 계정 ID입니다."));
+    // 공지 삭제
+    public void deleteNotice(Long noticeId) {
+        // 해당 공지에 대한 디바이스 매핑 삭제
+        deviceNoticeMapRepository.deleteByNoticeId(noticeId);
 
-        // 디바이스 정보 가져오기
-        Device device = deviceRepository.findById(noticeDTO.getDeviceId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 디바이스 ID입니다."));
-
-        // 공지 엔티티 생성 및 저장
-        Notice notice = new Notice();
-        notice.setTitle(noticeDTO.getTitle());
-        notice.setContent(noticeDTO.getContent());
-        notice.setStartDate(noticeDTO.getStartDate());
-        notice.setEndDate(noticeDTO.getEndDate());
-        notice.setAccount(account); // 작성자 정보 저장
-        notice.setRegTime(LocalDateTime.now()); // 등록 시간 저장
-
-        Notice savedNotice = noticeRepository.save(notice);
-
-        // DeviceNoticeMap 저장
-        DeviceNoticeMap deviceNoticeMap = new DeviceNoticeMap();
-        deviceNoticeMap.setDeviceId(device.getDeviceId());
-        deviceNoticeMap.setNoticeId(savedNotice.getNoticeId());
-        deviceNoticeMap.setDevice(device);
-        deviceNoticeMap.setNotice(savedNotice);
-
-        deviceNoticeMapRepository.save(deviceNoticeMap);
-
-        return savedNotice.getNoticeId();
+        // 공지 삭제
+        noticeRepository.deleteByNoticeId(noticeId);
     }
 
 
     // 공지 수정
-    public NoticeDTO updateNotice(Long noticeId, NoticeDTO noticeDTO) {
-        Optional<Notice> optionalNotice = noticeRepository.findById(noticeId); // 공지 아이디로 공지 검색
+    @Transactional
+    public void updateNotice(Long noticeId, NoticeDTO noticeDTO) {
+        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다: " + noticeId));
 
-        if (optionalNotice.isPresent()) {
-            Notice notice = optionalNotice.get(); // 공지 가져오기
-            notice.setTitle(noticeDTO.getTitle()); // 제목 업데이트
-            notice.setContent(noticeDTO.getContent()); // 내용 업데이트
-            notice.setModifiedBy(noticeDTO.getAccountId());//수정한 사람 아이디 업데이트
-            notice.setStartDate(noticeDTO.getStartDate()); // 노출 시작일 업데이트
-            notice.setEndDate(noticeDTO.getEndDate()); // 노출 종료일 업데이트
+        // 기존 공지 정보 업데이트
+        Account account = accountRepository.findByAccountId(noticeDTO.getAccountId()).orElse(null);
+        notice.setTitle(noticeDTO.getTitle());
+        notice.setContent(noticeDTO.getContent());
+        notice.setAccount(account);
+        notice.setStartDate(noticeDTO.getStartDate());
+        notice.setEndDate(noticeDTO.getEndDate());
 
-            // 공지 수정 후 저장
-            Notice updatedNotice = noticeRepository.save(notice);
+        // 공지 저장
+        noticeRepository.save(notice);
 
-            // 수정된 공지의 시간을 NoticeDTO에 설정
-            noticeDTO.setUpdateTime(updatedNotice.getUpdateTime()); // 수정 시간 설정
-            return noticeDTO; // 수정된 공지 정보를 포함한 DTO 반환
-        } else {
-            throw new RuntimeException("해당 공지를 찾을 수 없습니다."); // 공지가 없을 경우 오류 메시지
-        }
+        // 기존 디바이스 매핑 삭제
+        deviceNoticeMapRepository.deleteByNoticeId(noticeId);
+
+        // 새 디바이스 매핑 저장
+        saveDeviceNoticeMaps(noticeDTO.getDeviceIds(), notice);
     }
 
-    // 공지 삭제
-    public void deleteNotice(Long noticeId) {
-        noticeRepository.deleteById(noticeId); // 공지 아이디로 삭제
-    }
-
-    // 공지 조회 (전체)
-    public List<NoticeDTO> getAllNotices() {
-        return noticeRepository.findAll().stream()
-                .map(notice -> {
-                    NoticeDTO dto = new NoticeDTO();
-                    dto.setNoticeId(notice.getNoticeId()); // 공지 아이디 설정
-                    dto.setAccountId(notice.getCreatedBy());//
-                    dto.setTitle(notice.getTitle()); // 제목 설정
-                    dto.setContent(notice.getContent()); // 내용 설정
-                    dto.setStartDate(notice.getStartDate()); // 노출 시작일 설정
-                    dto.setEndDate(notice.getEndDate()); // 노출 종료일 설정
-                    dto.setRegTime(notice.getRegTime()); // 등록 시간 설정
-                    dto.setUpdateTime(notice.getUpdateTime()); // 수정 시간 설정
-
-                    // 작성자 정보 설정
-                    if (notice.getAccount() != null) {
-                        dto.setAccountId(notice.getAccount().getAccountId()); // 작성자 ID 설정
-                        dto.setName(notice.getAccount().getName()); // 작성자 이름 설정
-                    }
-
-                    // 재생장치 정보 설정 (주석 처리된 부분이 있으므로 필요한 경우 주석 해제)
-                    // dto.setDeviceName(notice.getDevice().getDeviceName()); // 재생장치 이름 설정
-
-                    return dto; // 설정된 DTO 반환
-                })
-                .collect(Collectors.toList()); // DTO 리스트로 변환 후 반환
-    }
-
-    // 공지 상세조회
-    public NoticeDTO getNoticeById(Long noticeId) {
-        Optional<Notice> optionalNotice = noticeRepository.findById(noticeId); // 공지 아이디로 공지 검색
-
-        if (optionalNotice.isPresent()) {
-            Notice notice = optionalNotice.get();
-            NoticeDTO dto = new NoticeDTO();
-            dto.setNoticeId(notice.getNoticeId()); // 공지 아이디 설정
-            dto.setTitle(notice.getTitle()); // 제목 설정
-            dto.setContent(notice.getContent()); // 내용 설정
-            dto.setStartDate(notice.getStartDate()); // 노출 시작일 설정
-            dto.setEndDate(notice.getEndDate()); // 노출 종료일 설정
-            dto.setRegTime(notice.getRegTime()); // 등록 시간 설정
-            dto.setUpdateTime(notice.getUpdateTime()); // 수정 시간 설정
-
-            // 작성자 정보 설정
-            if (notice.getAccount() != null) {
-                dto.setAccountId(notice.getAccount().getAccountId()); // 작성자 ID 설정
-                dto.setName(notice.getAccount().getName()); // 작성자 이름 설정
-            }
-
-            // 재생장치 정보 설정 (주석 처리된 부분이 있으므로 필요한 경우 주석 해제)
-            // dto.setDeviceName(notice.getDevice().getDeviceName()); // 재생장치 이름 설정
-
-            return dto; // 설정된 DTO 반환
-        } else {
-            throw new RuntimeException("해당 공지를 찾을 수 없습니다."); // 공지가 없을 경우 오류 메시지
-        }
-    }
 }
