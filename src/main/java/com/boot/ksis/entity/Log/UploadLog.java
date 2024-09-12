@@ -18,10 +18,9 @@ public class UploadLog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long uploadId;
 
-    //인코딩 id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "encoded_resource_id")
-    private EncodedResource encodedResource;
+    //메시지
+    @Column(name = "message")
+    private String message;
 
     //계정 아이디
     @ManyToOne(fetch = FetchType.LAZY)

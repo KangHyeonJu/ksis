@@ -9,9 +9,9 @@ import reactor.core.publisher.Sinks;
 
 @RestController
 @RequestMapping("/sse")
-public class SseController {
+public class SseEncodingController {
 
-    private final Sinks.Many<String> sink = Sinks.many().replay().latest();
+    private final Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
 
     @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> streamEvents() {

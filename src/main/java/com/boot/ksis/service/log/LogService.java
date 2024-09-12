@@ -82,7 +82,7 @@ public class LogService {
                     .logId(uploadLog.getUploadId())
                     .account(accountNameDTO)
                     .dateTime(uploadLog.getRegTime())
-                    .detail(uploadLog.getEncodedResource().getFileTitle())
+                    .detail(uploadLog.getMessage())
                     .build();
 
             logDTOList.add(logDTO);

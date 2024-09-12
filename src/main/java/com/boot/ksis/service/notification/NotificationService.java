@@ -1,30 +1,24 @@
 package com.boot.ksis.service.notification;
 
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.dto.notification.NotificationUpdateDTO;
 import com.boot.ksis.dto.notification.UploadNotificationDTO;
 import com.boot.ksis.dto.notification.AccountNotificationDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
-import com.boot.ksis.util.JwtTokenProvider;
+import com.boot.ksis.service.sse.SseNotificationEmitterService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
+    private final SseNotificationEmitterService emitterService;
     private final NotificationRepository notificationRepository;
     private final AccountRepository accountRepository;
 
@@ -46,28 +40,28 @@ public class NotificationService {
         notification.setResourceType(resourceType);
 
         notificationRepository.save(notification);
+        emitterService.sendToUser(notification.getAccount().getAccountId(), "Notification Updated");
+
     }
 
-    // 알림 데이터베이스 전체 데이터 가져오기
-    public List<AccountNotificationDTO> getAllNotifications(String accountId){
-        List<AccountNotificationDTO> dtos = new ArrayList<>();
+    // 현재 페이지에 필요한 알림 데이터
+    public Page<AccountNotificationDTO> getPageNotifications(String accountId, int page, int size){
 
         Account account = accountRepository.findById(accountId).orElseThrow(null);
 
-        List<Notification> notifications = notificationRepository.findByAccount(account);
+        // 페이지 요청 생성
+        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "notificationId"));
 
-        for(Notification notification : notifications){
-            AccountNotificationDTO accountNotificationDTO = AccountNotificationDTO.builder()
-                    .notificationId(notification.getNotificationId())
-                    .isRead(notification.getIsRead())
-                    .message(notification.getMessage())
-                    .resourceType(notification.getResourceType())
-                    .build();
+        // 페이지네이션 적용된 쿼리 실행
+        Page<Notification> notificationsPage = notificationRepository.findByAccount(account, pageRequest);
 
-            dtos.add(accountNotificationDTO);
-        }
-
-        return dtos;
+        // 결과를 DTO로 변환
+        return notificationsPage.map(notification -> AccountNotificationDTO.builder()
+                .notificationId(notification.getNotificationId())
+                .isRead(notification.getIsRead())
+                .message(notification.getMessage())
+                .resourceType(notification.getResourceType())
+                .build());
     }
 
     // 읽음상태로 업데이트
@@ -75,6 +69,7 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id).orElseThrow();
         notification.setIsRead(true);
         notificationRepository.save(notification);
+        emitterService.sendToUser(notification.getAccount().getAccountId(), "Notification Updated");
     }
 
     // 안읽은 알림 개수
