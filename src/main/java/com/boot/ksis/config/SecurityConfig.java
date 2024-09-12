@@ -37,11 +37,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-                               .requestMatchers("/**").permitAll()
-                                //  .requestMatchers("/log/**", "/access-log", "/resourceList/**", "/total/**", "/mac","/login", "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**","/notices/**" ).permitAll()
-                                // .requestMatchers("/admin/**").hasRole("ADMIN")
-                                 .requestMatchers("/total/**", "/mac","/login", "/get-token", "/signage/**",
-                                         "/pc/**", "/file/**", "/api/**", "/events", "/sse/**").permitAll()
+//                               .requestMatchers("/**").permitAll()
+                                  .requestMatchers("/sse/**","/events", "/log/**", "/access-log", "/check-access-token",
+                                          "/resourceList/**", "/total/**", "/mac","/login", "/account/**",
+                                          "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**","/notices/**" ).permitAll()
                                  .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )

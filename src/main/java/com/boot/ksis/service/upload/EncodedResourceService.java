@@ -2,25 +2,24 @@ package com.boot.ksis.service.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.controller.sse.SseController;
-import com.boot.ksis.dto.notification.UploadNotificationDTO;
-import com.boot.ksis.dto.file.OriginResourceListDTO;
-import com.boot.ksis.dto.file.ResourceListDTO;
+import com.boot.ksis.controller.sse.SseEncodingController;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
+import com.boot.ksis.service.sse.SseNotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -46,12 +45,20 @@ public class EncodedResourceService {
     @Value("${encodingLocation}")
     String encodingLocation;
 
+    @Value("${ffmpegPath}")
+    String ffmpegPath;
+
+    @Value("${filePath}")
+    String dbFilePath;
+
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
-    private final SseController sseController;
+    private final SseEncodingController sseEncodingController;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
     private final FileSizeRepository fileSizeRepository;
+    private final SseNotificationEmitterService sseNotificationEmitterService;
+    private final UploadLogRepository uploadLogRepository;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -73,7 +80,7 @@ public class EncodedResourceService {
                 String encodedTitle = request.getTitle() + "_" + encoding.get("resolution") + "_" + encoding.get("format");
 
                 // 경로 설정
-                String path = "/file/encoding/" + outputFileName;
+                String path = dbFilePath + "/encoding/" + outputFileName;
 
                 // 파일 유형 설정 (영상 확장자 목록)
                 String[] videoExtensions = {"mp4", "avi", "mov", "mkv"};
@@ -162,20 +169,20 @@ public class EncodedResourceService {
 
         switch (format.toLowerCase()) {
             case "mov":
-                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             case "avi":
-                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libxvid -c:a libmp3lame %s",
+                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libxvid -c:a libmp3lame %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             case "mkv":
-                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             default:
                 // 기본적으로 mp4로 인코딩
-                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
         }
@@ -230,15 +237,15 @@ public class EncodedResourceService {
         // 포맷에 따른 명령어 작성
         switch (format.toLowerCase()) {
             case "png":
-                command = String.format("ffmpeg -i %s -vf %s %s",
+                command = String.format(ffmpegPath + "-i %s -vf %s %s",
                         inputFile.getAbsolutePath(), scaleFilter, outputFileName);
                 break;
             case "jpg":
-                command = String.format("ffmpeg -i %s -vf %s -q:v 2 %s",  // -q:v 옵션은 JPG 품질 설정
+                command = String.format(ffmpegPath + "-i %s -vf %s -q:v 2 %s",  // -q:v 옵션은 JPG 품질 설정
                         inputFile.getAbsolutePath(), scaleFilter, outputFileName);
                 break;
             case "bmp":
-                command = String.format("ffmpeg -i %s -vf %s %s",
+                command = String.format(ffmpegPath + " -i %s -vf %s %s",
                         inputFile.getAbsolutePath(), scaleFilter, outputFileName);
                 break;
             default:
@@ -335,7 +342,21 @@ public class EncodedResourceService {
                 }
 
                 // 클라이언트로 인코딩 완료 알림 전송
-                sseController.sendEvent(encodedResource.getFileTitle());
+                sseEncodingController.sendEvent(encodedResource.getFileTitle());
+
+                System.out.println("인코딩 알람 sse 통신 아이디 시도하는 사람" + encodedResource.getOriginalResource().getAccount().getAccountId());
+
+                // 업로드 로그 저장
+                String accountId = encodedResource.getOriginalResource().getAccount().getAccountId();
+                Account account = accountRepository.findByAccountId(accountId).orElseThrow(null);
+
+                UploadLog uploadLog = new UploadLog();
+                uploadLog.setMessage(encodedResource.getFileTitle() + " 인코딩 완료");
+                uploadLog.setAccount(account);
+                uploadLogRepository.save(uploadLog);
+
+                // 알림 개수 업데이트
+                sseNotificationEmitterService.sendToUser(encodedResource.getOriginalResource().getAccount().getAccountId(), "Notification Updated");
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }

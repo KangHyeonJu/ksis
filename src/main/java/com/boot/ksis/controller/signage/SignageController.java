@@ -28,7 +28,6 @@ public class SignageController {
         //현재 로그인한 id 가져오기
         String accountId = principal.getName();
 
-
         if(role.contains("ADMIN")){     //관리자일 경우 전체 목록 조회
             return new ResponseEntity<>(signageService.getSignageAll(), HttpStatus.OK);
         }else{      //USER일 경우 해당 USER가 담당자인 재생장치만 조회
