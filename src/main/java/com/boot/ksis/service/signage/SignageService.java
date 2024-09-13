@@ -361,11 +361,14 @@ public class SignageService {
         deviceEncodeRepository.deleteByDeviceIdAndEncodedResourceId(signageId, encodedResourceId);
     }
 
-    //
+    //재생장치에 등록된 재생목록 조회
     public List<PlayListDTO> getPlaylistList(Long signageId){
         Device device = signageRepository.findByDeviceId(signageId);
+
+        //디바이스로 재생목록 리스트 조회
         List<PlayList> playLists = playListRepository.findByDevice(device);
 
+        //DTO에 담아서 return
         List<PlayListDTO> playListDTOList = new ArrayList<>();
 
         for(PlayList playList : playLists){
@@ -377,10 +380,12 @@ public class SignageService {
         return playListDTOList;
     }
 
+    //재생목록 하나 선택
     public void setPlaylist(Long signageId, Long playlistId){
         Device device = signageRepository.findByDeviceId(signageId);
         List<PlayList> playLists = playListRepository.findByDevice(device);
 
+        //원래 선택되어 있던 재생목록을 취소하고 새로 선택한 재생목록을 default로 설정
         for(PlayList playList : playLists){
             playList.setIsDefault(Objects.equals(playList.getPlaylistId(), playlistId));
 
@@ -388,11 +393,14 @@ public class SignageService {
         }
     }
 
+    //재생목록 상세 조회
     public List<PlayListDtlDTO> getPlaylistDtl(Long playlistId){
+        //재생목록 id로 재생순서 조회
         List<PlaylistSequence> playlistSequences = playlistSequenceRepository.findByPlaylistId(playlistId);
 
         List<PlayListDtlDTO> playListDtlDTOList = new ArrayList<>();
 
+        //재생목록 순서대로 resource 썸네일 가져오기
         for(PlaylistSequence playlistSequence : playlistSequences){
             EncodedResource encodedResource = playlistSequence.getEncodedResource();
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
@@ -406,6 +414,7 @@ public class SignageService {
         return playListDtlDTOList;
     }
 
+    //재생목록 삭제
     public void deletePlaylist(Long playlistId){
         //재생순서 삭제
         playlistSequenceRepository.deleteByPlaylistId(playlistId);
@@ -414,11 +423,14 @@ public class SignageService {
         playListRepository.deleteById(playlistId);
     }
 
+    //재생목록 추가
     public void addPlaylist(PlayListAddDTO playListAddDTO, List<PlayListSequenceDTO> playListSequenceDTOList){
         Device device = signageRepository.findByDeviceId(playListAddDTO.getDeviceId());
 
+        //플레이리스트 정보 등록
         PlayList playList = playListRepository.save(playListAddDTO.createNewSignage(device));
 
+        //재생순서 및 resource 등록
         for(PlayListSequenceDTO playListSequenceDTO : playListSequenceDTOList){
             EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(playListSequenceDTO.getEncodedResourceId());
 
@@ -433,14 +445,18 @@ public class SignageService {
         }
     }
 
+    //재생목록 수정
     public void resourceSequence(Long playListId, PlayListAddDTO playListAddDTO, List<PlayListSequenceDTO> playListSequenceDTOList){
         PlayList playList = playListRepository.findByPlaylistId(playListId);
 
+        //재생목록 정보 update
         playList.updatePlaylist(playListAddDTO);
         playListRepository.save(playList);
 
+        //원래 재생순서 삭제
         playlistSequenceRepository.deleteByPlaylistId(playListId);
 
+        //수정한 재생순서 및 resource 등록
         for(PlayListSequenceDTO playListSequenceDTO : playListSequenceDTOList){
             EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(playListSequenceDTO.getEncodedResourceId());
 
@@ -455,12 +471,17 @@ public class SignageService {
         }
     }
 
+    //재생목록 수정 시 기존 정보 조회
     public PlayListUpdateDTO playListDtl(Long playListId){
+        //재생순서 리스트 조회
         List<PlaylistSequence> playlistSequenceList = playlistSequenceRepository.findByPlaylistId(playListId);
+
+        //재생순서로 정렬
         playlistSequenceList.sort(Comparator.comparingInt(PlaylistSequence::getSequence));
 
         List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
 
+        //재생순서에 따른 resource 썸네일 가져오기
         for(PlaylistSequence sequence : playlistSequenceList){
             EncodedResource encodedResource = sequence.getEncodedResource();
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
@@ -475,6 +496,7 @@ public class SignageService {
 
         PlayList playList = playListRepository.findByPlaylistId(playListId);
 
+        //DTO에 담아서 return
         return PlayListUpdateDTO.builder()
                                 .slideTime(playList.getSlideTime())
                                 .fileTitle(playList.getFileTitle())
@@ -516,17 +538,22 @@ public class SignageService {
         List<PlayDTO> playDTOList = new ArrayList<>();
 
         Device device = signageRepository.findByDeviceId(signageId);
+
+        //default로 설정된 재생목록 조회
         PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
+
+        //재생목록의 순서 조회
         List<PlaylistSequence> playlistSequenceList = playlistSequenceRepository.findByPlaylistId(playList.getPlaylistId());
 
+        //재생 순서에 따라 인코딩 resource 담기
         for(PlaylistSequence playlistSequence : playlistSequenceList){
             EncodedResource encodedResource = playlistSequence.getEncodedResource();
             float playTime;
 
-            if(encodedResource.getResourceType() == ResourceType.IMAGE){
+            if(encodedResource.getResourceType() == ResourceType.IMAGE){ //이미지일 경우 재생목록에 설정된 재생시간 적용
                 playTime = playList.getSlideTime();
             }else {
-                playTime = encodedResource.getPlayTime();
+                playTime = encodedResource.getPlayTime(); //영상의 경우 영상 재생시간 적용
             }
             PlayDTO playDTO = PlayDTO.builder()
                                     .playTime(playTime)
@@ -547,11 +574,14 @@ public class SignageService {
         List<String> notices = new ArrayList<>();
         Device device = signageRepository.findByDeviceId(signageId);
 
+        //재생장치의 공지표시여부가 true일 경우에만 공지 가져오기
         if(device.getIsShow()){
+            //디바이스-공지 맵핑 테이블에서 해당 재생장치에 등록된 공지 목록 조회
             List<DeviceNoticeMap> noticeList = deviceNoticeRepository.findByDeviceId(signageId);
 
             LocalDate nowDate = LocalDate.now();
 
+            //등록된 공지 중 startDate가 오늘포함 이전일, endDate가 오늘포함 이후일일 경우만 표시
             for(DeviceNoticeMap deviceNoticeMap : noticeList){
                 Notice notice = deviceNoticeMap.getNotice();
                 LocalDate startDate = notice.getStartDate();
