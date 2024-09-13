@@ -45,9 +45,6 @@ public class EncodedResourceService {
     @Value("${encodingLocation}")
     String encodingLocation;
 
-    @Value("${ffmpegPath}")
-    String ffmpegPath;
-
     @Value("${filePath}")
     String dbFilePath;
 
@@ -169,20 +166,20 @@ public class EncodedResourceService {
 
         switch (format.toLowerCase()) {
             case "mov":
-                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             case "avi":
-                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libxvid -c:a libmp3lame %s",
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libxvid -c:a libmp3lame %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             case "mkv":
-                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
             default:
                 // 기본적으로 mp4로 인코딩
-                command = String.format(ffmpegPath + " -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
                         inputFile.getAbsolutePath(), getResolutionScale(resolution), outputFileName);
                 break;
         }
@@ -237,15 +234,15 @@ public class EncodedResourceService {
         // 포맷에 따른 명령어 작성
         switch (format.toLowerCase()) {
             case "png":
-                command = String.format(ffmpegPath + "-i %s -vf %s %s",
+                command = String.format("ffmpeg -i %s -vf %s %s",
                         inputFile.getAbsolutePath(), scaleFilter, outputFileName);
                 break;
             case "jpg":
-                command = String.format(ffmpegPath + "-i %s -vf %s -q:v 2 %s",  // -q:v 옵션은 JPG 품질 설정
+                command = String.format("ffmpeg -i %s -vf %s -q:v 2 %s",  // -q:v 옵션은 JPG 품질 설정
                         inputFile.getAbsolutePath(), scaleFilter, outputFileName);
                 break;
             case "bmp":
-                command = String.format(ffmpegPath + " -i %s -vf %s %s",
+                command = String.format("ffmpeg -i %s -vf %s %s",
                         inputFile.getAbsolutePath(), scaleFilter, outputFileName);
                 break;
             default:
