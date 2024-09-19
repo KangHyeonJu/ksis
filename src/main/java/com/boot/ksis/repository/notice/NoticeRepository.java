@@ -1,9 +1,7 @@
 package com.boot.ksis.repository.notice;
 
-import com.boot.ksis.entity.Account;
+import com.boot.ksis.constant.Role;
 import com.boot.ksis.entity.Notice;
-import jakarta.transaction.Transactional;
-import org.hibernate.sql.Delete;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +15,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     // Account 엔터티의 accountId로 공지 조회
     List<Notice> findByAccount_AccountId(String accountId);
+
+    List<Notice> findByAccount_Role(Role role);
 }

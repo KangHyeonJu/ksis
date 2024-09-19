@@ -2,20 +2,18 @@ package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.constant.Role;
-import com.boot.ksis.dto.notice.DeviceListDTO;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.entity.Account;
+import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/notices")
@@ -23,6 +21,7 @@ import java.util.List;
 public class NoticeController {
 
     private final NoticeService noticeService;
+    private final AccountRepository accountRepository;
 
 
     // 공지 등록
@@ -54,24 +53,33 @@ public class NoticeController {
 
     // 공지 조회 (본인 및 관리자 공지 전체)
     @GetMapping("/all")
-    public ResponseEntity<?> getUserNotices(Principal principal, @RequestParam String role) {
+    public ResponseEntity<?> getUserNotices(Principal principal) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
 
         String accountId = principal.getName();
 
-        if (role == null || role.isEmpty()) {
-            return new ResponseEntity<>("역할 파라미터가 누락되었습니다.", HttpStatus.BAD_REQUEST);
+        // Account 객체를 repository를 통해 조회
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+
+        if (!accountOptional.isPresent()) {
+            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
         }
 
-        if (role.contains("ADMIN")) {
+        Account account = accountOptional.get();
+        Role role = account.getRole();
+
+        if (role == null) {
+            return new ResponseEntity<>("역할 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (role.equals(Role.ADMIN)) { // Role 객체와 비교
             return new ResponseEntity<>(noticeService.getAllNotices(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(noticeService.getUserNotices(accountId), HttpStatus.OK);
         }
     }
-
 
 
     // 공지 상세조회
