@@ -2,6 +2,7 @@ package com.boot.ksis.controller.pc;
 
 import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.pc.PcFormDTO;
+import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.pc.PcService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,13 @@ import java.util.List;
 @RequestMapping("/pc")
 public class PcController {
     private final PcService pcService;
+    private final AccountListService accountService;
+
+    //PC 등록 시 USER 목록 조회
+    @GetMapping("/account")
+    public ResponseEntity<?> pcAdd(){
+        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
+    }
 
     @GetMapping()
     public ResponseEntity<?> pcList(Principal principal, @RequestParam String role){
