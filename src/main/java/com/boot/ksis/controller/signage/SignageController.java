@@ -5,6 +5,7 @@ import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
+import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Map;
 @RequestMapping("/signage")
 public class SignageController {
     private final SignageService signageService;
+    private final AccountListService accountService;
 
     //재생장치 목록 조회
     @GetMapping()
@@ -46,6 +48,12 @@ public class SignageController {
         }else{      //USER일 경우 해당 USER가 담당자인 재생장치만 조회
             return new ResponseEntity<>(signageService.getSignageGridList(accountId), HttpStatus.OK);
         }
+    }
+
+    //재생장치 등록 시 USER 목록 조회
+    @GetMapping("/account")
+    public ResponseEntity<?> signageAdd(){
+        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
     //재생장치 상세 조회

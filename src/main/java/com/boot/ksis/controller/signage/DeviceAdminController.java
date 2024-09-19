@@ -34,12 +34,6 @@ public class DeviceAdminController {
         }
     }
 
-    //재생장치 등록 시 USER 목록 조회
-    @GetMapping("/signage/new")
-    public ResponseEntity<?> signageAdd(){
-        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
-    }
-
     //재생장치 등록
     @CustomAnnotation(activityDetail = "재생장치 등록")
     @PostMapping("/signage/new")
