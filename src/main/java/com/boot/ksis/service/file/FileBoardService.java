@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -158,40 +159,64 @@ public class FileBoardService {
         encodedResourceRepository.save(encodedResource); // 변경된 내용을 저장
     }
 
-    @Transactional
     // 파일 삭제 및 관련된 썸네일 삭제
+    @Transactional
     public void deleteFile(Long id) {
-       OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(id);
+        OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(id);
 
-        //용량 삭제
+        // 용량 삭제
         FileSize fileSize = fileSizeRepository.findByFileSizeId(1);
 
-        if(fileSize != null){
+        if (fileSize != null) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            fileSize.setTotalImage(fileSize.getTotalImage() - originalResource.getFileSize()-thumbNail.getFileSize());
+            fileSize.setTotalImage(fileSize.getTotalImage() - originalResource.getFileSize() - thumbNail.getFileSize());
+
+            // 썸네일 파일 삭제
+            deleteFileFromStorage(thumbNail.getFilePath());
         }
 
-        // 먼저 관련된 썸네일을 삭제
+        // 원본 파일 삭제
+        deleteFileFromStorage(originalResource.getFilePath());
+
+        // 관련된 썸네일을 삭제
         thumbNailRepository.deleteByOriginalResource(originalResource);
+
+        // 연관된 인코딩 파일 삭제
+        encodedResourceRepository.deleteByOriginalResource(originalResource);
 
         // 원본 파일 삭제
         originalResourceRepository.deleteById(id);
     }
 
     @Transactional
-    //인코딩 파일 삭제
     public void deleteEncodedFile(Long id) {
         EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(id);
 
-        //용량 삭제
+        // 용량 삭제
         FileSize fileSize = fileSizeRepository.findByFileSizeId(1);
 
-        if(fileSize != null){
+        if (fileSize != null) {
             fileSize.setTotalImage(fileSize.getTotalImage() - encodedResource.getFileSize());
         }
 
+        // 인코딩된 파일 삭제
+        deleteFileFromStorage(encodedResource.getFilePath());
+
         // 인코딩 파일 삭제
         encodedResourceRepository.deleteById(id);
+    }
+
+    // 스토리지에서 파일 삭제 메서드
+    private void deleteFileFromStorage(String filePath) {
+        File file = new File(filePath);
+        if (file.exists()) {
+            boolean deleted = file.delete();
+            if (!deleted) {
+                throw new RuntimeException("파일 삭제에 실패했습니다: " + filePath);
+            }
+        } else {
+            throw new RuntimeException("파일을 찾을 수 없습니다: " + filePath);
+        }
     }
 }
 

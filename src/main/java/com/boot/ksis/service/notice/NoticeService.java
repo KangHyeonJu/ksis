@@ -1,5 +1,6 @@
 package com.boot.ksis.service.notice;
 
+import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.notice.DeviceListDTO;
 import com.boot.ksis.dto.notice.DeviceNoticeDTO;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
@@ -12,9 +13,6 @@ import com.boot.ksis.repository.DeviceRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
-import com.boot.ksis.repository.signage.SignageRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,15 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoticeService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-
     private final NoticeRepository noticeRepository;
     private final AccountRepository accountRepository;
     private final DeviceNoticeMapRepository deviceNoticeMapRepository;
     private final DeviceRepository deviceRepository;
-    private final SignageRepository signageRepository;
 
     // 공지 등록
     public void createNotice(NoticeDTO noticeDTO) {
@@ -69,10 +62,54 @@ public class NoticeService {
     }
 
 
-
     // 공지 조회 (전체)
     public List<DeviceListDTO> getAllNotices() {
         List<Notice> notices = noticeRepository.findAll();
+        return convertNoticesToDTO(notices);
+    }
+
+    // 공지 조회 (본인 공지)
+    public List<DeviceListDTO> getUserNotices(String accountId) {
+        List<Notice> notices = noticeRepository.findByAccount_AccountId(accountId);
+        List<Notice> adminNotices = noticeRepository.findByAccount_Role(Role.ADMIN);
+        return convertUserNoticesToDTO(notices, adminNotices);
+    }
+
+    // 본인 공지 및 관리자 공지 DTO 변환
+    private List<DeviceListDTO> convertUserNoticesToDTO(List<Notice> userNotices, List<Notice> adminNotices) {
+        List<DeviceListDTO> noticeDTOList = new ArrayList<>();
+
+        // 본인 공지와 관리자 공지를 모두 합칩니다.
+        List<Notice> combinedNotices = new ArrayList<>(userNotices);
+        combinedNotices.addAll(adminNotices);
+
+        for (Notice notice : combinedNotices) {
+            DeviceListDTO dto = new DeviceListDTO();
+            dto.setNoticeId(notice.getNoticeId());
+            dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
+            dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+            dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
+            dto.setTitle(notice.getTitle());
+            dto.setRegDate(notice.getRegTime());
+
+            // 디바이스 정보 설정
+            List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
+            List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
+            for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
+                Device device = deviceNoticeMap.getDevice();
+                DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(), device.getDeviceName());
+                deviceNoticeDTOList.add(deviceNoticeDTO);
+            }
+            dto.setDeviceList(deviceNoticeDTOList);
+
+            noticeDTOList.add(dto);
+        }
+
+        return noticeDTOList;
+    }
+
+    // 전체 공지 목록을 DTO로 변환
+    private List<DeviceListDTO> convertNoticesToDTO(List<Notice> notices) {
         List<DeviceListDTO> noticeDTOList = new ArrayList<>();
 
         for (Notice notice : notices) {
@@ -80,30 +117,28 @@ public class NoticeService {
             dto.setNoticeId(notice.getNoticeId());
             dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
             dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+            dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
             dto.setTitle(notice.getTitle());
             dto.setRegDate(notice.getRegTime());
 
             // 디바이스 정보 설정
             List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
-
             List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
             for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
                 Device device = deviceNoticeMap.getDevice();
-
-                DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(),
-                        device.getDeviceName());
-
+                DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(), device.getDeviceName());
                 deviceNoticeDTOList.add(deviceNoticeDTO);
             }
             dto.setDeviceList(deviceNoticeDTOList);
 
-
             noticeDTOList.add(dto);
-
         }
 
         return noticeDTOList;
     }
+
+
+
 
     // 공지 상세 조회
     public DetailNoticeDTO getNoticeById(Long noticeId) {
@@ -113,6 +148,7 @@ public class NoticeService {
                 dto.setNoticeId(notice.getNoticeId());
                 dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
                 dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+                dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
                 dto.setTitle(notice.getTitle());
                 dto.setContent(notice.getContent());
                 dto.setRegDate(notice.getRegTime());
