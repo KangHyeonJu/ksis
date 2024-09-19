@@ -1,5 +1,6 @@
 package com.boot.ksis.dto.notice;
 
+import com.boot.ksis.constant.Role;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,9 @@ public class DeviceListDTO {
 
     //작성자 id
     private String accountId;
+
+    //작성자 role
+    private Role role;
 
     //작성자 이름
     private String name;
