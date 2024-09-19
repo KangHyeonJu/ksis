@@ -56,19 +56,28 @@ public class AuthService {
         return JwtTokenDTO.builder()
                 .grantType("Bearer")
                 .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
                 .build();
     }
 
     // 토큰 검증 및 로그아웃 상태 확인
-    public boolean checkAccessToken(HttpServletRequest request) {
-        String token = resolveToken(request);                                       // 토큰 추출메서드
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return true;                                                            // 토큰이 없거나 유효하지 않음
-        }
+//    public boolean checkAccessToken(HttpServletRequest request) {
+//        String token = resolveToken(request);                                       // 토큰 추출메서드
+//        if (token == null || !jwtTokenProvider.validateToken(token)) {
+//            return true;                                                            // 토큰이 없거나 유효하지 않음
+//        }
+//
+//        String accountId = jwtTokenProvider.getAccountIdFromToken(token);           // 토큰에서 accountId 추출
+//        return !refreshTokenRepository.existsByAccountId(accountId);                // 리프레시 토큰이 없으면 로그아웃 상태
+//    }
 
-        String accountId = jwtTokenProvider.getAccountIdFromToken(token);           // 토큰에서 accountId 추출
-        return !refreshTokenRepository.existsByAccountId(accountId);                // 리프레시 토큰이 없으면 로그아웃 상태
+    public boolean checkAccessToken(HttpServletRequest request) {
+        String token = resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            String accountId = jwtTokenProvider.getAccountIdFromToken(token);
+
+            return !refreshTokenRepository.existsByAccountId(accountId);
+        }
+        return false;
     }
 
     private String resolveToken(HttpServletRequest request) {                       // 요청에서 액세스 토큰 추출

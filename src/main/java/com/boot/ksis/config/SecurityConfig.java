@@ -38,9 +38,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
 //                               .requestMatchers("/**").permitAll()
-                                  .requestMatchers("/sse/**","/events", "/log/**", "/access-log", "/check-access-token",
-                                          "/resourceList/**", "/total/**", "/mac","/login", "/account/**",
-                                          "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**","/notices/**" ).permitAll()
+//                                  .requestMatchers("/sse/**","/events", "/log/**", "/access-log", "/check-access-token",
+//                                          "/resourceList/**", "/total/**", "/mac","/login", "/account/**",
+//                                          "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**","/notices/**" ).permitAll()
+                                 .requestMatchers("/mac", "login", "/sse", "/get-token").permitAll()
                                  .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )
