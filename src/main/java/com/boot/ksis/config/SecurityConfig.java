@@ -25,7 +25,7 @@ public class SecurityConfig {
 
     @Value("${aes.key}")
     private String base64Key;
-    private final JwtTokenProvider jwtdddddTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
