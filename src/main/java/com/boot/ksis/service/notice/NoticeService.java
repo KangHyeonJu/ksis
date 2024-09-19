@@ -148,6 +148,7 @@ public class NoticeService {
                 dto.setNoticeId(notice.getNoticeId());
                 dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
                 dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+                dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
                 dto.setTitle(notice.getTitle());
                 dto.setContent(notice.getContent());
                 dto.setRegDate(notice.getRegTime());

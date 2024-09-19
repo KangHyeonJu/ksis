@@ -1,5 +1,6 @@
 package com.boot.ksis.dto.notice;
 
+import com.boot.ksis.constant.Role;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,9 @@ public class DetailNoticeDTO {
 
         //작성자 id
         private String accountId;
+
+        //role
+        private Role role;
 
         //작성자 이름
         private String name;
