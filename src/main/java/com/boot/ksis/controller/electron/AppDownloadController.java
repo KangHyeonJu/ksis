@@ -19,7 +19,7 @@ public class AppDownloadController {
 
 //    private final String APP_DIR = "C:/ksis-file/app/";
 
-    private final String APP_DIR = "/gen/";
+    private final String APP_DIR = "/gen/ksis-file/app/";
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile() {
         try {
