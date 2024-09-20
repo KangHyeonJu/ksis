@@ -172,11 +172,11 @@ public class FileBoardService {
             fileSize.setTotalImage(fileSize.getTotalImage() - originalResource.getFileSize() - thumbNail.getFileSize());
 
             // 썸네일 파일 삭제
-            deleteFileFromStorage(thumbNail.getFilePath());
+          //  deleteFileFromStorage(thumbNail.getFilePath());
         }
 
         // 원본 파일 삭제
-        deleteFileFromStorage(originalResource.getFilePath());
+       // deleteFileFromStorage(originalResource.getFilePath());
 
         // 관련된 썸네일을 삭제
         thumbNailRepository.deleteByOriginalResource(originalResource);
@@ -200,7 +200,7 @@ public class FileBoardService {
         }
 
         // 인코딩된 파일 삭제
-        deleteFileFromStorage(encodedResource.getFilePath());
+        //deleteFileFromStorage(encodedResource.getFilePath());
 
         // 인코딩 파일 삭제
         encodedResourceRepository.deleteById(id);
