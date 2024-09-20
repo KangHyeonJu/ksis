@@ -246,7 +246,7 @@ public class OriginalResourceService {
     // FFmpeg를 사용하여 특정 프레임 추출
     private void extractFrame(String videoPath, String outputPath) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg -i", videoPath, "-ss", "00:00:01", "-vframes", "1", outputPath
+                "ffmpeg", "-i", videoPath, "-ss", "00:00:01", "-vframes", "1", outputPath
         );
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
