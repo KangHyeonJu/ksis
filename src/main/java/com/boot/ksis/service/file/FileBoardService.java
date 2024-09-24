@@ -1,12 +1,10 @@
 package com.boot.ksis.service.file;
 
+import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
-import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.entity.ThumbNail;
+import com.boot.ksis.entity.*;
 import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
@@ -20,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.boot.ksis.constant.ResourceStatus.COMPLETED;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +38,10 @@ public class FileBoardService {
 
 
 
-    // 모든 원본 파일 조회
+    // 모든 원본 파일 조회(관리자)
     public List<ResourceListDTO> getAllFiles() {
         // 모든 OriginalResource 엔티티를 조회하고, ResourceListDTO로 변환하여 반환
-        return originalResourceRepository.findAll().stream()
+        return originalResourceRepository.findByResourceStatus(ResourceStatus.COMPLETED).stream()
                 .map(resource -> new ResourceListDTO(
                         resource.getOriginalResourceId(), // 원본 파일의 ID
                         resource.getFilePath(),           // 파일의 경로
@@ -51,6 +51,7 @@ public class FileBoardService {
                         resource.getRegTime()))   //등록일
                 .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
     }
+
     // 특정 이미지 원본 파일 조회
     public List<EncodeListDTO> getResourceImgDtl(Long originalResourceId) {
         List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
@@ -87,10 +88,16 @@ public class FileBoardService {
     // 원본 이미지 파일만 조회
     public List<ResourceListDTO> getRsImageFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.IMAGE);
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceType(ResourceStatus.COMPLETED, ResourceType.IMAGE);
         for (OriginalResource originalResource : originalResourceList) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), thumbNail.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+            ResourceListDTO resource = new ResourceListDTO(originalResource
+                    .getOriginalResourceId(),
+                    thumbNail.getFilePath(),
+                    originalResource.getFileTitle(),
+                    originalResource.getResolution(),
+                    originalResource.getFormat(),
+                    originalResource.getRegTime());
             resourceListDTOList.add(resource);
         }
         //최종적으로 생성된 resourceListDTOList 반환
@@ -100,7 +107,7 @@ public class FileBoardService {
     //인코딩 이미지 파일만 조회
     public List<EncodeListDTO> getEcImageFiles() {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
-        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.IMAGE);
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceStatusAndResourceType(ResourceStatus.COMPLETED, ResourceType.IMAGE);
         for (EncodedResource encodedResource : EncodedResourceList){
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
             EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
@@ -120,7 +127,7 @@ public class FileBoardService {
     // 원본 동영상 파일만 조회
     public List<ResourceListDTO> getRsVideoFiles() {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceType(ResourceType.VIDEO);
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceType(ResourceStatus.COMPLETED, ResourceType.VIDEO);
         for (OriginalResource originalResource : originalResourceList) {
              ResourceListDTO resource = new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
                 resourceListDTOList.add(resource);
@@ -131,7 +138,7 @@ public class FileBoardService {
     //인코딩 동영상 파일만 조회
     public List<EncodeListDTO> getEcVideoFiles() {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
-        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceType(ResourceType.VIDEO);
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByResourceStatusAndResourceType(ResourceStatus.COMPLETED, ResourceType.VIDEO);
         for (EncodedResource encodedResource : EncodedResourceList){
            EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(),encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
                encodeListDTOList.add(encoded);

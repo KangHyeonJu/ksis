@@ -1,5 +1,6 @@
 package com.boot.ksis.repository.upload;
 
+import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
@@ -23,5 +24,9 @@ public interface EncodedResourceRepository extends JpaRepository<EncodedResource
     // 파일 타입(이미지, 영상) 조회
     List<EncodedResource> findByResourceType(ResourceType resourceType);
 
+    //본인것만 조회
     List<EncodedResource> findByCreatedBy(String accountId);
+
+    //파일 상태 , 파일 타입 조회
+    List<EncodedResource> findByResourceStatusAndResourceType(ResourceStatus resourceStatus, ResourceType resourceType);
 }
