@@ -2,6 +2,7 @@ package com.boot.ksis.repository.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,7 @@ public interface EncodedResourceRepository extends JpaRepository<EncodedResource
 
     //파일 상태 , 파일 타입 조회
     List<EncodedResource> findByResourceStatusAndResourceType(ResourceStatus resourceStatus, ResourceType resourceType);
+
+    //본인이 업로드 완료한 것 중 파일 타입으로 조회
+    List<EncodedResource> findByOriginalResourceInAndResourceStatusAndResourceType(List<OriginalResource> originalResources, ResourceStatus resourceStatus, ResourceType resourceType);
 }

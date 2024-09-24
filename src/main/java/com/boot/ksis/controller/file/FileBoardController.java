@@ -4,14 +4,18 @@ import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.file.FileBoardService;
 import com.boot.ksis.service.file.FileEncodingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +27,7 @@ public class FileBoardController {
 
     private final FileBoardService fileBoardService;
     private final FileEncodingService fileEncodingService;
+    private final AccountRepository accountRepository;
 
     // 업로드된 원본 파일 목록 조회
     @GetMapping("/All/{originalResourceId}")
@@ -33,11 +38,81 @@ public class FileBoardController {
 
     // 업로드된 원본 이미지 파일 목록 조회
     @GetMapping("/RsImages")
-    public ResponseEntity<List<ResourceListDTO>> getRsImageFiles() {
-        List<ResourceListDTO> imageFiles = fileBoardService.getRsImageFiles();
+    public ResponseEntity<?> getRsImageFiles(Principal principal) {
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+//        if (!accountOptional.isPresent()) {
+//            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+//        }
+
+        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
+        List<ResourceListDTO> imageFiles = fileBoardService.getRsImageFiles(accountOptional);
+
         return ResponseEntity.ok(imageFiles);
     }
 
+    // 업로드된 원본 동영상 파일 목록 조회
+    @GetMapping("/RsVideos")
+    public ResponseEntity<?> getVideoFiles(Principal principal) {
+
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        List<ResourceListDTO> videoFiles = fileBoardService.getRsVideoFiles(accountOptional);
+        return ResponseEntity.ok(videoFiles);
+    }
+
+    // 업로드된 원본 이미지 파일 목록 조회
+    @GetMapping("/EcImages")
+    public ResponseEntity<?> getEcImageFiles(Principal principal) {
+
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
+        List<EncodeListDTO> imageFiles = fileBoardService.getEcImageFiles(accountOptional);
+
+        return ResponseEntity.ok(imageFiles);
+
+    }
+
+    // 업로드된 인코딩 동영상 파일 목록 조회
+    @GetMapping("/EcVideos")
+    public ResponseEntity<?> getEcVideoFiles(Principal principal) {
+
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        List<EncodeListDTO> videoFiles = fileBoardService.getEcVideoFiles(accountOptional);
+        return ResponseEntity.ok(videoFiles);
+    }
+
+    
     // 업로드된 원본 이미지 파일 목록 조회
     @GetMapping("/files/{originalResourceId}")
     public ResponseEntity<ResourceListDTO> getResourceFiles(@PathVariable Long originalResourceId) {
@@ -45,12 +120,6 @@ public class FileBoardController {
         return ResponseEntity.ok(allFiles);
     }
 
-    // 업로드된 원본 동영상 파일 목록 조회
-    @GetMapping("/RsVideos")
-    public ResponseEntity<List<ResourceListDTO>> getVideoFiles() {
-        List<ResourceListDTO> videoFiles = fileBoardService.getRsVideoFiles();
-        return ResponseEntity.ok(videoFiles);
-    }
     // 원본 특정 파일 상세조회 
     @GetMapping("/Img/{originalResourceId}")
     public ResponseEntity<List<EncodeListDTO>> getResourceImgDtl (@PathVariable Long originalResourceId) {
@@ -64,19 +133,6 @@ public class FileBoardController {
         //  상세 조회 서비스 호출
         List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceVideoDtl(originalResourceId);
         return ResponseEntity.ok(encodeListDTO); //원본 특정 파일 상세조회값 반환
-    }
-
-    // 업로드된 원본 이미지 파일 목록 조회
-    @GetMapping("/EcImages")
-    public ResponseEntity<List<EncodeListDTO>> getEcImageFiles() {
-        List<EncodeListDTO> imageFiles = fileBoardService.getEcImageFiles();
-        return ResponseEntity.ok(imageFiles);
-    }
-    // 업로드된 인코딩 동영상 파일 목록 조회
-    @GetMapping("/EcVideos")
-    public ResponseEntity<List<EncodeListDTO>> getEcVideoFiles() {
-        List<EncodeListDTO> videoFiles = fileBoardService.getEcVideoFiles();
-        return ResponseEntity.ok(videoFiles);
     }
 
     // 원본 파일 제목 수정
