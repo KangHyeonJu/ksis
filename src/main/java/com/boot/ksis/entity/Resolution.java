@@ -1,5 +1,6 @@
 package com.boot.ksis.entity;
 
+import com.boot.ksis.dto.resolution.ResolutionDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,4 +24,10 @@ public class Resolution {
 
     //세로(높이) 픽셀 수
     private int height;
+
+    public void updateResolution(ResolutionDTO resolutionDTO){
+        this.name = resolutionDTO.getName();
+        this.height = resolutionDTO.getHeight();
+        this.width = resolutionDTO.getWidth();
+    }
 }

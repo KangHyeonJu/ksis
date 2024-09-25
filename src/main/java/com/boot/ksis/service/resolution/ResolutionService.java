@@ -43,4 +43,21 @@ public class ResolutionService {
     public void deleteResolutionList(List<Long> resolutionIds){
         resolutionRepository.deleteAllByIdInBatch(resolutionIds);
     }
+
+    public ResolutionDTO getResolution(Long resolutionId){
+        Resolution resolution = resolutionRepository.findByResolutionId(resolutionId);
+        return ResolutionDTO.builder()
+                .resolutionId(resolution.getResolutionId())
+                .name(resolution.getName())
+                .height(resolution.getHeight())
+                .width(resolution.getWidth())
+                .build();
+    }
+
+    public void updateResolution(ResolutionDTO resolutionDTO){
+        Resolution resolution = resolutionRepository.findByResolutionId(resolutionDTO.getResolutionId());
+        resolution.updateResolution(resolutionDTO);
+
+        resolutionRepository.save(resolution);
+    }
 }
