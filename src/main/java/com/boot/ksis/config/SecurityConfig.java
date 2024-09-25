@@ -39,8 +39,8 @@ public class SecurityConfig {
                         authorizeRequests
 //                               .requestMatchers("/**").permitAll()
                                   .requestMatchers("/sse/**","/events", "/log/**", "/check-access-token",
-                                          "/resourceList/**", "/total/**", "/mac","/login", "/account/**",
-                                          "/get-token", "/signage/**", "/pc/**", "/file/**", "/api/**","/notices/**" ).permitAll()
+                                           "/total/**", "/mac","/login",
+                                          "/get-token", "/api/**", "/file/**").permitAll()
                                  .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )
