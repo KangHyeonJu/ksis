@@ -251,29 +251,33 @@ public class EncodedResourceService {
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(String resolution) {
-        switch (resolution) {
-            case "720p":
-                return "1280:720";
-            case "1080p":
-                return "1920:1080";
-            case "4k":
-                return "3840:2160";
-            default:
-                return "640:360"; // Default resolution
+        String[] parts = resolution.split("x");
+        if (parts.length != 2) {
+            return null; // 올바르지 않은 입력 형식
+        }
+
+        try {
+            int width = Integer.parseInt(parts[0]);
+            int height = Integer.parseInt(parts[1]);
+            return String.format("%d:%d", width, height);
+        } catch (NumberFormatException e) {
+            return null; // 숫자 변환 실패
         }
     }
 
     // 이미지 해상도 스케일 설정
     private Dimension getResolutionDimensions(String resolution) {
-        switch (resolution) {
-            case "720p":
-                return new Dimension(1280, 720);
-            case "1080p":
-                return new Dimension(1920, 1080);
-            case "4k":
-                return new Dimension(3840, 2160);
-            default:
-                return new Dimension(640, 360); // Default resolution
+        String[] parts = resolution.split("x");
+        if (parts.length != 2) {
+            return null; // 올바르지 않은 입력 형식
+        }
+
+        try {
+            int width = Integer.parseInt(parts[0]);
+            int height = Integer.parseInt(parts[1]);
+            return new Dimension(width, height);
+        } catch (NumberFormatException e) {
+            return null; // 숫자 변환 실패
         }
     }
 

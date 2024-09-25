@@ -48,7 +48,7 @@ public class SseNotificationController {
 
             emitter.onCompletion(() -> {
                 System.out.println("SSE connection completed for user: " + userId);
-            });
+             });
             emitter.onTimeout(() -> {
                 emitter.complete(); // 타임아웃 시 연결 종료
                 emitterService.removeEmitter(userId);
