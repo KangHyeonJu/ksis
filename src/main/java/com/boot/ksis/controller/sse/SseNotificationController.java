@@ -41,13 +41,22 @@ public class SseNotificationController {
                     emitter.send(SseEmitter.event().comment("ping")); // 빈 이벤트 전송
                 } catch (IOException e) {
                     emitterService.removeEmitter(userId);
+                    emitter.completeWithError(e); // 연결을 에러와 함께 종료
                     scheduler.shutdown();
                 }
             }, 0, 30, TimeUnit.SECONDS); // 0초 후 시작, 30초마다 실행
 
-            emitter.onCompletion(() -> emitterService.removeEmitter(userId));
-            emitter.onTimeout(() -> emitterService.removeEmitter(userId));
-            emitter.onError((e) -> emitterService.removeEmitter(userId));
+            emitter.onCompletion(() -> {
+                System.out.println("SSE connection completed for user: " + userId);
+            });
+            emitter.onTimeout(() -> {
+                emitter.complete(); // 타임아웃 시 연결 종료
+                emitterService.removeEmitter(userId);
+            });
+            emitter.onError((e) -> {
+                emitter.completeWithError(e); // 에러 발생 시 연결 종료
+                emitterService.removeEmitter(userId);
+            });
 
             return emitter;
         } else {
