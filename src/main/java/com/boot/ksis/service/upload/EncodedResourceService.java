@@ -330,9 +330,9 @@ public class EncodedResourceService {
                 }
 
                 // 클라이언트로 인코딩 완료 알림 전송
-                sseEncodingController.sendEvent(encodedResource.getFileTitle());
+//                sseEncodingController.sendEvent(encodedResource.getFileTitle());
 
-                System.out.println("인코딩 알람 sse 통신 아이디 시도하는 사람" + encodedResource.getOriginalResource().getAccount().getAccountId());
+//                System.out.println("인코딩 알람 sse 통신 아이디 시도하는 사람" + encodedResource.getOriginalResource().getAccount().getAccountId());
 
                 // 업로드 로그 저장
                 String accountId = encodedResource.getOriginalResource().getAccount().getAccountId();
