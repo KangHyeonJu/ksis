@@ -16,6 +16,11 @@ public class SseNotificationEmitterService {
     // 사용자 추가
     public void addEmitter(String userId, SseEmitter emitter) {
         System.out.println("사용자 추가" + userId);
+        if(emitters.containsKey(userId)){
+            SseEmitter oldEmitter = emitters.get(userId);
+            oldEmitter.complete();
+            System.out.println("기존 sse 사용자 연결 종료" + userId);
+        }
         emitters.put(userId, emitter);
     }
 
