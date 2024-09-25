@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/sse")
@@ -28,6 +33,17 @@ public class SseNotificationController {
 
             SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // 새로운 SseEmitter 생성
             emitterService.addEmitter(userId, emitter); // 맵에 저장
+
+            // 30초마다 빈 이벤트 전송
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    emitter.send(SseEmitter.event().comment("ping")); // 빈 이벤트 전송
+                } catch (IOException e) {
+                    emitterService.removeEmitter(userId);
+                    scheduler.shutdown();
+                }
+            }, 0, 30, TimeUnit.SECONDS); // 0초 후 시작, 30초마다 실행
 
             emitter.onCompletion(() -> emitterService.removeEmitter(userId));
             emitter.onTimeout(() -> emitterService.removeEmitter(userId));
