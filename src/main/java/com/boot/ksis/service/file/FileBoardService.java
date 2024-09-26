@@ -266,10 +266,10 @@ public class FileBoardService {
         // 썸네일 파일 경로에서 /file/thumbnails/ 부분 제거
         String filePathWithoutPrefix = thumbNail.getFilePath().replace("/file/thumbnails/", "");
 
-        // 새로운 파일 경로 생성 (로컬 스토리지 경로)
+        // 썸네일 로컬 스토리지 경로 생성
         String inputFilePath = thumbnailsLocation + filePathWithoutPrefix;
 
-        // 생성된 로컬 파일 경로로 파일 삭제 메서드 호출
+        // 생성된 썸네일 로컬 파일 경로로 파일 삭제 메서드 호출
         deleteFileFromStorage(inputFilePath);
 
         // 관련된 썸네일 DB 삭제
@@ -291,12 +291,20 @@ public class FileBoardService {
             for (EncodedResource encodedResource : encodedResources) {
                 totalEncodedFileSize += encodedResource.getFileSize();
             }
-
-            fileSize.setTotalImage(
-                    fileSize.getTotalImage() - originalResource.getFileSize() - totalEncodedFileSize - thumbNail.getFileSize()
-            );
-
-    }
+            // 리소스 타입 확인 후 용량 처리
+            // 리소스가 이미지일 경우 TotalImage에서 용량 차감
+            if (originalResource.getResourceType() == ResourceType.IMAGE) {
+                fileSize.setTotalImage(
+                        fileSize.getTotalImage() - originalResource.getFileSize() - totalEncodedFileSize - thumbNail.getFileSize()
+                );
+            }
+            // 리소스가 비디오일 경우 TotalVideo에서 용량 차감
+            else if(originalResource.getResourceType() == ResourceType.VIDEO) {
+                fileSize.setTotalVideo(
+                        fileSize.getTotalVideo() - originalResource.getFileSize() - totalEncodedFileSize - thumbNail.getFileSize()
+                );
+            }
+        }
 
     }
 
@@ -315,9 +323,19 @@ public class FileBoardService {
             // 용량 삭제
             FileSize fileSize = fileSizeRepository.findByFileSizeId(1);
 
-            if (fileSize != null) {
+        if (fileSize != null ) {
+            // 리소스 타입 확인 후 용량 처리
+            if (encodedResource.getResourceType() == ResourceType.IMAGE) {
+                // 리소스가 이미지일 경우 TotalImage에서 용량 차감
                 fileSize.setTotalImage(fileSize.getTotalImage() - encodedResource.getFileSize());
+            } else if (encodedResource.getResourceType() == ResourceType.VIDEO) {
+                // 리소스가 비디오일 경우 TotalVideo에서 용량 차감
+                fileSize.setTotalVideo(fileSize.getTotalVideo() - encodedResource.getFileSize());
             }
+
+            // 용량 정보 저장
+            fileSizeRepository.save(fileSize);
+        }
     }
 
 
