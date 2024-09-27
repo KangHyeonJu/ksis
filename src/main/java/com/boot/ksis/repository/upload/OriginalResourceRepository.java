@@ -35,9 +35,9 @@ public interface OriginalResourceRepository extends JpaRepository<OriginalResour
     List<OriginalResource> findByCreatedBy(String accountId);
 
     //본인이 업로드 완료한 것 중 파일 타입으로 조회
-    List<OriginalResource> findByAccountAndResourceStatusAndResourceType(Account accountId, ResourceStatus resourceStatus, ResourceType resourceType);
+    List<OriginalResource> findByAccountAndResourceStatusAndResourceTypeOrderByRegTimeDesc(Account accountId, ResourceStatus resourceStatus, ResourceType resourceType);
 
     //본인이 업로드 완료한 것만 조회
-    List<OriginalResource> findByAccountAndResourceStatus(Account accountId, ResourceStatus resourceStatus);
+    List<OriginalResource> findByAccountAndResourceStatusOrderByRegTimeDesc(Account accountId, ResourceStatus resourceStatus);
 
 }

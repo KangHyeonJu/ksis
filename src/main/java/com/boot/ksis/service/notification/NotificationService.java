@@ -7,7 +7,7 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
-import com.boot.ksis.service.sse.SseEmitterService;
+import com.boot.ksis.service.sse.SseNotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final SseEmitterService emitterService;
+    private final SseNotificationEmitterService emitterService;
     private final NotificationRepository notificationRepository;
     private final AccountRepository accountRepository;
 
