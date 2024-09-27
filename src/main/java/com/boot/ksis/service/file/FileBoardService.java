@@ -6,6 +6,8 @@ import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
+import com.boot.ksis.repository.signage.DeviceEncodeMapRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FileBoardService {
 
+    private final DeviceEncodeMapRepository deviceEncodeMapRepository;
     @Value("${uploadLocation}")
     String uploadLocation;
 
@@ -45,9 +48,11 @@ public class FileBoardService {
 
     private final FileSizeRepository fileSizeRepository;
 
+    private final PlaylistSequenceRepository playlistSequenceRepository;
+
 
     // 조회
-    // 모든 원본 파일 조회(사용x)
+    // 모든 원본 파일 조회(업로드된 원본 파일 목록 조회)
     public List<ResourceListDTO> getAllFiles() {
         // 모든 OriginalResource 엔티티를 조회하고, ResourceListDTO로 변환하여 반환
         return originalResourceRepository.findByResourceStatus(ResourceStatus.COMPLETED).stream()
@@ -66,7 +71,7 @@ public class FileBoardService {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
         // accountId로 본인이 업로드한 이미지만 조회
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceType(
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                 accountId, ResourceStatus.COMPLETED, ResourceType.IMAGE);
 
         for (OriginalResource originalResource : originalResourceList) {
@@ -94,10 +99,10 @@ public class FileBoardService {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
         // 로그인한 사용자의 originalResource를 먼저 필터링
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatus(accountId, ResourceStatus.COMPLETED);
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusOrderByRegTimeDesc(accountId, ResourceStatus.COMPLETED);
 
         // 해당 originalResourceId와 연관된 인코딩 리소스 조회
-        List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceType(
+        List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                 originalResourceList, ResourceStatus.COMPLETED, ResourceType.IMAGE);
 
         // 필터링된 encodedResource로 DTO 생성
@@ -126,7 +131,7 @@ public class FileBoardService {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
         // accountId로 본인이 업로드한 영상 조회
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceType(
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                 accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO);
         for (OriginalResource originalResource : originalResourceList) {
             ResourceListDTO resource = new ResourceListDTO(
@@ -146,9 +151,9 @@ public class FileBoardService {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
         // 로그인한 사용자의 originalResource를 먼저 필터링
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatus(accountId, ResourceStatus.COMPLETED);
+        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusOrderByRegTimeDesc(accountId, ResourceStatus.COMPLETED);
 
-        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceType(
+        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                 originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
         for (EncodedResource encodedResource : EncodedResourceList){
             EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(),
@@ -272,6 +277,17 @@ public class FileBoardService {
         // 생성된 썸네일 로컬 파일 경로로 파일 삭제 메서드 호출
         deleteFileFromStorage(inputFilePath);
 
+
+        // 시퀀스 DB 삭제 (각 EncodedResource에 대해 개별적으로 삭제)
+        for (EncodedResource encodedResource : encodedResources) {
+            playlistSequenceRepository.deleteByEncodedResource(encodedResource);
+        }
+
+        // deviceEncodedMap DB 삭제 (각 EncodedResource ID에 대해 개별적으로 삭제)
+        for (EncodedResource encodedResource : encodedResources) {
+            deviceEncodeMapRepository.deleteByEncodedResourceId(encodedResource.getEncodedResourceId());
+        }
+
         // 관련된 썸네일 DB 삭제
         thumbNailRepository.deleteByOriginalResource(originalResource);
 
@@ -280,6 +296,8 @@ public class FileBoardService {
 
         // 원본 파일 DB 삭제
         originalResourceRepository.deleteById(id);
+
+
 
 
         // 용량 삭제
@@ -316,7 +334,15 @@ public class FileBoardService {
         // 인코딩된 파일 삭제
         deleteFileFromStorage(encodingLocation+encodedResource.getFileName());
 
-        // 인코딩 파일 삭제
+        // 시퀀스 DB 삭제 (각 EncodedResource에 대해 개별적으로 삭제)
+        playlistSequenceRepository.deleteByEncodedResource(encodedResource);
+
+
+        // deviceEncodedMap DB 삭제 (각 EncodedResource ID에 대해 개별적으로 삭제)
+        deviceEncodeMapRepository.deleteByEncodedResourceId(encodedResource.getEncodedResourceId());
+
+
+        // 인코딩 파일 DB 삭제
         encodedResourceRepository.deleteById(id);
 
 

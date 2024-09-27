@@ -15,6 +15,7 @@ import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -64,14 +65,14 @@ public class NoticeService {
 
     // 공지 조회 (전체)
     public List<DeviceListDTO> getAllNotices() {
-        List<Notice> notices = noticeRepository.findAll();
+        List<Notice> notices = noticeRepository.findAll(Sort.by(Sort.Direction.DESC, "regTime"));
         return convertNoticesToDTO(notices);
     }
 
     // 공지 조회 (본인 공지)
     public List<DeviceListDTO> getUserNotices(String accountId) {
-        List<Notice> notices = noticeRepository.findByAccount_AccountId(accountId);
-        List<Notice> adminNotices = noticeRepository.findByAccount_Role(Role.ADMIN);
+        List<Notice> notices = noticeRepository.findByAccount_AccountIdOrderByRegTimeDesc(accountId);
+        List<Notice> adminNotices = noticeRepository.findByAccount_RoleOrderByRegTimeDesc(Role.ADMIN);
         return convertUserNoticesToDTO(notices, adminNotices);
     }
 
