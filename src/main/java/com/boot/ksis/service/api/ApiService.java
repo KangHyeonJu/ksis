@@ -4,6 +4,7 @@ import com.boot.ksis.dto.api.ApiDTO;
 import com.boot.ksis.entity.API;
 import com.boot.ksis.repository.api.ApiRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ApiService {
 
     // 모든 API 조회
     public List<ApiDTO> getAllApis() {
-        List<API> apis = apiRepository.findAll();
+        List<API> apis = apiRepository.findAll(Sort.by(Sort.Direction.DESC, "regTime"));
         return apis.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
