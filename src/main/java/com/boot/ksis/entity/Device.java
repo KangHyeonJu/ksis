@@ -22,8 +22,16 @@ public class Device extends BaseEntity {
     private Long deviceId;
 
     //mac 주소
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String macAddress;
+
+    //IP
+    @Column(length = 50)
+    private String ipAddress;
+
+    //key
+    @Column(length = 30)
+    private String signageKey;
 
     //디바이스명
     @Column(nullable = false, length = 50)
@@ -65,7 +73,7 @@ public class Device extends BaseEntity {
         this.deviceName = signageFormDTO.getDeviceName();
         this.location = signageFormDTO.getLocation();
         this.detailAddress = signageFormDTO.getDetailAddress();
-        this.macAddress = signageFormDTO.getMacAddress();
+        this.ipAddress = signageFormDTO.getIpAddress();
         this.screenSize = signageFormDTO.getScreenSize();
         this.resolution = signageFormDTO.getResolution();
     }

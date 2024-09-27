@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -177,6 +178,14 @@ public class SignageService {
     public void saveNewSignage(SignageFormDTO signageFormDTO, List<String> accountList){
         Device device = signageFormDTO.createNewSignage();
 
+        //랜덤 key 생성(숫자와 문자로 구성된 20자리)
+        String deviceKey = RandomStringUtils.randomAlphabetic(20);
+
+        while (signageRepository.findBySignageKey(deviceKey).isPresent()) {
+            deviceKey = newKey();
+        }
+        device.setSignageKey(deviceKey);
+
         signageRepository.save(device);
 
         //담당자로 선택한 계정 목록을 계정-디바이스 맵핑테이블에 추가
@@ -194,23 +203,28 @@ public class SignageService {
         }
     }
 
-    //재생장치 등록 시 MAC 주소 중복 검증
-    public boolean checkMacAddress(SignageFormDTO signageFormDTO){
-        Device device = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
-
-        return device == null;
+    //랜덤 key 생성
+    public String newKey(){
+        return RandomStringUtils.randomAlphabetic(20);
     }
+
+    //재생장치 등록 시 MAC 주소 중복 검증
+//    public boolean checkMacAddress(SignageFormDTO signageFormDTO){
+//        Device device = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
+//
+//        return device == null;
+//    }
 
     //재생장치 수정 시 MAC 주소 중복 검증(기존 MAC 주소는 제외시키기)
-    public boolean checkUpdateMacAddress(SignageFormDTO signageFormDTO){
-        Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow();
-
-        Device checkDevice = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
-
-        if(checkDevice == null){
-            return true;
-        }else return Objects.equals(device.getMacAddress(), signageFormDTO.getMacAddress());
-    }
+//    public boolean checkUpdateMacAddress(SignageFormDTO signageFormDTO){
+//        Device device = signageRepository.findById(signageFormDTO.getDeviceId()).orElseThrow();
+//
+//        Device checkDevice = signageRepository.findByMacAddress(signageFormDTO.getMacAddress());
+//
+//        if(checkDevice == null){
+//            return true;
+//        }else return Objects.equals(device.getMacAddress(), signageFormDTO.getMacAddress());
+//    }
 
     //재생장치 수정
     public void updateSignage(SignageFormDTO signageFormDTO, List<String> accountList){
@@ -594,5 +608,11 @@ public class SignageService {
             }
         }
         return notices;
+    }
+
+    public boolean checkIpAndKey(String key, String clientIp){
+        Device device = signageRepository.findBySignageKey(key).orElseThrow(()  -> new IllegalArgumentException("not found device"));
+
+        return device.getIpAddress().equals(clientIp);
     }
 }

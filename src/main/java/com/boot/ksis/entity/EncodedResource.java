@@ -33,7 +33,7 @@ public class EncodedResource extends BaseEntity {
     private String resolution;
 
     //제목
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 100)
     private String fileTitle;
 
     //파일명

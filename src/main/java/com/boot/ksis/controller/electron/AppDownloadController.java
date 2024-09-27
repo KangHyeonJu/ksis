@@ -1,6 +1,7 @@
 package com.boot.ksis.controller.electron;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,14 +18,13 @@ import java.nio.file.Paths;
 @RequestMapping("/api")
 public class AppDownloadController {
 
-//     private final String APP_DIR = "C:/ksis-file/app/";
-
-    private final String APP_DIR = "/gen/ksis-file/app/";
+    @Value("${appDir}")
+    String appDir;
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile() {
         try {
-            Path filePath = Paths.get(APP_DIR + "ElectronReact Setup 4.6.0.exe");
+            Path filePath = Paths.get(appDir + "ElectronReact Setup 4.6.0.exe");
 
             if (!Files.exists(filePath)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
