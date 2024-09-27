@@ -259,13 +259,14 @@ public class FileBoardService {
         List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
         ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
 
-        // 원본 파일 삭제
-        deleteFileFromStorage(uploadLocation+originalResource.getFileName());
 
         // 리스트 내의 인코딩된 파일 삭제
         for (EncodedResource encodedResource : encodedResources) {
             deleteFileFromStorage(encodingLocation+encodedResource.getFileName());
         }
+        // 원본 파일 삭제
+        deleteFileFromStorage(uploadLocation+originalResource.getFileName());
+
 
         // 썸네일 파일 삭제
         // 썸네일 파일 경로에서 /file/thumbnails/ 부분 제거
