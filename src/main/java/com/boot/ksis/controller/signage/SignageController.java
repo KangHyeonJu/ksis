@@ -250,14 +250,12 @@ public class SignageController {
     @GetMapping("/play")
     public ResponseEntity<?> checkIpAndKey(@RequestParam String key, HttpServletRequest request){
         try{
-//            String clientIp = request.getRemoteAddr();
-//
-//            if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-//                clientIp = request.getHeader("X-Forwarded-For");
-//            }
-
             String clientIp = request.getHeader("X-Forwarded-For");
             log.info("X-FORWARDED-FOR : " + clientIp);
+
+//            if (clientIp != null && clientIp.contains(",")) {
+//                clientIp = clientIp.split(",")[0].trim();
+//            }
 
             if (clientIp == null) {
                 clientIp = request.getHeader("Proxy-Client-IP");
@@ -281,11 +279,8 @@ public class SignageController {
             }
             log.info("Result : IP Address : "+clientIp);
 
-            if(signageService.checkIpAndKey(key, clientIp)){
-                return new ResponseEntity<>("IP와 KEY가 검증되었습니다.", HttpStatus.OK);
-            }else{
-                return ResponseEntity.status(HttpStatus.ACCEPTED).body("IP와 KEY 검증에 실패했습니다.");
-            }
+             return new ResponseEntity<>(signageService.checkIpAndKey(key, clientIp), HttpStatus.OK);
+
         }catch(EntityNotFoundException e){
             return new ResponseEntity<>("검증 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST);
         }

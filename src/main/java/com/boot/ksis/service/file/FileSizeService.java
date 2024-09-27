@@ -13,7 +13,7 @@ public class FileSizeService {
 
     private final FileSizeRepository fileSizeRepository;
 
-    // 현재 파일 크기 설정 조회
+    // 현재 전체 파일 크기 설정 조회
     public FileSizeDTO getFileSize() {
         FileSize fileSize = fileSizeRepository.findById(1).orElseGet(() -> {
             // 설정이 없으면 기본값으로 새로운 설정 생성
@@ -24,6 +24,7 @@ public class FileSizeService {
         });
         return convertToDTO(fileSize);
     }
+
 
     // 파일 크기 설정 업데이트
     public FileSizeDTO updateFileSize(FileSizeDTO fileSizeDTO) {
