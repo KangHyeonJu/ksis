@@ -179,7 +179,7 @@ public class SignageService {
         Device device = signageFormDTO.createNewSignage();
 
         //랜덤 key 생성(숫자와 문자로 구성된 20자리)
-        String deviceKey = RandomStringUtils.randomAlphabetic(20);
+        String deviceKey = RandomStringUtils.randomAlphanumeric(20);
 
         while (signageRepository.findBySignageKey(deviceKey).isPresent()) {
             deviceKey = newKey();
@@ -610,9 +610,13 @@ public class SignageService {
         return notices;
     }
 
-    public boolean checkIpAndKey(String key, String clientIp){
+    public Long checkIpAndKey(String key, String clientIp){
         Device device = signageRepository.findBySignageKey(key).orElseThrow(()  -> new IllegalArgumentException("not found device"));
 
-        return device.getIpAddress().equals(clientIp);
+        if(device.getIpAddress().equals(clientIp)){
+            return device.getDeviceId();
+        }else {
+            return null;
+        }
     }
 }

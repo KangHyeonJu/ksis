@@ -72,12 +72,8 @@ public class AuthService {
 
     public boolean checkAccessToken(HttpServletRequest request) {
         String token = resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            String accountId = jwtTokenProvider.getAccountIdFromToken(token);
-
-            return !refreshTokenRepository.existsByAccountId(accountId);
-        }
-        return false;
+        String accountId = jwtTokenProvider.getAccountIdFromToken(token);
+        return !refreshTokenRepository.existsByAccountId(accountId);
     }
 
     private String resolveToken(HttpServletRequest request) {                       // 요청에서 액세스 토큰 추출
