@@ -3,6 +3,7 @@ package com.boot.ksis.controller;
 import com.boot.ksis.dto.login.JwtTokenDTO;
 import com.boot.ksis.entity.RefreshToken;
 import com.boot.ksis.repository.RefreshTokenRepository;
+import com.boot.ksis.service.sse.SseEmitterService;
 import com.boot.ksis.util.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import java.util.Collections;
 public class AuthController {
 
     private final AuthService authService;
-    private final EventController eventController;
+    private final SseEmitterService sseEmitterService;
 
     @PostMapping("/get-token")
     public ResponseEntity<?> getAccessToken(@RequestHeader("Authorization") String authorizationHeader) {
@@ -36,7 +37,9 @@ public class AuthController {
     @DeleteMapping("/logout/{accountId}")
     public ResponseEntity<?> logout(@PathVariable String accountId){
         authService.deleteRefreshToken(accountId);
-        eventController.sendLogoutEvent(accountId); // 로그아웃 이벤트 전송
+//        eventController.sendLogoutEvent(accountId); // 로그아웃 이벤트 전송
+        sseEmitterService.sendLogoutEvent(accountId);
+
         System.out.println("RefreshToken deleted by accountId : " + accountId);
         return ResponseEntity.ok("로그아웃 성공");
     }
