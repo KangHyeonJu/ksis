@@ -11,7 +11,7 @@ import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
-import com.boot.ksis.service.sse.SseNotificationEmitterService;
+import com.boot.ksis.service.sse.SseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -47,7 +47,7 @@ public class EncodedResourceService {
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
     private final FileSizeRepository fileSizeRepository;
-    private final SseNotificationEmitterService sseNotificationEmitterService;
+    private final SseEmitterService sseNotificationEmitterService;
     private final UploadLogRepository uploadLogRepository;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드

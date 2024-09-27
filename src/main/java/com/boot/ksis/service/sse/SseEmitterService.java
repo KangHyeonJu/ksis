@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class SseEmitterService {
 
-//     사용자별 SSE 연결을 관리하기 위한 맵
+    //     사용자별 SSE 연결을 관리하기 위한 맵
 //    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final Map<String, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
