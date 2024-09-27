@@ -54,16 +54,28 @@ public class FileBoardService {
     // 조회
     // 모든 원본 파일 조회(업로드된 원본 파일 목록 조회)
     public List<ResourceListDTO> getAllFiles() {
-        // 모든 OriginalResource 엔티티를 조회하고, ResourceListDTO로 변환하여 반환
-        return originalResourceRepository.findByResourceStatus(ResourceStatus.COMPLETED).stream()
-                .map(resource -> new ResourceListDTO(
-                        resource.getOriginalResourceId(), // 원본 파일의 ID
-                        resource.getFilePath(),           // 파일의 경로
-                        resource.getFileTitle(),          // 파일의 제목
-                        resource.getResolution(),         // 파일의 해상도
-                        resource.getFormat(),           // 파일의 포맷
-                        resource.getRegTime()))   //등록일
-                .collect(Collectors.toList());     // 변환된 DTO 리스트를 반환
+        List<ResourceListDTO> resourceListDTOS = new ArrayList<>();
+
+        List<OriginalResource> originalResources = originalResourceRepository.findByResourceStatus(ResourceStatus.COMPLETED);
+
+        for (OriginalResource originalResource : originalResources) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+            // ResourceListDTO 객체 생성 후 리스트에 추가
+            ResourceListDTO resource = new ResourceListDTO(
+                    originalResource.getOriginalResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    originalResource.getFilePath(),
+                    originalResource.getFileTitle(),
+                    originalResource.getResolution(),
+                    originalResource.getFormat(),
+                    originalResource.getRegTime()
+            );
+            resourceListDTOS.add(resource);
+        }
+
+        // 최종적으로 생성된 resourceListDTOList 반환
+        return resourceListDTOS;
     }
 
     // 본인이 업로드한 원본 이미지 파일만 조회
@@ -81,6 +93,7 @@ public class FileBoardService {
             ResourceListDTO resource = new ResourceListDTO(
                     originalResource.getOriginalResourceId(),
                     thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    originalResource.getFilePath(),
                     originalResource.getFileTitle(),
                     originalResource.getResolution(),
                     originalResource.getFormat(),
@@ -113,6 +126,7 @@ public class FileBoardService {
             EncodeListDTO encoded = new EncodeListDTO(
                     encodedResource.getEncodedResourceId(),
                     thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    encodedResource.getFilePath(),
                     encodedResource.getFileTitle(),
                     encodedResource.getResolution(),
                     encodedResource.getFormat(),
@@ -134,8 +148,10 @@ public class FileBoardService {
         List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                 accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO);
         for (OriginalResource originalResource : originalResourceList) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
             ResourceListDTO resource = new ResourceListDTO(
                     originalResource.getOriginalResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
                     originalResource.getFilePath(),
                     originalResource.getFileTitle(),
                     originalResource.getResolution(),
@@ -156,7 +172,9 @@ public class FileBoardService {
         List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                 originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
         for (EncodedResource encodedResource : EncodedResourceList){
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
             EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
                     encodedResource.getFilePath(),
                     encodedResource.getFileTitle(),
                     encodedResource.getResolution(),
@@ -179,7 +197,14 @@ public class FileBoardService {
 
         for (EncodedResource encodedResource : encodedResources) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), thumbNail.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            EncodeListDTO encode = new EncodeListDTO(
+                    encodedResource.getEncodedResourceId(),
+                    thumbNail.getFilePath(),
+                    originalResource.getFilePath(),
+                    encodedResource.getFileTitle(),
+                    encodedResource.getResolution(),
+                    encodedResource.getFormat(),
+                    encodedResource.getRegTime());
             resourceDetailListDTO.add(encode);
         }
 
@@ -195,7 +220,15 @@ public class FileBoardService {
         List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
 
         for (EncodedResource encodedResource : encodedResources) {
-            EncodeListDTO encode = new EncodeListDTO(encodedResource.getEncodedResourceId(), encodedResource.getFilePath(), encodedResource.getFileTitle(), encodedResource.getResolution(), encodedResource.getFormat(), encodedResource.getRegTime());
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+            EncodeListDTO encode = new EncodeListDTO(
+                    encodedResource.getEncodedResourceId(),
+                    thumbNail.getFilePath(),
+                    originalResource.getFilePath(),
+                    encodedResource.getFileTitle(),
+                    encodedResource.getResolution(),
+                    encodedResource.getFormat(),
+                    encodedResource.getRegTime());
             resourceDetailListDTO.add(encode);
         }
 
@@ -207,8 +240,15 @@ public class FileBoardService {
     //이미지 파일 인코딩 조회
     public ResourceListDTO getResourceFiles(Long originalResourceId) {
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
-
-        return new ResourceListDTO(originalResource.getOriginalResourceId(), originalResource.getFilePath(), originalResource.getFileTitle(), originalResource.getResolution(), originalResource.getFormat(), originalResource.getRegTime());
+        ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+        return new ResourceListDTO(
+                originalResource.getOriginalResourceId(),
+                thumbNail.getFilePath(),
+                originalResource.getFilePath(),
+                originalResource.getFileTitle(),
+                originalResource.getResolution(),
+                originalResource.getFormat(),
+                originalResource.getRegTime());
     }
 
 

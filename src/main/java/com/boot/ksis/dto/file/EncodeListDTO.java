@@ -16,7 +16,7 @@ public class EncodeListDTO {
     //인코딩 아이디
     private Long encodedResourceId;
     //썸네일
-    //private String thumbFilePath;
+    private String thumbFilePath;
     //인코딩 경로
     private String filePath;
     //제목

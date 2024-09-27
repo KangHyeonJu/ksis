@@ -13,7 +13,7 @@ public class ResourceListDTO {
     //원본 아이디
     private Long originalResourceId;
     //썸네일
-    //private String thumbFilePath;
+    private String thumbFilePath;
     //경로
     private String filePath;
     //제목
