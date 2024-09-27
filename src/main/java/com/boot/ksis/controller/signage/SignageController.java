@@ -8,7 +8,9 @@ import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/signage")
+@Slf4j
 public class SignageController {
     private final SignageService signageService;
     private final AccountListService accountService;
@@ -88,12 +91,11 @@ public class SignageController {
     @CustomAnnotation(activityDetail = "재생장치 수정")
     @PatchMapping("/update")
     public ResponseEntity<String> signageUpdate(@RequestPart("signageFormDto") SignageFormDTO signageFormDto,  @RequestPart(value="accountList") List<String> accountList){
-        //MAC 주소 중복 검증
-        if(signageService.checkUpdateMacAddress(signageFormDto)){
+        try{
             signageService.updateSignage(signageFormDto, accountList);
-            return ResponseEntity.ok("재생장치가 정상적으로 수정되었습니다.");
-        }else {
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 MAC주소입니다.");
+            return ResponseEntity.ok("재생장치가 정상적으로 등록되었습니다.");
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("재생장치 등록을 실패했습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -242,6 +244,50 @@ public class SignageController {
             return new ResponseEntity<>(signageService.getPlayNotice(signageId), HttpStatus.OK);
         }catch(EntityNotFoundException e){
             return new ResponseEntity<>("재생 시 오류가 발생했습니다.", HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/play")
+    public ResponseEntity<?> checkIpAndKey(@RequestParam String key, HttpServletRequest request){
+        try{
+//            String clientIp = request.getRemoteAddr();
+//
+//            if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
+//                clientIp = request.getHeader("X-Forwarded-For");
+//            }
+
+            String clientIp = request.getHeader("X-Forwarded-For");
+            log.info("X-FORWARDED-FOR : " + clientIp);
+
+            if (clientIp == null) {
+                clientIp = request.getHeader("Proxy-Client-IP");
+                log.info("Proxy-Client-IP : " + clientIp);
+            }
+            if (clientIp == null) {
+                clientIp = request.getHeader("WL-Proxy-Client-IP");
+                log.info("WL-Proxy-Client-IP : " + clientIp);
+            }
+            if (clientIp == null) {
+                clientIp = request.getHeader("HTTP_CLIENT_IP");
+                log.info("HTTP_CLIENT_IP : " + clientIp);
+            }
+            if (clientIp == null) {
+                clientIp = request.getHeader("HTTP_X_FORWARDED_FOR");
+                log.info("HTTP_X_FORWARDED_FOR : " + clientIp);
+            }
+            if (clientIp == null) {
+                clientIp = request.getRemoteAddr();
+                log.info("getRemoteAddr : "+clientIp);
+            }
+            log.info("Result : IP Address : "+clientIp);
+
+            if(signageService.checkIpAndKey(key, clientIp)){
+                return new ResponseEntity<>("IP와 KEY가 검증되었습니다.", HttpStatus.OK);
+            }else{
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body("IP와 KEY 검증에 실패했습니다.");
+            }
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("검증 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 }
