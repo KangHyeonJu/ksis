@@ -16,6 +16,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,11 +25,22 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
 public class OriginalResourceService {
+
+    // 파일별로 청크 업로드 작업을 처리하는 스레드 풀을 저장
+    private final Map<String, ExecutorService> uploadExecutors = new ConcurrentHashMap<>();
+
+    // 스레드 풀을 위한 설정
+    private final int THREAD_POOL_SIZE = 1;
 
     private final OriginalResourceRepository originalResourceRepository;
     private final ThumbNailRepository thumbNailRepository;
@@ -90,49 +102,49 @@ public class OriginalResourceService {
     }
 
     // 청크 업로드
+    @Async
     public ResponseEntity<String> chunkUpload(MultipartFile chunk, String fileName, int chunkIndex, int totalChunks){
         int CHUNK_SIZE = 1 * 1024 * 1024;
-        try{
-            // UUID로 저장된 파일 이름을 사용
-            String filePath = uploadLocation + fileName;
-            String fileNameUUID = UUID.randomUUID().toString() + ".jpg";
+        // UUID로 저장된 파일 이름을 사용
+        String filePath = uploadLocation + fileName;
 
-            String thumbnailPath = thumbnailsLocation + fileNameUUID;
-            String thumbnailUrl = dbFilePath + "/thumbnails/" + fileNameUUID;
+        // 파일 이름에 고유한 스레드를 할당하여 순차적으로 청크를 처리
+        ExecutorService executorService = uploadExecutors.computeIfAbsent(fileName, key -> createExecutor());
 
-            File file = new File(filePath);
+        CompletableFuture.runAsync(() -> {
+            try {
+                File file = new File(filePath);
 
-            // 청크를 이어붙이기 위한 파일 채널 열기
-            RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            raf.seek(chunkIndex * CHUNK_SIZE); // 파일의 위치를 청크 시작점으로 이동
-            raf.write(chunk.getBytes()); // 청크 데이터를 파일에 기록
-            raf.close();
+                // 청크를 이어붙이기 위한 파일 채널 열기
+                RandomAccessFile raf = new RandomAccessFile(file, "rw");
+                raf.seek(chunkIndex * CHUNK_SIZE); // 파일의 위치를 청크 시작점으로 이동
+                raf.write(chunk.getBytes()); // 청크 데이터를 파일에 기록
+                raf.close();
 
-            // 파일 저장 확인 후 썸네일 생성 및 저장 호출
-            if (chunkIndex + 1 == totalChunks) {
+                // 마지막 청크라면 처리 완료 후 썸네일 생성
+                if (chunkIndex + 1 == totalChunks) {
+                    OriginalResource originalResource = updateStatus(fileName);
 
-                // COMPLELTED로 업데이트
-                OriginalResource originalResource = updateStatus(fileName);
+                    String fileExtension = getFileExtension(fileName).toLowerCase();
+                    String fileNameUUID = UUID.randomUUID().toString() + ".jpg";
+                    String thumbnailPath = thumbnailsLocation + fileNameUUID;
+                    String thumbnailUrl = dbFilePath + "/thumbnails/" + fileNameUUID;
 
-                String fileExtension = getFileExtension(fileName).toLowerCase();
-                if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
-                    // 동영상인 경우
-                    generateVideoThumbnail(filePath,thumbnailPath, thumbnailUrl, originalResource);
-                } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
-                    // 이미지인 경우
-                    generateImageThumbnail(filePath,thumbnailPath, thumbnailUrl, originalResource);
-                } else {
-                    System.out.println("지원하지 않는 파일 형식: " + fileExtension);
+                    if (fileExtension.equals(".mp4") || fileExtension.equals(".avi") || fileExtension.equals(".mkv")) {
+                        generateVideoThumbnail(filePath, thumbnailPath, thumbnailUrl, originalResource);
+                    } else if (fileExtension.equals(".png") || fileExtension.equals(".jpg") || fileExtension.equals(".jpeg")) {
+                        generateImageThumbnail(filePath, thumbnailPath, thumbnailUrl, originalResource);
+                    } else {
+                        System.out.println("지원하지 않는 파일 형식: " + fileExtension);
+                    }
                 }
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }, executorService).join(); // join()을 사용하여 업로드가 완료될 때까지 기다림
 
-            return ResponseEntity.ok("청크 업로드 성공");
-        }catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("청크 업로드 실패: " + e.getMessage());
-        }
-
+        return ResponseEntity.ok("청크 업로드 성공");
     }
 
     // 상태를 COMPLETED로 업데이트
@@ -267,6 +279,19 @@ public class OriginalResourceService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("FFmpeg process was interrupted", e);
+        }
+    }
+
+    // 스레드 풀 생성
+    private ExecutorService createExecutor() {
+        return Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+    }
+
+    // 파일이 완료되면 스레드 풀 제거
+    private void cleanupExecutor(String fileName) {
+        ExecutorService executorService = uploadExecutors.remove(fileName);
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 
