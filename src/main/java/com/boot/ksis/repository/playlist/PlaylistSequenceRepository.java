@@ -1,5 +1,6 @@
 package com.boot.ksis.repository.playlist;
 
+import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.IdClass.PlaylistSequenceId;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,5 @@ public interface PlaylistSequenceRepository extends JpaRepository<PlaylistSequen
 
     PlaylistSequence findByPlaylistIdAndSequence(Long playlistId, int sequence);
 
+    void deleteByEncodedResource(EncodedResource encodedResourceId);
 }

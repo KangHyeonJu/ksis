@@ -200,7 +200,7 @@ public class OriginalResourceService {
 
         // 이미지 파일을 읽어와서 썸네일을 생성하고 저장
         Thumbnails.of(new File(imagePath))
-                .size(800, 800) // 원하는 썸네일 크기 설정
+                .size(200, 200) // 원하는 썸네일 크기 설정
                 .outputFormat("jpg")
                 .toFile(new File(thumbnailPath));
 
@@ -212,7 +212,7 @@ public class OriginalResourceService {
 
         thumbNailRepository.save(thumbnail); // 썸네일 저장
 
-        //인코딩 용량 추가
+        //썸네일 용량 추가
         FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
             // 설정이 없으면 기본값으로 새로운 설정 생성
             FileSize defaultFileSize = new FileSize();
@@ -221,6 +221,7 @@ public class OriginalResourceService {
             return fileSizeRepository.save(defaultFileSize);
         });
         addFileSize.setTotalImage(addFileSize.getTotalImage() + thumbnail.getFileSize());
+        fileSizeRepository.save(addFileSize);
     }
 
     // 동영상에서 썸네일 생성
@@ -252,6 +253,7 @@ public class OriginalResourceService {
             return fileSizeRepository.save(defaultFileSize);
         });
         addFileSize.setTotalImage(addFileSize.getTotalImage() + thumbnail.getFileSize());
+        fileSizeRepository.save(addFileSize);
     }
 
     // FFmpeg를 사용하여 특정 프레임 추출

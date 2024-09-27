@@ -14,7 +14,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     void deleteByNoticeId(Long noticeId);
 
     // Account 엔터티의 accountId로 공지 조회
-    List<Notice> findByAccount_AccountId(String accountId);
+    List<Notice> findByAccount_AccountIdOrderByRegTimeDesc(String accountId);
 
-    List<Notice> findByAccount_Role(Role role);
+    List<Notice> findByAccount_RoleOrderByRegTimeDesc(Role role);
 }

@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface DeviceEncodeMapRepository extends JpaRepository<DeviceEncodeMap, DeviceEncodeId> {
     void deleteByDeviceIdIn(List<Long> deviceId);
+
+    void deleteByEncodedResourceId(Long encodedResourceId);
 }

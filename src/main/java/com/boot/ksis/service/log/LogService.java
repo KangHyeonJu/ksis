@@ -50,19 +50,21 @@ public class LogService {
         List<ActivityLog> activityLogList = activityLogRepository.findAll();
 
         for(ActivityLog activityLog : activityLogList){
-            AccountNameDTO accountNameDTO = AccountNameDTO.builder()
-                    .accountId(activityLog.getAccount().getAccountId())
-                    .name(activityLog.getAccount().getName())
-                    .build();
+            if(activityLog.getAccount() != null){
+                AccountNameDTO accountNameDTO = AccountNameDTO.builder()
+                        .accountId(activityLog.getAccount().getAccountId())
+                        .name(activityLog.getAccount().getName())
+                        .build();
 
-            LogDTO logDTO = LogDTO.builder()
-                    .logId(activityLog.getActivityLogId())
-                    .account(accountNameDTO)
-                    .dateTime(activityLog.getDateTime())
-                    .detail(activityLog.getActivityDetail())
-                    .build();
+                LogDTO logDTO = LogDTO.builder()
+                        .logId(activityLog.getActivityLogId())
+                        .account(accountNameDTO)
+                        .dateTime(activityLog.getDateTime())
+                        .detail(activityLog.getActivityDetail())
+                        .build();
 
-            logDTOList.add(logDTO);
+                logDTOList.add(logDTO);
+            }
         }
         return logDTOList;
     }

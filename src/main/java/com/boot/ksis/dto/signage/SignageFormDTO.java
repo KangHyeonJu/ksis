@@ -16,7 +16,7 @@ public class SignageFormDTO {
     private Long deviceId;
 
     //mac 주소
-    private String macAddress;
+    private String ipAddress;
 
     //디바이스명
     private String deviceName;
