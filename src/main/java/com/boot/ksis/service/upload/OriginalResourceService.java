@@ -14,7 +14,6 @@ import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -170,8 +169,10 @@ public class OriginalResourceService {
 
         if(originalResource.getResourceType() == ResourceType.IMAGE){
             fileSize.setTotalImage(fileSize.getTotalImage() + originalResource.getFileSize());
+            fileSize.setCountImage(fileSize.getCountImage() + 1);
         }else {
             fileSize.setTotalVideo(fileSize.getTotalVideo() + originalResource.getFileSize());
+            fileSize.setCountVideo(fileSize.getCountVideo() + 1);
         }
 
         return originalResource;
@@ -211,17 +212,6 @@ public class OriginalResourceService {
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbNailRepository.save(thumbnail); // 썸네일 저장
-
-        //썸네일 용량 추가
-        FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
-            // 설정이 없으면 기본값으로 새로운 설정 생성
-            FileSize defaultFileSize = new FileSize();
-            defaultFileSize.setTotalVideo(0L);
-            defaultFileSize.setTotalImage(0L);
-            return fileSizeRepository.save(defaultFileSize);
-        });
-        addFileSize.setTotalImage(addFileSize.getTotalImage() + thumbnail.getFileSize());
-        fileSizeRepository.save(addFileSize);
     }
 
     // 동영상에서 썸네일 생성
@@ -243,17 +233,6 @@ public class OriginalResourceService {
         thumbnail.setFileSize((int) (new File(thumbnailPath).length() / 1024)); // 용량(KB 단위)
 
         thumbNailRepository.save(thumbnail); // 썸네일 저장
-
-        //인코딩 용량 추가
-        FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
-            // 설정이 없으면 기본값으로 새로운 설정 생성
-            FileSize defaultFileSize = new FileSize();
-            defaultFileSize.setTotalVideo(0L);
-            defaultFileSize.setTotalImage(0L);
-            return fileSizeRepository.save(defaultFileSize);
-        });
-        addFileSize.setTotalImage(addFileSize.getTotalImage() + thumbnail.getFileSize());
-        fileSizeRepository.save(addFileSize);
     }
 
     // FFmpeg를 사용하여 특정 프레임 추출

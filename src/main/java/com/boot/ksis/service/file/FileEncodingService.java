@@ -32,6 +32,7 @@ public class FileEncodingService {
 
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
+    private final FileSizeService fileSizeService;
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(String resolution) {
@@ -158,6 +159,8 @@ public class FileEncodingService {
                 encoded.setResourceStatus(ResourceStatus.COMPLETED);
                 encodedResourceRepository.save(encoded);
                 System.out.println("이미지 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
+
+                fileSizeService.updateTotalFileSize(encoded);
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName);
             }
@@ -262,6 +265,8 @@ public class FileEncodingService {
                 encoded.setResourceStatus(ResourceStatus.COMPLETED); // 인코딩 완료 상태
                 encodedResourceRepository.save(encoded); // EncodedResource 업데이트
                 System.out.println("영상 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
+
+                fileSizeService.updateTotalFileSize(encoded);
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName); // EncodedResource가 없을 때
             }

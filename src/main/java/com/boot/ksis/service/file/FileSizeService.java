@@ -1,7 +1,10 @@
 package com.boot.ksis.service.file;
 
+import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.file.FileSizeDTO;
+import com.boot.ksis.dto.file.TotalFileCountDTO;
 import com.boot.ksis.dto.file.TotalFileSizeDTO;
+import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.FileSize;
 import com.boot.ksis.repository.file.FileSizeRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +18,7 @@ public class FileSizeService {
 
     // 현재 전체 파일 크기 설정 조회
     public FileSizeDTO getFileSize() {
-        FileSize fileSize = fileSizeRepository.findById(1).orElseGet(() -> {
-            // 설정이 없으면 기본값으로 새로운 설정 생성
-            FileSize defaultFileSize = new FileSize();
-            defaultFileSize.setImageMaxSize(10);
-            defaultFileSize.setVideoMaxSize(50);
-            return fileSizeRepository.save(defaultFileSize);
-        });
+        FileSize fileSize = createFileSize();
         return convertToDTO(fileSize);
     }
 
@@ -61,17 +58,46 @@ public class FileSizeService {
 
     //파일 총 용량
     public TotalFileSizeDTO getTotalFileSize(){
-        FileSize fileSize = fileSizeRepository.findById(1).orElseGet(() -> {
-            // 설정이 없으면 기본값으로 새로운 설정 생성
-            FileSize defaultFileSize = new FileSize();
-            defaultFileSize.setTotalVideo(0L);
-            defaultFileSize.setTotalImage(0L);
-            return fileSizeRepository.save(defaultFileSize);
-        });
+        FileSize fileSize = createFileSize();
 
         return TotalFileSizeDTO.builder()
                 .totalImageSize(fileSize.getTotalImage())
                 .totalVideoSize(fileSize.getTotalVideo())
+                .totalEncodedImageSize(fileSize.getTotalEncodedImage())
+                .totalEncodedVideoSize(fileSize.getTotalEncodedVideo())
                 .build();
+    }
+
+    public void updateTotalFileSize(EncodedResource encodedResource){
+        //인코딩 용량 추가
+        FileSize fileSize = createFileSize();
+        if(encodedResource.getResourceType() == ResourceType.IMAGE){
+            fileSize.setTotalEncodedImage(fileSize.getTotalEncodedImage() + encodedResource.getFileSize());
+            fileSize.setCountEncodedImage(fileSize.getCountEncodedImage() + 1);
+        }else {
+            fileSize.setTotalEncodedVideo(fileSize.getTotalEncodedVideo() + encodedResource.getFileSize());
+            fileSize.setCountEncodedVideo(fileSize.getCountEncodedVideo() + 1);
+        }
+    }
+
+    public TotalFileCountDTO getTotalFileCount(){
+        FileSize fileSize = createFileSize();
+
+        return TotalFileCountDTO.builder()
+                .countImage(fileSize.getCountImage())
+                .countVideo(fileSize.getCountVideo())
+                .countEncodedImage(fileSize.getCountEncodedImage())
+                .countEncodedVideo(fileSize.getCountEncodedVideo())
+                .build();
+    }
+
+    public FileSize createFileSize(){
+        return fileSizeRepository.findById(1).orElseGet(() -> {
+            // 설정이 없으면 기본값으로 새로운 설정 생성
+            FileSize defaultFileSize = new FileSize();
+            defaultFileSize.setImageMaxSize(10);
+            defaultFileSize.setVideoMaxSize(500);
+            return fileSizeRepository.save(defaultFileSize);
+        });
     }
 }
