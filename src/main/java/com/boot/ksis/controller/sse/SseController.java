@@ -36,19 +36,8 @@ public class SseController {
             SseEmitter emitter = new SseEmitter(3600L * 1000L); // 새로운 SseEmitter 생성
             emitterService.addEmitter(userId, emitter); // 맵에 저장
 
-            // 30초마다 빈 이벤트 전송
-//            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-//            scheduler.scheduleAtFixedRate(() -> {
-//                try {
-//                    emitter.send(SseEmitter.event().comment("ping")); // 빈 이벤트 전송
-//                } catch (IOException e) {
-//                    emitterService.removeEmitter(userId);
-//                    emitter.completeWithError(e); // 연결을 에러와 함께 종료
-//                    scheduler.shutdown();
-//                }
-//            }, 0, 30, TimeUnit.SECONDS); // 0초 후 시작, 30초마다 실행
-
             emitter.onCompletion(() -> {
+                emitterService.removeEmitter(userId, emitter);
                 System.out.println("SSE connection completed for user: " + userId);
             });
             emitter.onTimeout(() -> {
