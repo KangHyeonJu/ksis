@@ -3,7 +3,6 @@ package com.boot.ksis.repository.account;
 import com.boot.ksis.entity.IdClass.AccountDeviceId;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -15,5 +14,4 @@ public interface AccountDeviceMapRepository extends JpaRepository<AccountDeviceM
     void deleteByDeviceId(Long deviceId);
 
     void deleteByDeviceIdIn(List<Long> deviceIds);
-
 }

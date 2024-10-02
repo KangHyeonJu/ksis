@@ -17,7 +17,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -34,16 +33,7 @@ public class PcService {
     private EntityManager entityManager;
 
     public List<DeviceListDTO> getPcList(String accountId){
-        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
-
-        List<Device> devices = new ArrayList<>();
-
-        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
-            Device device = accountDeviceMap.getDevice();
-            if(device.getDeviceType() == DeviceType.PC){
-                devices.add(device);
-            }
-        }
+        List<Device> devices = pcRepository.findDevicesByAccountIdAndType(accountId, DeviceType.PC);
 
         return devices.stream().map(device -> {
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
@@ -59,7 +49,7 @@ public class PcService {
     }
 
     public List<DeviceListDTO> getPcAll(){
-        List<Device> devices = pcRepository.findByDeviceType(DeviceType.PC);
+        List<Device> devices = pcRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.PC);
 
         return devices.stream().map(device -> {
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
