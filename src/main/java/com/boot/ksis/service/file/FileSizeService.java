@@ -78,6 +78,7 @@ public class FileSizeService {
             fileSize.setTotalEncodedVideo(fileSize.getTotalEncodedVideo() + encodedResource.getFileSize());
             fileSize.setCountEncodedVideo(fileSize.getCountEncodedVideo() + 1);
         }
+        fileSizeRepository.save(fileSize);
     }
 
     public TotalFileCountDTO getTotalFileCount(){

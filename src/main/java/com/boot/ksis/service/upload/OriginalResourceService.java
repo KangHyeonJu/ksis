@@ -175,6 +175,8 @@ public class OriginalResourceService {
             fileSize.setCountVideo(fileSize.getCountVideo() + 1);
         }
 
+        fileSizeRepository.save(fileSize);
+
         return originalResource;
     }
 
