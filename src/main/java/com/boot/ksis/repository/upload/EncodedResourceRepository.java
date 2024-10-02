@@ -22,6 +22,8 @@ public interface EncodedResourceRepository extends JpaRepository<EncodedResource
     
     List<EncodedResource> findByOriginalResource(OriginalResource originalResource);
 
+    List<EncodedResource> findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(OriginalResource originalResource, ResourceStatus resourceStatus);
+
     // 파일 타입(이미지, 영상) 조회
     List<EncodedResource> findByResourceType(ResourceType resourceType);
 

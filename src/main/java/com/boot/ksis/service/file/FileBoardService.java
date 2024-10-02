@@ -193,7 +193,7 @@ public class FileBoardService {
 
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
 
-        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
+        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
 
         for (EncodedResource encodedResource : encodedResources) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
@@ -217,7 +217,7 @@ public class FileBoardService {
 
         OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
 
-        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
+        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
 
         for (EncodedResource encodedResource : encodedResources) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
