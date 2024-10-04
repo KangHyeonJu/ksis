@@ -13,6 +13,7 @@ import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -22,10 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -263,6 +264,37 @@ public class OriginalResourceService {
             Thread.currentThread().interrupt();
             throw new IOException("FFmpeg process was interrupted", e);
         }
+    }
+
+    // 업로드 중 파일 삭제 메서드
+    public void deleteFile(Map<String, String> request){
+        String fileTitle = request.get("fileName");
+        String accountId = request.get("accountId");
+
+        Optional<OriginalResource> resource = originalResourceRepository.findByFileTitle(fileTitle);
+
+        try{
+            Path fileToDeletePath = Paths.get(uploadLocation + resource.get().getFileName());
+            Files.delete(fileToDeletePath);
+            OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(resource.get().getOriginalResourceId());
+            originalResourceRepository.delete(originalResource);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    // 제목 중복 검증 메서드
+    public List<String> titleVerification(List<String> titles){
+        List<String> sameTitles = new ArrayList<>(); // 중복된 제목을 저장할 리스트
+
+        for(String title : titles){
+            Optional<OriginalResource> existingResource = originalResourceRepository.findByFileTitle(title);
+            if (existingResource.isPresent()) {
+                sameTitles.add(title); // 중복된 제목을 리스트에 추가
+            }
+        }
+
+        return sameTitles;
     }
 
     // 스레드 풀 생성
