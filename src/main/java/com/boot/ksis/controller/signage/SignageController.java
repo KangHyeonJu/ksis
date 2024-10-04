@@ -109,6 +109,20 @@ public class SignageController {
         }
     }
 
+    //재생장치에 등록된 파일 검색 & 페이징
+    @GetMapping("/resourcepage/{signageId}")
+    public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId,
+                                             @RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String searchTerm,
+                                             @RequestParam(required = false) String searchCategory){
+        try{
+            return new ResponseEntity<>(signageService.getResourcePageList(signageId, page, size, searchTerm, searchCategory), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
+
     //재생장치에 등록된 파일 조회
     @GetMapping("/resource/{signageId}")
     public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId){
