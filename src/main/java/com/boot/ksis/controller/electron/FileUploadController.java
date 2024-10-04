@@ -67,15 +67,12 @@ public class FileUploadController {
 
     // 파일 제목 중복 검증
     @PostMapping("/title/verification")
-    public ResponseEntity<?> fileTitleVerification(@RequestBody List<String> titles){
+    public ResponseEntity<String> fileTitleVerification(@RequestBody Map<String, String> request){
+        String title = request.get("title");
 
-        List<String> sameTitles = originalResourceService.titleVerification(titles);
+        String uniqueTitle = originalResourceService.titleVerification(title);
 
-        if(!sameTitles.isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("중복된 제목이 존재: " + sameTitles);
-        }
-
-        return ResponseEntity.ok("중복 없음");
+        return ResponseEntity.ok(uniqueTitle);
     }
 
 }

@@ -303,17 +303,16 @@ public class OriginalResourceService {
     }
 
     // 제목 중복 검증 메서드
-    public List<String> titleVerification(List<String> titles){
-        List<String> sameTitles = new ArrayList<>(); // 중복된 제목을 저장할 리스트
+    public String titleVerification(String title){
+        String adjustedTitle = title;
+        int count = 1;
 
-        for(String title : titles){
-            Optional<OriginalResource> existingResource = originalResourceRepository.findByFileTitle(title);
-            if (existingResource.isPresent()) {
-                sameTitles.add(title); // 중복된 제목을 리스트에 추가
-            }
+        while(originalResourceRepository.findByFileTitle(adjustedTitle).isPresent()){
+            adjustedTitle = title + " (" + count + ")";
+            count++;
         }
 
-        return sameTitles;
+        return adjustedTitle;
     }
 
     // 스레드 풀 생성
