@@ -79,7 +79,6 @@ public class SseEmitterService {
     }
 
     public void sendLogoutEvent(String accountId) {
-//        SseEmitter emitter = emitters.get(accountId);
         List<SseEmitter> userEmitters = emitters.get(accountId);
         if (userEmitters != null) {
             userEmitters.forEach(emitter -> {
@@ -90,9 +89,6 @@ public class SseEmitterService {
                     System.out.println("Logout event sent and SSE connection closed for user: " + accountId);
                 } catch (IOException e) {
                     System.err.println("Failed to send logout event to user: " + accountId + " | Error: " + e.getMessage());
-                    emitter.completeWithError(e); // 에러 발생 시 SSE 연결 종료
-                } finally {
-                    emitters.remove(accountId); // 로그아웃 후 해당 사용자에 대한 Emitter 제거
                 }
             });
         } else {

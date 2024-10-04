@@ -54,18 +54,7 @@ public class SignageService {
 
     //담당자로 등록된 재생장치 목록 조회
     public List<DeviceListDTO> getSignageList(String accountId){
-        //계정-디바이스 맵핑 테이블에서 계정아이디로 디바이스 목록을 가져옴
-        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
-
-        List<Device> deviceList = new ArrayList<>();
-
-        //가져온 재생장치 목록 중 SIGNAGE에 해당하는 디바이스만 추가
-        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
-            Device device = accountDeviceMap.getDevice();
-            if(device.getDeviceType() == DeviceType.SIGNAGE){
-                deviceList.add(device);
-            }
-        }
+        List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
 
         //해당 디바이스의 정보를 DTO에 담아서 return
         return deviceList.stream().map(device -> {
@@ -85,7 +74,7 @@ public class SignageService {
     //모든 재생장치 조회
     public List<DeviceListDTO> getSignageAll(){
         //디바이스 목록에서 SIGNAGE만 조회
-        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+        List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
 
         //해당 디바이스의 정보를 DTO에 담아서 return
         return deviceList.stream().map(device -> {
@@ -104,18 +93,7 @@ public class SignageService {
 
     //담당자로 등록된 재생장치 목록 조회
     public List<SignageGridDTO> getSignageGridList(String accountId){
-        //계정-디바이스 맵핑 테이블에서 계정아이디로 디바이스 목록을 가져옴
-        List<AccountDeviceMap> accountDeviceMapList = accountDeviceMapRepository.findByAccountId(accountId);
-
-        List<Device> deviceList = new ArrayList<>();
-
-        //가져온 재생장치 목록 중 SIGNAGE에 해당하는 디바이스만 추가
-        for(AccountDeviceMap accountDeviceMap : accountDeviceMapList){
-            Device device = accountDeviceMap.getDevice();
-            if(device.getDeviceType() == DeviceType.SIGNAGE){
-                deviceList.add(device);
-            }
-        }
+        List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
@@ -146,7 +124,7 @@ public class SignageService {
     //모든 재생장치 조회
     public List<SignageGridDTO> getSignageGridAll(){
         //디바이스 목록에서 SIGNAGE만 조회
-        List<Device> deviceList = signageRepository.findByDeviceType(DeviceType.SIGNAGE);
+        List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
