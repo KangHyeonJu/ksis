@@ -37,7 +37,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-                                  .requestMatchers("/mac","/login", "/get-token", "/file/**", "/signage/play/**", "/download").permitAll()
+                                  .requestMatchers("/mac","/login", "/get-token", "/file/**", "/signage/play/**", "/download", "/sse/**").permitAll()
                                  .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )
