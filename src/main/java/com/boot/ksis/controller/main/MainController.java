@@ -19,6 +19,11 @@ public class MainController {
         return new ResponseEntity<>(fileSizeService.getTotalFileSize(), HttpStatus.OK);
     }
 
+    @GetMapping("/total/filecount")
+    public ResponseEntity<?> totalFileCount(){
+        return new ResponseEntity<>(fileSizeService.getTotalFileCount(), HttpStatus.OK);
+    }
+
     @GetMapping("/total/visit")
     public ResponseEntity<?> visitCount(){
         return new ResponseEntity<>(visitService.getVisitCount(), HttpStatus.OK);

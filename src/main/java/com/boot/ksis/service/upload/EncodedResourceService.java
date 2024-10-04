@@ -11,6 +11,7 @@ import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
+import com.boot.ksis.service.file.FileSizeService;
 import com.boot.ksis.service.sse.SseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +50,7 @@ public class EncodedResourceService {
     private final FileSizeRepository fileSizeRepository;
     private final SseEmitterService sseNotificationEmitterService;
     private final UploadLogRepository uploadLogRepository;
+    private final FileSizeService fileSizeService;
 
     // 인코딩 정보를 데이터베이스에 저장하는 메서드
     public void saveEncodingInfo(Map<String, EncodingRequestDTO> encodings){
@@ -318,18 +320,7 @@ public class EncodedResourceService {
                 encodedResourceRepository.save(encodedResource);
 
                 //인코딩 용량 추가
-                FileSize addFileSize = fileSizeRepository.findById(1).orElseGet(() -> {
-                    // 설정이 없으면 기본값으로 새로운 설정 생성
-                    FileSize defaultFileSize = new FileSize();
-                    defaultFileSize.setTotalVideo(0L);
-                    defaultFileSize.setTotalImage(0L);
-                    return fileSizeRepository.save(defaultFileSize);
-                });
-                if(encodedResource.getResourceType() == ResourceType.IMAGE){
-                    addFileSize.setTotalImage(addFileSize.getTotalImage() + encodedResource.getFileSize());
-                }else {
-                    addFileSize.setTotalVideo(addFileSize.getTotalVideo() + encodedResource.getFileSize());
-                }
+                fileSizeService.updateTotalFileSize(encodedResource);
 
                 // 클라이언트로 인코딩 완료 알림 전송
 //                sseEncodingController.sendEvent(encodedResource.getFileTitle());

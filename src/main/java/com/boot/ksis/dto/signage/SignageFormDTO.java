@@ -15,8 +15,11 @@ import java.util.List;
 public class SignageFormDTO {
     private Long deviceId;
 
-    //mac 주소
+    //ip 주소
     private String ipAddress;
+
+    //key
+    private String deviceKey;
 
     //디바이스명
     private String deviceName;
