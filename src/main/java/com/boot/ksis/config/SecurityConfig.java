@@ -40,7 +40,7 @@ public class SecurityConfig {
 //                               .requestMatchers("/**").permitAll()
                                   .requestMatchers("/sse/**","/events", "/log/**", "/check-access-token",
                                            "/total/**", "/mac","/login",
-                                          "/get-token", "/api/**", "/file/**").permitAll()
+                                          "/get-token", "/api/**", "/file/**", "/signage/play/**").permitAll()
                                  .requestMatchers("/admin/**").hasRole("ADMIN")
                                  .anyRequest().authenticated()
                 )

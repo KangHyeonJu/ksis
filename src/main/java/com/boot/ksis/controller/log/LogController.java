@@ -24,7 +24,6 @@ public class LogController {
         return new ResponseEntity<>(logService.getActivityLogList(), HttpStatus.OK);
     }
 
-    //업로드 로그 DB 넣는 거 구현 후 수정
     @GetMapping("/upload")
     public ResponseEntity<?> uploadLogList(){
         return new ResponseEntity<>(logService.getUploadLogList(), HttpStatus.OK);
