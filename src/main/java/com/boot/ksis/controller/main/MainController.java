@@ -6,25 +6,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/total")
 public class MainController {
     private final FileSizeService fileSizeService;
     private final VisitService visitService;
 
-    @GetMapping("/total/filesize")
+    @GetMapping("/filesize")
     public ResponseEntity<?> totalFileSize(){
         return new ResponseEntity<>(fileSizeService.getTotalFileSize(), HttpStatus.OK);
     }
 
-    @GetMapping("/total/filecount")
+    @GetMapping("/filecount")
     public ResponseEntity<?> totalFileCount(){
         return new ResponseEntity<>(fileSizeService.getTotalFileCount(), HttpStatus.OK);
     }
 
-    @GetMapping("/total/visit")
+    @GetMapping("/visit")
     public ResponseEntity<?> visitCount(){
         return new ResponseEntity<>(visitService.getVisitCount(), HttpStatus.OK);
     }
