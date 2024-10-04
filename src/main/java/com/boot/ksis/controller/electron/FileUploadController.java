@@ -56,4 +56,26 @@ public class FileUploadController {
         }
     }
 
+    // 업로드 중 파일 삭제
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteFile(@RequestBody Map<String, String> request){
+
+        originalResourceService.deleteFile(request);
+
+        return ResponseEntity.ok("파일 삭제 성공");
+    }
+
+    // 파일 제목 중복 검증
+    @PostMapping("/title/verification")
+    public ResponseEntity<?> fileTitleVerification(@RequestBody List<String> titles){
+
+        List<String> sameTitles = originalResourceService.titleVerification(titles);
+
+        if(!sameTitles.isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("중복된 제목이 존재: " + sameTitles);
+        }
+
+        return ResponseEntity.ok("중복 없음");
+    }
+
 }
