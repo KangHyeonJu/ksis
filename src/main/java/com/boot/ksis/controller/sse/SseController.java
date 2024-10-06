@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -26,9 +30,8 @@ public class SseController {
 //    @GetMapping("/notifications")
     @GetMapping("/events")
     public SseEmitter connect(HttpServletRequest request) {
-        System.out.println("헤더에 담아온 정보" + request);
         String authHeader = request.getHeader("Authorization");
-        System.out.println("authHeader : " + authHeader);
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             String userId = jwtTokenProvider.getAccountIdFromToken(token); // 토큰에서 사용자 ID 추출
@@ -53,6 +56,20 @@ public class SseController {
         } else {
             throw new RuntimeException("Authorization token is missing or invalid");
         }
+    }
+
+    public final Map<String, SseEmitter> clients = new ConcurrentHashMap<>();
+
+    @GetMapping("/connect")
+    public SseEmitter connect() {
+        SseEmitter emitter = new SseEmitter(3600L * 1000L);
+        String clientId = UUID.randomUUID().toString();
+        clients.put(clientId, emitter);
+
+        emitter.onCompletion(() -> clients.remove(clientId));
+        emitter.onTimeout(() -> clients.remove(clientId));
+
+        return emitter;
     }
 }
 

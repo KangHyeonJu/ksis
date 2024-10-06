@@ -95,4 +95,18 @@ public class SseEmitterService {
             System.err.println("No emitter found for user: " + accountId);
         }
     }
+
+    private final Map<String, SseEmitter> sseEmitterMap = new ConcurrentHashMap<>();
+
+    public void sendUpdateEvent(){
+        for(SseEmitter emitter : sseEmitterMap.values()){
+            try{
+                emitter.send(SseEmitter.event().data("재생목록 수정"));
+            }catch (IOException e){
+                emitter.complete();;
+                sseEmitterMap.values().remove(emitter);
+            }
+        }
+
+    }
 }
