@@ -293,7 +293,12 @@ public class SignageController {
             }
             log.info("Result : IP Address : "+clientIp);
 
-             return new ResponseEntity<>(signageService.checkIpAndKey(key, clientIp), HttpStatus.OK);
+            if(signageService.checkIpAndKey(key, clientIp) != null){
+                return new ResponseEntity<>(signageService.checkIpAndKey(key, clientIp), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>("검증 실패", HttpStatus.ACCEPTED);
+            }
+
 
         }catch(EntityNotFoundException e){
             return new ResponseEntity<>("검증 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST);
