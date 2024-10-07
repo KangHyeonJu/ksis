@@ -14,6 +14,7 @@ import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -266,20 +267,19 @@ public class OriginalResourceService {
     }
 
     // 업로드 중 파일 삭제 메서드
-    public void deleteFile(Map<String, String> request){
+    public void deleteFile(Map<String, String> request) throws IOException {
         String fileTitle = request.get("fileName");
         String accountId = request.get("accountId");
 
         Optional<OriginalResource> resource = originalResourceRepository.findByFileTitle(fileTitle);
 
-        try{
-            Path fileToDeletePath = Paths.get(uploadLocation + resource.get().getFileName());
-            Files.delete(fileToDeletePath);
-            OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(resource.get().getOriginalResourceId());
-            originalResourceRepository.delete(originalResource);
-        }catch (IOException e){
-            e.printStackTrace();
+        if(resource.isEmpty()){
+            throw new FileNotFoundException("해당 파일을 찾을 수 없습니다.");
         }
+
+        Path fileToDeletePath = Paths.get(uploadLocation + resource.get().getFileName());
+        Files.delete(fileToDeletePath);
+        originalResourceRepository.delete(resource.get());
     }
 
     // 제목 중복 검증 메서드

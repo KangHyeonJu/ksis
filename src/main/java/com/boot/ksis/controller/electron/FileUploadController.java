@@ -6,10 +6,14 @@ import com.boot.ksis.service.upload.OriginalResourceService;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -60,9 +64,17 @@ public class FileUploadController {
     @PostMapping("/delete")
     public ResponseEntity<?> deleteFile(@RequestBody Map<String, String> request){
 
-        originalResourceService.deleteFile(request);
+        try{
+            originalResourceService.deleteFile(request);
+            return ResponseEntity.ok("파일 삭제 성공");
+        }catch(FileNotFoundException e){
+            // 파일을 찾지 못한 경우
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("파일을 찾을 수 없습니다.");
+        }catch (Exception e) {
+            // 그 외의 모든 예외 처리
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다.");
+        }
 
-        return ResponseEntity.ok("파일 삭제 성공");
     }
 
     // 파일 제목 중복 검증
