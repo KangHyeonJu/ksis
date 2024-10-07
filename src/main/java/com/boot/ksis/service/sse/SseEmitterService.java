@@ -98,15 +98,32 @@ public class SseEmitterService {
 
     private final Map<String, SseEmitter> sseEmitterMap = new ConcurrentHashMap<>();
 
+    public SseEmitter addEmitter(String clientId){
+        SseEmitter emitter = new SseEmitter(3600L * 1000L);
+        sseEmitterMap.put(clientId, emitter);
+
+        emitter.onCompletion(() -> {
+            sseEmitterMap.remove(clientId);
+            System.out.println("SSE connection completed for client: " + clientId);
+        });
+
+        emitter.onTimeout(() -> {
+            sseEmitterMap.remove(clientId);
+            System.out.println("SSE connection timed out for client: " + clientId);
+        });
+
+        return emitter;
+    }
     public void sendUpdateEvent(){
         for(SseEmitter emitter : sseEmitterMap.values()){
             try{
+                System.out.println("Sending update event to client.");
                 emitter.send(SseEmitter.event().data("재생목록 수정"));
             }catch (IOException e){
-                emitter.complete();;
+                System.out.println("Error sending event, removing emitter.");
+                emitter.complete();
                 sseEmitterMap.values().remove(emitter);
             }
         }
-
     }
 }

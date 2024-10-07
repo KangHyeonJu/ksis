@@ -9,14 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequiredArgsConstructor
@@ -58,18 +51,11 @@ public class SseController {
         }
     }
 
-    public final Map<String, SseEmitter> clients = new ConcurrentHashMap<>();
-
     @GetMapping("/connect")
     public SseEmitter connect() {
-        SseEmitter emitter = new SseEmitter(3600L * 1000L);
         String clientId = UUID.randomUUID().toString();
-        clients.put(clientId, emitter);
 
-        emitter.onCompletion(() -> clients.remove(clientId));
-        emitter.onTimeout(() -> clients.remove(clientId));
-
-        return emitter;
+        return emitterService.addEmitter(clientId);
     }
 }
 
