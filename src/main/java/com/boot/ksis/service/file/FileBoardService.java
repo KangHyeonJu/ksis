@@ -255,13 +255,14 @@ public class FileBoardService {
 
     //수정
     // 원본 파일 제목 수정
-    public Optional<OriginalResource> updateOrFileTitle(Long id, String newTitle) {
-        // 주어진 ID로 원본 파일을 찾고, 제목을 수정 후 저장
-        return originalResourceRepository.findById(id)
-                .map(resource -> {
-                    resource.setFileTitle(newTitle);    // 제목 수정
-                    return originalResourceRepository.save(resource); // 수정된 파일 저장
-                });
+    public void updateOrFileTitle(Long id, ResourceListDTO resourceListDTO) {
+
+        OriginalResource originalResource = originalResourceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
+
+        originalResource.setFileTitle(resourceListDTO.getFileTitle());
+        originalResourceRepository.save(originalResource);
+
     }
 
     // 인코딩 파일 제목 수정

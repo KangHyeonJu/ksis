@@ -1,6 +1,7 @@
 package com.boot.ksis.dto.file;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class ResourceListDTO {
     //원본 아이디
     private Long originalResourceId;
