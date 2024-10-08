@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -143,6 +144,8 @@ public class EncodedResourceService {
 
 
                 } catch (IOException e) {
+                    failEncoding(fileName, format, resolution); // 인코딩 실패 데이터베이스 저장
+                    failEncodingNotification(accountId, fileName, format, resolution, resourceType); // 인코딩 실패 알림 데이터베이스 저장
                     e.printStackTrace();
                 }
             });
@@ -206,10 +209,18 @@ public class EncodedResourceService {
             }
         }).start();
 
+        boolean completed;
         try {
-            process.waitFor(); // 프로세스 완료 대기
+            // 1시간 동안 프로세스가 완료되기를 기다림
+            completed = process.waitFor(1, TimeUnit.HOURS);
+            if (!completed) {
+                // 타임아웃 발생시 프로세스를 강제 종료
+                process.destroyForcibly();
+                throw new IOException("인코딩 실패: 1시간이 초과되었습니다.");
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new IOException("인코딩이 중단되었습니다.", e);
         }
         System.out.println("Video encoded: " + outputFileName);
     }
@@ -241,10 +252,18 @@ public class EncodedResourceService {
         }
 
         Process process = Runtime.getRuntime().exec(command);
+        boolean completed;
         try {
-            process.waitFor(); // 프로세스 완료 대기
+            // 1시간 동안 프로세스가 완료되기를 기다림
+            completed = process.waitFor(1, TimeUnit.HOURS);
+            if (!completed) {
+                // 타임아웃 발생시 프로세스를 강제 종료
+                process.destroyForcibly();
+                throw new IOException("인코딩 실패: 1시간이 초과되었습니다.");
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new IOException("인코딩이 중단되었습니다.", e);
         }
         System.out.println("Image encoded: " + outputFileName);
     }
@@ -346,6 +365,23 @@ public class EncodedResourceService {
         }
     }
 
+    // 인코딩 실패 데이터베이스 상태 FAIL 업데이트
+    public void failEncoding(String fileName, String format, String resolution){
+        // 파일 이름에서 확장자 제거
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+        // 파일 이름 설정
+        String outputFileName = baseName + "_" + resolution + "." + format;
+
+        // 데이터베이스에서 인코딩된 리소스 조회
+        Optional<EncodedResource> encodedResourceOpt = encodedResourceRepository.findByFileName(outputFileName);
+
+        EncodedResource encodedResource = encodedResourceOpt.get();
+        encodedResource.setResourceStatus(ResourceStatus.FAIL);
+        encodedResourceRepository.save(encodedResource);
+
+    }
+
     // 경로에 있는 파일의 용량을 확인하는 메서드
     private long getFileSize(String filePath) throws IOException {
         File file = new File(filePath);
@@ -392,6 +428,36 @@ public class EncodedResourceService {
         notification.setResourceType(Type);
 
         notificationRepository.save(notification);
+    }
+
+    // 인코딩 실패 알림 데이터베이스 저장
+    public void failEncodingNotification(String accountId, String fileName, String format, String resolution, String resourceType){
+
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+
+        // 파일 이름에서 확장자 제거
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+        // 파일 이름 설정
+        String outputFileName = baseName + "_" + resolution + "." + format;
+
+        // 데이터베이스에서 인코딩된 리소스 조회
+        Optional<EncodedResource> encodedResourceOpt = encodedResourceRepository.findByFileName(outputFileName);
+
+        EncodedResource encodedResource = encodedResourceOpt.get();
+
+        String message = encodedResource.getFileTitle() + "_" + resolution + "_" + format + " 인코딩 실패";
+
+        ResourceType Type = ResourceType.valueOf(resourceType);
+
+        Notification notification = new Notification();
+        notification.setIsRead(false);
+        notification.setAccount(account);
+        notification.setMessage(message);
+        notification.setResourceType(Type);
+
+        notificationRepository.save(notification);
+
     }
 
 }
