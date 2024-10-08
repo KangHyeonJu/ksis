@@ -138,11 +138,14 @@ public class FileBoardController {
     // 원본 파일 제목 수정
     @CustomAnnotation(activityDetail = "원본 파일 제목 수정")
     @PutMapping("/original/{originalResourceId}")
-    public ResponseEntity<OriginalResource> updateOrFileTitle(@PathVariable Long originalResourceId, @RequestParam String newTitle) {
-        Optional<OriginalResource> updatedRsResource = fileBoardService.updateOrFileTitle(originalResourceId, newTitle);
-        return updatedRsResource
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Void> updateOrFileTitle(
+            @PathVariable Long originalResourceId,
+            @RequestBody ResourceListDTO resourceListDTO) {
+
+        fileBoardService.updateOrFileTitle(originalResourceId, resourceListDTO);
+        return ResponseEntity.noContent().build();
+
+
     }
 
     // 인코딩 파일 제목 수정

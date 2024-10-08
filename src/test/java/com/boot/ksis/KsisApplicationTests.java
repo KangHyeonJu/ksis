@@ -4,6 +4,7 @@
 //import com.boot.ksis.entity.Device;
 //import com.boot.ksis.repository.DeviceRepository;
 //import com.boot.ksis.repository.account.AccountRepository;
+//import com.boot.ksis.repository.account.VisitRepository;
 //import com.boot.ksis.service.AccountService;
 //import com.boot.ksis.service.MacService;
 //import com.boot.ksis.util.JwtTokenProvider;
@@ -38,6 +39,8 @@
 //    private DeviceRepository deviceRepository;
 //    @Mock
 //    private AccountRepository accountRepository;
+//    @Mock
+//    private VisitRepository visitRepository;
 //    @Mock
 //    private PasswordEncoder passwordEncoder;
 //
@@ -102,7 +105,7 @@
 //        SecretKeySpec keySpec = new SecretKeySpec("secret-key".getBytes(), "AES");
 //
 //        // AccountService를 수동으로 생성
-//        AccountService accountService = new AccountService(accountRepository, keySpec);
+//        AccountService accountService = new AccountService(accountRepository, keySpec, visitRepository);
 //
 //        // 테스트 실행
 //        boolean result = accountService.validateCredentials(accountId, password);
@@ -122,7 +125,7 @@
 //        SecretKeySpec keySpec = new SecretKeySpec("secret-key".getBytes(), "AES");
 //
 //        // AccountService를 수동으로 생성
-//        AccountService accountService = new AccountService(accountRepository, keySpec);
+//        AccountService accountService = new AccountService(accountRepository, keySpec, visitRepository);
 //
 //        // 테스트 실행
 //        boolean result = accountService.validateCredentials(accountId, password);

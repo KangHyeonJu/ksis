@@ -5,7 +5,10 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.*;
+import com.boot.ksis.dto.signage.SignageFormDTO;
+import com.boot.ksis.dto.signage.SignageGridDTO;
+import com.boot.ksis.dto.signage.SignageNoticeDTO;
+import com.boot.ksis.dto.signage.SignageResourceDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -24,6 +27,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -280,6 +284,75 @@ public class SignageService {
     }
 
     //재생장치에 등록된 파일 조회
+    public Page<SignageResourceDTO> getResourcePageList(Long signageId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "encodedResourceId"));
+
+        Page<DeviceEncodeMap> deviceEncodeMaps;
+
+//        if(searchCategory.equals("image")){
+//            if(searchTerm != null && !searchTerm.isEmpty()){
+//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(signageId, searchTerm, ResourceType.IMAGE ,pageable);
+//            }else {
+//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(signageId, ResourceType.IMAGE ,pageable);
+//            }
+//        }else if(searchCategory.equals("video")){
+//            if(searchTerm != null && !searchTerm.isEmpty()){
+//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(signageId, searchTerm, ResourceType.VIDEO ,pageable);
+//            }else {
+//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(signageId, ResourceType.VIDEO ,pageable);
+//            }
+//        }else {
+//            if(searchTerm != null && !searchTerm.isEmpty()){
+//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCase(signageId, searchTerm ,pageable);
+//            }else {
+//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId, pageable);
+//            }
+//        }
+
+        ResourceType resourceType = null;
+        if (searchCategory.equals("image")) {
+            resourceType = ResourceType.IMAGE;
+        } else if (searchCategory.equals("video")) {
+            resourceType = ResourceType.VIDEO;
+        }
+
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            if (resourceType != null) {
+                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(
+                        signageId, searchTerm, resourceType, pageable);
+            } else {
+                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCase(
+                        signageId, searchTerm, pageable);
+            }
+        } else {
+            if (resourceType != null) {
+                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(
+                        signageId, resourceType, pageable);
+            } else {
+                deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId, pageable);
+            }
+        }
+
+        List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
+
+        for (DeviceEncodeMap deviceEncodeMap : deviceEncodeMaps) {
+            EncodedResource encodedResource = deviceEncodeMap.getEncodedResource();
+
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+            SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .fileTitle(encodedResource.getFileTitle())
+                    .thumbFilePath(thumbNail.getFilePath())
+                    .build();
+
+            signageResourceDTOList.add(signageResourceDTO);
+        }
+
+        return new PageImpl<>(signageResourceDTOList, pageable, deviceEncodeMaps.getTotalElements());
+    }
+
+    //재생장치에 등록된 파일 조회
     public List<SignageResourceDTO> getResourceList(Long signageId){
         List<SignageResourceDTO> signageResourceDTOList = new ArrayList<>();
 
@@ -293,7 +366,11 @@ public class SignageService {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
 
             //인코딩 resource 목록을 DTO에 담아서 return
-            SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+            SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
+                                                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                                                    .fileTitle(encodedResource.getFileTitle())
+                                                    .thumbFilePath(thumbNail.getFilePath())
+                                                    .build();
 
             signageResourceDTOList.add(signageResourceDTO);
         }
@@ -319,7 +396,11 @@ public class SignageService {
                     ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
 
                     //인코딩 resource 목록을 DTO에 담아서 return
-                    SignageResourceDTO signageResourceDTO = new SignageResourceDTO(encodedResource.getEncodedResourceId(), encodedResource.getFileTitle(), thumbNail.getFilePath());
+                    SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
+                                                            .encodedResourceId(encodedResource.getEncodedResourceId())
+                                                            .fileTitle(encodedResource.getFileTitle())
+                                                            .thumbFilePath(thumbNail.getFilePath())
+                                                            .build();
 
                     signageResourceDTOList.add(signageResourceDTO);
                 }

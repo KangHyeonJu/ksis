@@ -1,10 +1,7 @@
 package com.boot.ksis.service.notice;
 
 import com.boot.ksis.constant.Role;
-import com.boot.ksis.dto.notice.DeviceListDTO;
-import com.boot.ksis.dto.notice.DeviceNoticeDTO;
-import com.boot.ksis.dto.notice.DetailNoticeDTO;
-import com.boot.ksis.dto.notice.NoticeDTO;
+import com.boot.ksis.dto.notice.*;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
@@ -203,16 +200,17 @@ public class NoticeService {
 
     // 공지 수정
     @Transactional
-    public void updateNotice(Long noticeId, NoticeDTO noticeDTO) {
+    public void updateNotice(Long noticeId, UpdateNoticeDTO updateNoticeDTO) {
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다: " + noticeId));
 
         // 기존 공지 정보 업데이트
-        Account account = accountRepository.findByAccountId(noticeDTO.getAccountId()).orElse(null);
-        notice.setTitle(noticeDTO.getTitle());
-        notice.setContent(noticeDTO.getContent());
-        notice.setAccount(account);
-        notice.setStartDate(noticeDTO.getStartDate());
-        notice.setEndDate(noticeDTO.getEndDate());
+        notice.setTitle(updateNoticeDTO.getTitle());
+        notice.setContent(updateNoticeDTO.getContent());
+        notice.setAccount(notice.getAccount() != null ? notice.getAccount() : null);
+        notice.setModifiedBy(notice.getAccount() != null ? notice.getAccount().getName() : null);//작성자 이름
+        updateNoticeDTO.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
+        notice.setStartDate(updateNoticeDTO.getStartDate());
+        notice.setEndDate(updateNoticeDTO.getEndDate());
 
         // 공지 저장
         noticeRepository.save(notice);
@@ -221,7 +219,7 @@ public class NoticeService {
         deviceNoticeMapRepository.deleteByNoticeId(noticeId);
 
         // 새 디바이스 매핑 저장
-        saveDeviceNoticeMaps(noticeDTO.getDeviceIds(), notice);
+        saveDeviceNoticeMaps(updateNoticeDTO.getDeviceIds(), notice);
     }
 
 }
