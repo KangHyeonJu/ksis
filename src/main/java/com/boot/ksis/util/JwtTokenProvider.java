@@ -48,8 +48,8 @@ public class JwtTokenProvider {
         long now = (new Date()).getTime();
 
 //        // Access Token 생성
-//        Date accessTokenExpiresIn = new Date(now + 15 * 60 * 1000); // 15분
-        Date accessTokenExpiresIn = new Date(now +  10 * 1000); // 10초
+        Date accessTokenExpiresIn = new Date(now + 5 * 60 * 1000); // 5분
+//        Date accessTokenExpiresIn = new Date(now +  10 * 1000); // 10초
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -59,7 +59,7 @@ public class JwtTokenProvider {
 
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 7L * 24 * 60 * 60 * 1000)) // 7일
+                .setExpiration(new Date(now + 24 * 60 * 60 * 1000)) // 1일
 //                .setExpiration(new Date(now +  10 * 1000)) // 10초
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
