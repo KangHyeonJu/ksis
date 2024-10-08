@@ -3,12 +3,10 @@ package com.boot.ksis.service.upload;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
-import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.FileSize;
-import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.entity.ThumbNail;
+import com.boot.ksis.entity.*;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.boot.ksis.constant.ResourceStatus.FAIL;
+
 @Service
 @RequiredArgsConstructor
 public class OriginalResourceService {
@@ -46,6 +46,7 @@ public class OriginalResourceService {
     private final ThumbNailRepository thumbNailRepository;
     private final FileSizeRepository fileSizeRepository;
     private final AccountRepository accountRepository;
+    private final NotificationRepository notificationRepository;
 
     @Value("${uploadLocation}")
     String uploadLocation;
@@ -140,7 +141,13 @@ public class OriginalResourceService {
                 }
 
             } catch (IOException e) {
-                e.printStackTrace();
+                // 업로드 실패 시 데이터베이스 상태를 fail로 변경
+                updateStatusToFail(fileName);
+                // 실패알림 전송
+                failNotification(fileName);
+
+                // 예외 재발생하여 메서드 종료
+                throw new RuntimeException("청크 업로드 실패", e);
             }
         }, executorService).join(); // join()을 사용하여 업로드가 완료될 때까지 기다림
 
@@ -179,6 +186,34 @@ public class OriginalResourceService {
         fileSizeRepository.save(fileSize);
 
         return originalResource;
+    }
+
+    // 상태를 FAIL로 업데이트
+    public void updateStatusToFail(String fileName) {
+        // fileName에 해당하는 OriginalResource를 찾음
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
+
+        if (originalResourceOpt.isPresent()) {
+            OriginalResource originalResource = originalResourceOpt.get();
+            originalResource.setResourceStatus(FAIL); // 상태를 'fail'로 설정
+            originalResourceRepository.save(originalResource); // 변경된 상태 저장
+        }
+    }
+
+    // 실패알림 날려주기
+    public void failNotification(String fileName){
+        // fileName에 해당하는 OriginalResource를 찾음
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
+
+        Account userAccount = originalResourceOpt.get().getAccount();
+
+        Notification notification = new Notification();
+        notification.setAccount(userAccount);
+        notification.setMessage(fileName + " 업로드 실패");
+        notification.setIsRead(false);
+        notification.setResourceType(null);
+
+        notificationRepository.save(notification);
     }
 
     // 확장자 얻는 메서드
