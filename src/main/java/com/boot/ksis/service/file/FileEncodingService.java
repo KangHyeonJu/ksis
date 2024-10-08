@@ -173,16 +173,24 @@ public class FileEncodingService {
     public void videoEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
         String baseName = originResourceListDTO.getFileTitle(); // 파일 제목 가져오기
         String originalFilePath = originResourceListDTO.getFilePath(); // 원본 파일 경로 가져오기
+        System.out.println("베이스네임 : " + baseName);
+        System.out.println("오리지널 파일 패스 : " + originalFilePath);
 
         // 파일 경로에서 /file/ 부분 제거
         String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
 
+        System.out.println("파일경로재설정111 : " + filePathWithoutPrefix);
+
         // 새로운 파일 경로 생성
         String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
 
-        // 출력 파일 이름 설정
-        String outputFileName = encodingLocation + "/" + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+        System.out.println("새로운 파일 경로 생성222" + inputFilePath);
 
+        // 출력 파일 이름 설정
+        String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+
+        System.out.println("출력 파일 이름 설정 333 : " + outputFileName);
+        
         // 해상도에 따른 크기 설정
         String scale = getResolutionScale(originResourceListDTO.getResolution());
         String scaleFilter = String.format("scale=%s", scale);
