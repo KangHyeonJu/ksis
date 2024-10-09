@@ -4,6 +4,7 @@ import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
+import com.boot.ksis.dto.notice.UpdateNoticeDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.notice.NoticeService;
@@ -39,8 +40,12 @@ public class NoticeController {
 
     // 공지 수정
     @PutMapping("/{noticeId}")
-    public ResponseEntity<String> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeDTO noticeDTO) {
-        noticeService.updateNotice(noticeId, noticeDTO);
+    public ResponseEntity<String> updateNotice(Principal principal, @PathVariable Long noticeId, @RequestBody UpdateNoticeDTO updateNoticeDTO) {
+        String accountId = principal.getName();
+
+        updateNoticeDTO.setAccountId(accountId);
+
+        noticeService.updateNotice(noticeId, updateNoticeDTO);
         return ResponseEntity.ok("공지사항이 성공적으로 수정되었습니다.");
     }
 

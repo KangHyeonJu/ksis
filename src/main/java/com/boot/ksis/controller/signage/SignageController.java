@@ -1,12 +1,14 @@
 package com.boot.ksis.controller.signage;
 
 import com.boot.ksis.aop.CustomAnnotation;
+import com.boot.ksis.controller.sse.SseController;
 import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
+import com.boot.ksis.service.sse.SseEmitterService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class SignageController {
     private final SignageService signageService;
     private final AccountListService accountService;
+    private final SseEmitterService sseEmitterService;
 
     //재생장치 목록 조회
     @GetMapping()
@@ -109,6 +112,20 @@ public class SignageController {
         }
     }
 
+    //재생장치에 등록된 파일 검색 & 페이징
+    @GetMapping("/resourcepage/{signageId}")
+    public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId,
+                                             @RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String searchTerm,
+                                             @RequestParam(required = false) String searchCategory){
+        try{
+            return new ResponseEntity<>(signageService.getResourcePageList(signageId, page, size, searchTerm, searchCategory), HttpStatus.OK);
+        }catch(EntityNotFoundException e){
+            return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
+        }
+    }
+
     //재생장치에 등록된 파일 조회
     @GetMapping("/resource/{signageId}")
     public ResponseEntity<?> signageResource(@PathVariable("signageId") Long signageId){
@@ -171,6 +188,7 @@ public class SignageController {
     public ResponseEntity<String> selectPlaylist(@PathVariable("signageId") Long signageId, @RequestBody Map<String, Long> playlistId){
         Long selectedPlaylist = playlistId.get("selectedPlaylist");
         signageService.setPlaylist(signageId, selectedPlaylist);
+        sseEmitterService.sendUpdateEvent();
 
         return ResponseEntity.ok("Playlist selected successfully");
     }
@@ -222,6 +240,7 @@ public class SignageController {
     @PutMapping("/playlistDtl/{playListId}")
     public ResponseEntity<String> updatePlaylist(@PathVariable("playListId") Long playListId, @RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
         signageService.resourceSequence(playListId, playListAddDTO, resourceSequence);
+        sseEmitterService.sendUpdateEvent();
 
         return ResponseEntity.ok("재생목록이 정상적으로 수정되었습니다.");
     }
@@ -279,7 +298,12 @@ public class SignageController {
             }
             log.info("Result : IP Address : "+clientIp);
 
-             return new ResponseEntity<>(signageService.checkIpAndKey(key, clientIp), HttpStatus.OK);
+            if(signageService.checkIpAndKey(key, clientIp) != null){
+                return new ResponseEntity<>(signageService.checkIpAndKey(key, clientIp), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>("검증 실패", HttpStatus.ACCEPTED);
+            }
+
 
         }catch(EntityNotFoundException e){
             return new ResponseEntity<>("검증 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST);
