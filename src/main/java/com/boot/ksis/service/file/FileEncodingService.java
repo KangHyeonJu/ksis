@@ -81,7 +81,7 @@ public class FileEncodingService {
         String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
 
         // 새로운 파일 경로 생성
-        String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
+        String inputFilePath = encodingLocation + filePathWithoutPrefix;
 
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation  + fileName;
@@ -179,7 +179,7 @@ public class FileEncodingService {
         String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
 
         // 새로운 파일 경로 생성
-        String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
+        String inputFilePath = encodingLocation + filePathWithoutPrefix;
 
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation  + fileName;
