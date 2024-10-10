@@ -74,6 +74,7 @@ public class FileEncodingService {
     // 이미지 인코딩
     public void imageEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
         String baseName = originResourceListDTO.getFileTitle();
+        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
         String originalFilePath = originResourceListDTO.getFilePath();
 
         // 파일 경로에서 /file/ 부분 제거
@@ -83,7 +84,7 @@ public class FileEncodingService {
         String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
 
         // 출력 파일 이름 설정
-        String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+        String outputFileName = encodingLocation  + fileName;
 
         Dimension newSize = getResolutionDimensions(originResourceListDTO.getResolution());
         String scaleFilter = String.format("scale=%d:%d", newSize.width, newSize.height);
@@ -125,7 +126,6 @@ public class FileEncodingService {
 
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
-        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
         String filePath = "/file/encoding/" + fileName;
 
         // Optional 처리로 null 방지
@@ -172,24 +172,17 @@ public class FileEncodingService {
     // 영상 인코딩
     public void videoEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
         String baseName = originResourceListDTO.getFileTitle(); // 파일 제목 가져오기
+        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
         String originalFilePath = originResourceListDTO.getFilePath(); // 원본 파일 경로 가져오기
-        System.out.println("베이스네임 : " + baseName);
-        System.out.println("오리지널 파일 패스 : " + originalFilePath);
 
         // 파일 경로에서 /file/ 부분 제거
         String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
 
-        System.out.println("파일경로재설정111 : " + filePathWithoutPrefix);
-
         // 새로운 파일 경로 생성
         String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
 
-        System.out.println("새로운 파일 경로 생성222" + inputFilePath);
-
         // 출력 파일 이름 설정
-        String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
-
-        System.out.println("출력 파일 이름 설정 333 : " + outputFileName);
+        String outputFileName = encodingLocation  + fileName;
         
         // 해상도에 따른 크기 설정
         String scale = getResolutionScale(originResourceListDTO.getResolution());
@@ -238,7 +231,6 @@ public class FileEncodingService {
 
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
-        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
         String filePath = "/file/encoding/" + fileName;
 
         // Optional 처리로 null 방지
