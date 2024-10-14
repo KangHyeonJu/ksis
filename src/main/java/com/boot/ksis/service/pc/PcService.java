@@ -15,8 +15,10 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -32,36 +34,89 @@ public class PcService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<DeviceListDTO> getPcList(String accountId){
-        List<Device> devices = pcRepository.findDevicesByAccountIdAndType(accountId, DeviceType.PC);
+    public Page<DeviceListDTO> getPcList(String accountId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
-        return devices.stream().map(device -> {
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceTypeAndDeviceName(accountId, DeviceType.PC, searchTerm, pageable);
+            }else {
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.PC, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.PC, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
                         return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
-        }).collect(Collectors.toList());
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
-    public List<DeviceListDTO> getPcAll(){
-        List<Device> devices = pcRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.PC);
+    public Page<DeviceListDTO> getPcAll(int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
-        return devices.stream().map(device -> {
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findByDeviceTypeAndDeviceNameContainingIgnoreCase(DeviceType.PC, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                // accountId 또는 name 에서 검색
+                List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.searchByAccountIdOrName(searchTerm, DeviceType.PC);
+
+                List<Long> deviceIds = accountDeviceMaps.stream()
+                        .map(map -> map.getDevice().getDeviceId())
+                        .collect(Collectors.toList());
+
+                deviceList = pcRepository.findByDeviceIdIn(deviceIds, pageable);
+            }else {
+                deviceList = pcRepository.findByDeviceType(DeviceType.PC, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findByDeviceType(DeviceType.PC, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
                         return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
-        }).collect(Collectors.toList());
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                                                        .deviceId(device.getDeviceId())
+                                                        .accountList(accountDTOList)
+                                                        .deviceName(device.getDeviceName())
+                                                        .regDate(device.getRegTime())
+                                                        .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
     public void saveNewPc(PcFormDTO pcFormDto, List<String> accountList){

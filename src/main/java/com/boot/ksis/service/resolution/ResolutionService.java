@@ -5,6 +5,7 @@ import com.boot.ksis.entity.Resolution;
 import com.boot.ksis.repository.resolution.ResolutionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +16,40 @@ import java.util.List;
 public class ResolutionService {
     private final ResolutionRepository resolutionRepository;
 
-    public List<ResolutionDTO> getResolutionList(){
+    public Page<ResolutionDTO> getResolutionList(int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "resolutionId"));
+
+        Page<Resolution> resolutionList;
+
+        if(searchCategory != null && !searchCategory.isEmpty()){
+            if(searchCategory.equals("name")){
+                resolutionList = resolutionRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
+            }else if(searchCategory.equals("width")){
+                resolutionList = resolutionRepository.searchByWidth(searchTerm, pageable);
+            }else if(searchCategory.equals("height")){
+                resolutionList = resolutionRepository.searchByHeight(searchTerm, pageable);
+            }else {
+                resolutionList = resolutionRepository.findAll(pageable);
+            }
+        }else {
+            resolutionList = resolutionRepository.findAll(pageable);
+        }
+        List<ResolutionDTO> resolutionDTOList = new ArrayList<>();
+
+        for(Resolution resolution : resolutionList){
+            ResolutionDTO resolutionDTO = ResolutionDTO.builder()
+                    .resolutionId(resolution.getResolutionId())
+                    .name(resolution.getName())
+                    .width(resolution.getWidth())
+                    .height(resolution.getHeight())
+                    .build();
+
+            resolutionDTOList.add(resolutionDTO);
+        }
+        return new PageImpl<>(resolutionDTOList, pageable, resolutionList.getTotalElements());
+    }
+
+    public List<ResolutionDTO> getResolutionAll(){
         List<Resolution> resolutionList = resolutionRepository.findAll();
 
         List<ResolutionDTO> resolutionDTOList = new ArrayList<>();
@@ -32,6 +66,7 @@ public class ResolutionService {
         }
         return resolutionDTOList;
     }
+
 
     public void postResolution(ResolutionDTO resolutionDTO){
         Resolution resolution = resolutionDTO.postResolution();

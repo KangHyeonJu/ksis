@@ -24,10 +24,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FileEncodingService {
 
+    @Value("/file/encoding/")
+    // file/encoding/
+    String dbLocation;
+
     @Value("${uploadLocation}")
+    // C:/ksis-file/uploads/
     String uploadLocation;
 
     @Value("${encodingLocation}")
+    // C:/ksis-file/encoding/
     String encodingLocation;
 
     private final EncodedResourceRepository encodedResourceRepository;
@@ -36,29 +42,33 @@ public class FileEncodingService {
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(String resolution) {
-        switch (resolution) {
-            case "720p":
-                return "1280:720";
-            case "1080p":
-                return "1920:1080";
-            case "4k":
-                return "3840:2160";
-            default:
-                return "640:360";
+        String[] parts = resolution.split("x");
+        if (parts.length != 2) {
+            return null; // 올바르지 않은 입력 형식
+        }
+
+        try {
+            int width = Integer.parseInt(parts[0]);
+            int height = Integer.parseInt(parts[1]);
+            return String.format("%d:%d", width, height);
+        } catch (NumberFormatException e) {
+            return null; // 숫자 변환 실패
         }
     }
 
     //이미지 해상도 설정
     private Dimension getResolutionDimensions(String resolution) {
-        switch (resolution) {
-            case "720p":
-                return new Dimension(1280, 720);
-            case "1080p":
-                return new Dimension(1920, 1080);
-            case "4k":
-                return new Dimension(3840, 2160);
-            default:
-                return new Dimension(640, 360);
+        String[] parts = resolution.split("x");
+        if (parts.length != 2) {
+            return null; // 올바르지 않은 입력 형식
+        }
+
+        try {
+            int width = Integer.parseInt(parts[0]);
+            int height = Integer.parseInt(parts[1]);
+            return new Dimension(width, height);
+        } catch (NumberFormatException e) {
+            return null; // 숫자 변환 실패
         }
     }
 
@@ -73,17 +83,26 @@ public class FileEncodingService {
 
     // 이미지 인코딩
     public void imageEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
-        String baseName = originResourceListDTO.getFileTitle();
-        String originalFilePath = originResourceListDTO.getFilePath();
 
-        // 파일 경로에서 /file/ 부분 제거
-        String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
+        // originalResourceId를 사용해 OriginalResource에서 fileName을 가져옴
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
+        if (!originalResourceOpt.isPresent()) {
+            throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: id=" + originalResourceId);
+        }
 
-        // 새로운 파일 경로 생성
-        String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
+        // OriginalResource 엔티티에서 fileName을 가져옴
+        OriginalResource originalResource = originalResourceOpt.get();
+        String baseName = originalResource.getFileName();  // OriginalResource에서 fileName 가져오기
+
+
+        //새로 인코딩할 file의 스토리지 및 db에 저장될 이름.
+        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+
+        // 원본 경로
+        String inputFilePath = uploadLocation + baseName;
 
         // 출력 파일 이름 설정
-        String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+        String outputFileName = encodingLocation  + fileName;
 
         Dimension newSize = getResolutionDimensions(originResourceListDTO.getResolution());
         String scaleFilter = String.format("scale=%d:%d", newSize.width, newSize.height);
@@ -125,20 +144,15 @@ public class FileEncodingService {
 
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
-        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
-        String filePath = "/file/encoding/" + fileName;
 
-        // Optional 처리로 null 방지
-        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
-        if (!originalResourceOpt.isPresent()) {
-            throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: id=" + originalResourceId);
-        }
 
-        OriginalResource originalResource = originalResourceOpt.get();
+        //db저장 주소 지정
+        String filePath =  dbLocation  + fileName;
+
         encodedResource.setOriginalResource(originalResource);
         encodedResource.setFilePath(filePath);
         encodedResource.setFileName(fileName);
-        encodedResource.setFileTitle(baseName + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
+        encodedResource.setFileTitle(originResourceListDTO.getFileTitle()+ "_" +originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
         encodedResource.setResolution(originResourceListDTO.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setRegTime(LocalDateTime.now());
@@ -171,20 +185,24 @@ public class FileEncodingService {
 
     // 영상 인코딩
     public void videoEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
-        String baseName = originResourceListDTO.getFileTitle(); // 파일 제목 가져오기
-        String originalFilePath = originResourceListDTO.getFilePath(); // 원본 파일 경로 가져오기
-        System.out.println("베이스네임 : " + baseName);
-        System.out.println("오리지널 파일 패스 : " + originalFilePath);
 
-        // 파일 경로에서 /file/ 부분 제거
-        String filePathWithoutPrefix = originalFilePath.replace("/file/", "");
+        // originalResourceId를 사용해 OriginalResource에서 fileName을 가져옴
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
+        if (!originalResourceOpt.isPresent()) {
+            throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: originalResourceId=" + originalResourceId);
+        }
 
-        System.out.println("파일경로재설정111 : " + filePathWithoutPrefix);
+        // OriginalResource 엔티티에서 fileName을 가져옴
+        OriginalResource originalResource = originalResourceOpt.get();
+        String baseName = originalResource.getFileName();  // OriginalResource에서 fileName 가져오기
 
-        // 새로운 파일 경로 생성
-        String inputFilePath = "C:/ksis-file/"+ filePathWithoutPrefix;
+        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
 
-        System.out.println("새로운 파일 경로 생성222" + inputFilePath);
+        // 원본 경로
+        String inputFilePath = uploadLocation + baseName;
+
+        // 출력 파일 이름 설정
+        String outputFileName = encodingLocation  + fileName;
 
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
@@ -238,20 +256,17 @@ public class FileEncodingService {
 
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
-        String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
-        String filePath = "/file/encoding/" + fileName;
 
-        // Optional 처리로 null 방지
-        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
-        if (!originalResourceOpt.isPresent()) {
-            throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: id=" + originalResourceId); // 원본 리소스가 없을 때
-        }
+        //db저장 주소 지정
+        String filePath =  dbLocation  + fileName;
 
-        OriginalResource originalResource = originalResourceOpt.get();
+
+
         encodedResource.setOriginalResource(originalResource);
         encodedResource.setFilePath(filePath);
         encodedResource.setFileName(fileName);
-        encodedResource.setFileTitle(baseName + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
+        encodedResource.setFileTitle(originResourceListDTO.getFileTitle()+ "_" +originResourceListDTO.getResolution()
+                + "_" + originResourceListDTO.getFormat());
         encodedResource.setResolution(originResourceListDTO.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setPlayTime(originalResource.getPlayTime());
