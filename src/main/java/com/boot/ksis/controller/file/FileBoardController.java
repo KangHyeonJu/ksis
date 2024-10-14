@@ -137,26 +137,42 @@ public class FileBoardController {
     }
 
     // 원본 파일 제목 수정
-    @CustomAnnotation(activityDetail = "원본 파일 제목 수정")
     @PutMapping("/original/{originalResourceId}")
-    public ResponseEntity<Void> updateOrFileTitle(
+    public ResponseEntity<?> updateOrFileTitle(
             @PathVariable Long originalResourceId,
-            @RequestBody ResourceListDTO resourceListDTO) {
+            @RequestBody ResourceListDTO resourceListDTO, Principal principal) {
 
-        fileBoardService.updateOrFileTitle(originalResourceId, resourceListDTO);
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        fileBoardService.updateOrFileTitle(originalResourceId, resourceListDTO, accountOptional);
         return ResponseEntity.noContent().build();
 
 
     }
 
     // 인코딩 파일 제목 수정
-    @CustomAnnotation(activityDetail = "인코딩 파일 제목 수정")
     @PutMapping("/encoded/{encodedResourceId}")
-    public ResponseEntity<Void> updateFileTitle(
+    public ResponseEntity<?> updateFileTitle(
             @PathVariable Long encodedResourceId,
-            @RequestBody EncodeListDTO encodeListDTO) {
+            @RequestBody EncodeListDTO encodeListDTO, Principal principal) {
 
-        fileBoardService.updateErFileTitle(encodedResourceId, encodeListDTO);
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        fileBoardService.updateErFileTitle(encodedResourceId, encodeListDTO, accountOptional);
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
 
@@ -178,6 +194,7 @@ public class FileBoardController {
     }
 
     // 인코딩 요청을 처리하는 엔드포인트
+    @CustomAnnotation(activityDetail =  "웹 이미지 인코딩")
     @PostMapping("/img/encoding/{originalResourceId}")
     public ResponseEntity<String> imageEncodingBoard(
             @PathVariable("originalResourceId") Long originalResourceId,
@@ -193,6 +210,7 @@ public class FileBoardController {
     }
 
     // 인코딩 요청을 처리하는 엔드포인트
+    @CustomAnnotation(activityDetail = "웹 비디오 인코딩")
     @PostMapping("/video/encoding/{originalResourceId}")
     public ResponseEntity<String> videoEncodingBoard(
             @PathVariable("originalResourceId") Long originalResourceId,
