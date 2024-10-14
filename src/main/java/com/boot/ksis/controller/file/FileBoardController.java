@@ -194,7 +194,6 @@ public class FileBoardController {
     }
 
     // 인코딩 요청을 처리하는 엔드포인트
-    @CustomAnnotation(activityDetail =  "웹 이미지 인코딩")
     @PostMapping("/img/encoding/{originalResourceId}")
     public ResponseEntity<String> imageEncodingBoard(
             @PathVariable("originalResourceId") Long originalResourceId,
@@ -210,7 +209,6 @@ public class FileBoardController {
     }
 
     // 인코딩 요청을 처리하는 엔드포인트
-    @CustomAnnotation(activityDetail = "웹 비디오 인코딩")
     @PostMapping("/video/encoding/{originalResourceId}")
     public ResponseEntity<String> videoEncodingBoard(
             @PathVariable("originalResourceId") Long originalResourceId,
