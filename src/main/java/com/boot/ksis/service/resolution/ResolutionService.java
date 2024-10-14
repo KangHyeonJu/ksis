@@ -49,6 +49,25 @@ public class ResolutionService {
         return new PageImpl<>(resolutionDTOList, pageable, resolutionList.getTotalElements());
     }
 
+    public List<ResolutionDTO> getResolutionAll(){
+        List<Resolution> resolutionList = resolutionRepository.findAll();
+
+        List<ResolutionDTO> resolutionDTOList = new ArrayList<>();
+
+        for(Resolution resolution : resolutionList){
+            ResolutionDTO resolutionDTO = ResolutionDTO.builder()
+                    .resolutionId(resolution.getResolutionId())
+                    .name(resolution.getName())
+                    .width(resolution.getWidth())
+                    .height(resolution.getHeight())
+                    .build();
+
+            resolutionDTOList.add(resolutionDTO);
+        }
+        return resolutionDTOList;
+    }
+
+
     public void postResolution(ResolutionDTO resolutionDTO){
         Resolution resolution = resolutionDTO.postResolution();
 
