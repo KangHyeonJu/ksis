@@ -16,6 +16,7 @@ import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.pc.PcRepository;
 import com.boot.ksis.repository.playlist.PlayListRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.*;
@@ -53,46 +54,96 @@ public class SignageService {
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
+    private final PcRepository pcRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     //담당자로 등록된 재생장치 목록 조회
-    public List<DeviceListDTO> getSignageList(String accountId){
-        List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
+    public Page<DeviceListDTO> getSignageList(String accountId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
-        //해당 디바이스의 정보를 DTO에 담아서 return
-        return deviceList.stream().map(device -> {
-            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceTypeAndDeviceName(accountId, DeviceType.SIGNAGE, searchTerm, pageable);
+            }else {
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
                         return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
-        }).collect(Collectors.toList());
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
     //모든 재생장치 조회
-    public List<DeviceListDTO> getSignageAll(){
-        //디바이스 목록에서 SIGNAGE만 조회
-        List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
+    public Page<DeviceListDTO> getSignageAll(int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
-        //해당 디바이스의 정보를 DTO에 담아서 return
-        return deviceList.stream().map(device -> {
-            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findByDeviceTypeAndDeviceNameContainingIgnoreCase(DeviceType.SIGNAGE, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                // accountId 또는 name 에서 검색
+                List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.searchByAccountIdOrName(searchTerm, DeviceType.SIGNAGE);
+
+                List<Long> deviceIds = accountDeviceMaps.stream()
+                        .map(map -> map.getDevice().getDeviceId())
+                        .collect(Collectors.toList());
+
+                deviceList = pcRepository.findByDeviceIdIn(deviceIds, pageable);
+            }else {
+                deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
                         return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
-        }).collect(Collectors.toList());
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
     //담당자로 등록된 재생장치 목록 조회
@@ -288,26 +339,6 @@ public class SignageService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "encodedResourceId"));
 
         Page<DeviceEncodeMap> deviceEncodeMaps;
-
-//        if(searchCategory.equals("image")){
-//            if(searchTerm != null && !searchTerm.isEmpty()){
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(signageId, searchTerm, ResourceType.IMAGE ,pageable);
-//            }else {
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(signageId, ResourceType.IMAGE ,pageable);
-//            }
-//        }else if(searchCategory.equals("video")){
-//            if(searchTerm != null && !searchTerm.isEmpty()){
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(signageId, searchTerm, ResourceType.VIDEO ,pageable);
-//            }else {
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(signageId, ResourceType.VIDEO ,pageable);
-//            }
-//        }else {
-//            if(searchTerm != null && !searchTerm.isEmpty()){
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCase(signageId, searchTerm ,pageable);
-//            }else {
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId, pageable);
-//            }
-//        }
 
         ResourceType resourceType = null;
         if (searchCategory.equals("image")) {
