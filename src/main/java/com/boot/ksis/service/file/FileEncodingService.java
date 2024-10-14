@@ -209,6 +209,11 @@ public class FileEncodingService {
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation  + fileName;
 
+        // 출력 파일 이름 설정
+        String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+
+        System.out.println("출력 파일 이름 설정 333 : " + outputFileName);
+        
         // 해상도에 따른 크기 설정
         String scale = getResolutionScale(originResourceListDTO);
         if (scale == null) {

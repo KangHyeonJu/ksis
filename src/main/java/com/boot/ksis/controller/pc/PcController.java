@@ -26,14 +26,19 @@ public class PcController {
         return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
     }
 
+    //pc 목록 검색 & 페이징
     @GetMapping()
-    public ResponseEntity<?> pcList(Principal principal, @RequestParam String role){
+    public ResponseEntity<?> pcList(Principal principal, @RequestParam String role,
+                                    @RequestParam int page,
+                                    @RequestParam int size,
+                                    @RequestParam(required = false) String searchTerm,
+                                    @RequestParam(required = false) String searchCategory){
         String accountId = principal.getName();
 
         if(role.contains("ADMIN")){
-            return new ResponseEntity<>(pcService.getPcAll(), HttpStatus.OK);
+            return new ResponseEntity<>(pcService.getPcAll(page, size, searchTerm, searchCategory), HttpStatus.OK);
         }else{
-            return new ResponseEntity<>(pcService.getPcList(accountId), HttpStatus.OK);
+            return new ResponseEntity<>(pcService.getPcList(accountId, page, size, searchTerm, searchCategory), HttpStatus.OK);
         }
     }
 
