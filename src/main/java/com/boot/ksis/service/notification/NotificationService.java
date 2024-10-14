@@ -61,6 +61,7 @@ public class NotificationService {
                 .isRead(notification.getIsRead())
                 .message(notification.getMessage())
                 .resourceType(notification.getResourceType())
+                .regTime(notification.getRegTime())
                 .build());
     }
 

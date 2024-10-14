@@ -4,6 +4,8 @@ import com.boot.ksis.constant.ResourceType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 public class AccountNotificationDTO {
@@ -12,4 +14,5 @@ public class AccountNotificationDTO {
     private String message;
     private Boolean isRead;
     private ResourceType resourceType;
+    private LocalDateTime regTime;
 }
