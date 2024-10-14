@@ -147,8 +147,20 @@ public class SignageService {
     }
 
     //담당자로 등록된 재생장치 목록 조회
-    public List<SignageGridDTO> getSignageGridList(String accountId){
-        List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
+    public Page<SignageGridDTO> getSignageGridList(String accountId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceTypeAndDeviceName(accountId, DeviceType.SIGNAGE, searchTerm, pageable);
+            }else {
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+        }
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
@@ -173,13 +185,33 @@ public class SignageService {
 
             signageGridDTOList.add(signageGridDTO);
         }
-        return signageGridDTOList;
+        return new PageImpl<>(signageGridDTOList, pageable, deviceList.getTotalElements());
     }
 
     //모든 재생장치 조회
-    public List<SignageGridDTO> getSignageGridAll(){
-        //디바이스 목록에서 SIGNAGE만 조회
-        List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
+    public Page<SignageGridDTO> getSignageGridAll(int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findByDeviceTypeAndDeviceNameContainingIgnoreCase(DeviceType.SIGNAGE, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                // accountId 또는 name 에서 검색
+                List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.searchByAccountIdOrName(searchTerm, DeviceType.SIGNAGE);
+
+                List<Long> deviceIds = accountDeviceMaps.stream()
+                        .map(map -> map.getDevice().getDeviceId())
+                        .collect(Collectors.toList());
+
+                deviceList = pcRepository.findByDeviceIdIn(deviceIds, pageable);
+            }else {
+                deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+        }
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
@@ -204,7 +236,8 @@ public class SignageService {
 
             signageGridDTOList.add(signageGridDTO);
         }
-        return signageGridDTOList;
+
+        return new PageImpl<>(signageGridDTOList, pageable, deviceList.getTotalElements());
     }
 
     //재생장치 등록
