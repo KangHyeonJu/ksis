@@ -19,7 +19,9 @@ public class EncodingController {
     @CustomAnnotation(activityDetail = "파일 인코딩")
 
     @PostMapping("/encoding/{accountId}")
-    public ResponseEntity<String> startEncoding(@RequestBody Map<String, EncodingRequestDTO> encodings, @PathVariable("accountId") String accountId) {
+    public ResponseEntity<String> startEncoding
+            (@RequestBody Map<String, EncodingRequestDTO> encodings,
+                                                @PathVariable("accountId") String accountId) {
 
         // 인코딩 메타데이터 저장
         encodedResourceService.saveEncodingInfo(encodings);

@@ -19,12 +19,13 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class FileEncodingService {
 
-    @Value("/file/encoding/")
+    @Value("${filePath}")
     // file/encoding/
     String dbLocation;
 
@@ -41,8 +42,9 @@ public class FileEncodingService {
     private final FileSizeService fileSizeService;
 
     // 영상 해상도 스케일 설정
-    private String getResolutionScale(String resolution) {
-        String[] parts = resolution.split("x");
+    private String getResolutionScale(OriginResourceListDTO originResourceListDTO) {
+        // 공백을 제거한 후 해상도를 분리
+        String[] parts = originResourceListDTO.getResolution().replace(" ", "").split("x");
         if (parts.length != 2) {
             return null; // 올바르지 않은 입력 형식
         }
@@ -57,8 +59,9 @@ public class FileEncodingService {
     }
 
     //이미지 해상도 설정
-    private Dimension getResolutionDimensions(String resolution) {
-        String[] parts = resolution.split("x");
+    private Dimension getResolutionDimensions(OriginResourceListDTO originResourceListDTO) {
+        // 공백을 제거한 후 해상도를 분리
+        String[] parts = originResourceListDTO.getResolution().replace(" ", "").split("x");
         if (parts.length != 2) {
             return null; // 올바르지 않은 입력 형식
         }
@@ -94,7 +97,6 @@ public class FileEncodingService {
         OriginalResource originalResource = originalResourceOpt.get();
         String baseName = originalResource.getFileName();  // OriginalResource에서 fileName 가져오기
 
-
         //새로 인코딩할 file의 스토리지 및 db에 저장될 이름.
         String fileName = UUID.randomUUID() + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
 
@@ -104,55 +106,56 @@ public class FileEncodingService {
         // 출력 파일 이름 설정
         String outputFileName = encodingLocation  + fileName;
 
-        Dimension newSize = getResolutionDimensions(originResourceListDTO.getResolution());
+        // 이미지 해상도 설정
+        Dimension newSize = getResolutionDimensions(originResourceListDTO);
+        System.out.println("인코딩 부분 getResolution : "+originalResource.getResolution());
+        if (newSize == null) {
+            throw new IllegalArgumentException("잘못된 해상도 형식입니다: " + originResourceListDTO.getResolution());
+        }
         String scaleFilter = String.format("scale=%d:%d", newSize.width, newSize.height);
 
-        String[] command;
+        String command;
         switch (originResourceListDTO.getFormat().toLowerCase()) {
-            case "png":
-            case "bmp":
-                command = new String[]{"ffmpeg", "-i", inputFilePath, "-vf", scaleFilter, outputFileName};
+            case "png", "bmp":
+                command = String.format("ffmpeg -i %s -vf %s %s",
+                        inputFilePath, scaleFilter, outputFileName);
                 break;
             case "jpg":
-                command = new String[]{"ffmpeg", "-i", inputFilePath, "-vf", scaleFilter, "-q:v", "2", outputFileName};
+                command = String.format("ffmpeg -i %s -vf %s -q:v 2 %s",  // -q:v 옵션은 JPG 품질 설정
+                        inputFilePath,  scaleFilter, outputFileName);
                 break;
             default:
                 throw new IOException("지원되지 않는 이미지 형식: " + originResourceListDTO.getFormat());
         }
 
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
-        processBuilder.redirectErrorStream(true);
+        Process process = Runtime.getRuntime().exec(command);
+        boolean completed;
 
         try {
-            Process process = processBuilder.start();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println(line); // 출력된 내용 로그에 기록
-                }
+            // 1시간 동안 프로세스가 완료되기를 기다림
+            completed = process.waitFor(1, TimeUnit.HOURS);
+            if (!completed) {
+                // 타임아웃 발생시 프로세스를 강제 종료
+                process.destroyForcibly();
+                throw new IOException("인코딩 실패: 1시간이 초과되었습니다.");
             }
-
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                System.out.println("이미지 인코딩 완료: " + outputFileName); // 로그 메시지 수정
-            } else {
-                System.err.println("인코딩 실패, 종료 코드: " + exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new IOException("이미지 인코딩 중 오류 발생", e); // 오류 메시지 수정
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("인코딩이 중단되었습니다.", e);
         }
+        System.out.println("Image encoded: " + outputFileName);
 
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
 
 
         //db저장 주소 지정
-        String filePath =  dbLocation  + fileName;
+        String filePath =  dbLocation + "/encoding/" + fileName;
 
         encodedResource.setOriginalResource(originalResource);
         encodedResource.setFilePath(filePath);
         encodedResource.setFileName(fileName);
-        encodedResource.setFileTitle(originResourceListDTO.getFileTitle()+ "_" +originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
+        encodedResource.setFileTitle(originalResource.getFileTitle()+ "_" +originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
         encodedResource.setResolution(originResourceListDTO.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setRegTime(LocalDateTime.now());
@@ -192,6 +195,7 @@ public class FileEncodingService {
             throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: originalResourceId=" + originalResourceId);
         }
 
+
         // OriginalResource 엔티티에서 fileName을 가져옴
         OriginalResource originalResource = originalResourceOpt.get();
         String baseName = originalResource.getFileName();  // OriginalResource에서 fileName 가져오기
@@ -202,69 +206,95 @@ public class FileEncodingService {
         String inputFilePath = uploadLocation + baseName;
 
         // 출력 파일 이름 설정
-        String outputFileName = encodingLocation  + baseName + "_" + originResourceListDTO.getResolution() + "." + originResourceListDTO.getFormat();
+        String outputFileName = encodingLocation  + fileName;
 
-        System.out.println("출력 파일 이름 설정 333 : " + outputFileName);
-        
         // 해상도에 따른 크기 설정
-        String scale = getResolutionScale(originResourceListDTO.getResolution());
-        String scaleFilter = String.format("scale=%s", scale);
+        String scale = getResolutionScale(originResourceListDTO);
+        if (scale == null) {
+            throw new IllegalArgumentException("잘못된 해상도 형식입니다: " + originResourceListDTO.getResolution());
+        }
 
         // 포맷에 따라 ffmpeg 명령어 구성
         String command;
         switch (originResourceListDTO.getFormat().toLowerCase()) {
+
             case "mov":
-                command = String.format("ffmpeg -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                        inputFilePath, scale, outputFileName);
                 break;
             case "avi":
-                command = String.format("ffmpeg -i %s -vf %s -c:v libxvid -c:a libmp3lame %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libxvid -c:a libmp3lame %s",
+                        inputFilePath, scale, outputFileName);
                 break;
             case "mkv":
-                command = String.format("ffmpeg -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                        inputFilePath, scale, outputFileName);
                 break;
             default:
                 // 기본적으로 mp4로 인코딩
-                command = String.format("ffmpeg -i %s -vf %s -c:v libx264 -c:a aac %s", inputFilePath, scaleFilter, outputFileName);
+                command = String.format("ffmpeg -i %s -vf scale=%s -c:v libx264 -c:a aac %s",
+                        inputFilePath, scale, outputFileName);
                 break;
         }
 
-        // ProcessBuilder를 사용하여 ffmpeg 명령어 실행
-        ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
-        processBuilder.redirectErrorStream(true); // 오류 스트림과 표준 스트림을 병합
+        Process process = Runtime.getRuntime().exec(command);
 
-        try {
-            Process process = processBuilder.start(); // ffmpeg 프로세스 시작
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        // 표준 출력 및 에러 스트림 처리
+        new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println(line); // 출력된 내용 로그에 기록
+                    System.out.println(line);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }).start();
 
-            int exitCode = process.waitFor(); // 프로세스 종료 대기
-            if (exitCode == 0) {
-                System.out.println("영상 인코딩 완료: " + outputFileName); // 성공 메시지
-            } else {
-                System.err.println("인코딩 실패, 종료 코드: " + exitCode); // 실패 메시지
+        new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.err.println(line);  // 에러 스트림을 표준 에러 출력으로 출력
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException | InterruptedException e) {
-            throw new IOException("영상 인코딩 중 오류 발생", e); // 오류 발생 시 메시지
+        }).start();
+
+        boolean completed;
+        try {
+            // 1시간 동안 프로세스가 완료되기를 기다림
+            completed = process.waitFor(1, TimeUnit.HOURS);
+            if (!completed) {
+                // 타임아웃 발생시 프로세스를 강제 종료
+                process.destroyForcibly();
+                throw new IOException("인코딩 실패: 1시간이 초과되었습니다.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("인코딩이 중단되었습니다.", e);
         }
+        System.out.println("Video encoded: " + outputFileName);
 
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
 
         //db저장 주소 지정
-        String filePath =  dbLocation  + fileName;
+        String filePath =  dbLocation  + "/encoding/" + fileName;
 
 
 
         encodedResource.setOriginalResource(originalResource);
         encodedResource.setFilePath(filePath);
         encodedResource.setFileName(fileName);
-        encodedResource.setFileTitle(originResourceListDTO.getFileTitle()+ "_" +originResourceListDTO.getResolution()
+        encodedResource.setFileTitle(originalResource.getFileTitle()+ "_" +originResourceListDTO.getResolution()
                 + "_" + originResourceListDTO.getFormat());
+        System.out.println("getFileTitle : "+originalResource.getFileTitle());
         encodedResource.setResolution(originResourceListDTO.getResolution());
+        System.out.println("getResolution : "+originalResource.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setPlayTime(originalResource.getPlayTime());
         encodedResource.setRegTime(LocalDateTime.now());

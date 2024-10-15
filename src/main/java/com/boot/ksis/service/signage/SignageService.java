@@ -467,10 +467,10 @@ public class SignageService {
 
             //인코딩 resource 목록을 DTO에 담아서 return
             SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
-                                                    .encodedResourceId(encodedResource.getEncodedResourceId())
-                                                    .fileTitle(encodedResource.getFileTitle())
-                                                    .thumbFilePath(thumbNail.getFilePath())
-                                                    .build();
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .fileTitle(encodedResource.getFileTitle())
+                    .thumbFilePath(thumbNail.getFilePath())
+                    .build();
 
             signageResourceDTOList.add(signageResourceDTO);
         }
@@ -497,10 +497,10 @@ public class SignageService {
 
                     //인코딩 resource 목록을 DTO에 담아서 return
                     SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
-                                                            .encodedResourceId(encodedResource.getEncodedResourceId())
-                                                            .fileTitle(encodedResource.getFileTitle())
-                                                            .thumbFilePath(thumbNail.getFilePath())
-                                                            .build();
+                            .encodedResourceId(encodedResource.getEncodedResourceId())
+                            .fileTitle(encodedResource.getFileTitle())
+                            .thumbFilePath(thumbNail.getFilePath())
+                            .build();
 
                     signageResourceDTOList.add(signageResourceDTO);
                 }
@@ -608,11 +608,11 @@ public class SignageService {
             EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(playListSequenceDTO.getEncodedResourceId());
 
             PlaylistSequence playlistSequence = PlaylistSequence.builder()
-                                                                .playlistId(playList.getPlaylistId())
-                                                                .playList(playList)
-                                                                .encodedResource(encodedResource)
-                                                                .sequence(playListSequenceDTO.getSequence())
-                                                                .build();
+                    .playlistId(playList.getPlaylistId())
+                    .playList(playList)
+                    .encodedResource(encodedResource)
+                    .sequence(playListSequenceDTO.getSequence())
+                    .build();
 
             playlistSequenceRepository.save(playlistSequence);
         }
@@ -659,10 +659,10 @@ public class SignageService {
             EncodedResource encodedResource = sequence.getEncodedResource();
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
             SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
-                                                                    .encodedResourceId(encodedResource.getEncodedResourceId())
-                                                                    .fileTitle(encodedResource.getFileTitle())
-                                                                    .thumbFilePath(thumbNail.getFilePath())
-                                                                    .build();
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .fileTitle(encodedResource.getFileTitle())
+                    .thumbFilePath(thumbNail.getFilePath())
+                    .build();
 
             signageResourceDTOList.add(signageResourceDTO);
         }
@@ -671,10 +671,10 @@ public class SignageService {
 
         //DTO에 담아서 return
         return PlayListUpdateDTO.builder()
-                                .slideTime(playList.getSlideTime())
-                                .fileTitle(playList.getFileTitle())
-                                .SignageResourceDTO(signageResourceDTOList)
-                                .build();
+                .slideTime(playList.getSlideTime())
+                .fileTitle(playList.getFileTitle())
+                .SignageResourceDTO(signageResourceDTOList)
+                .build();
     }
 
     //재생장치 삭제
@@ -729,12 +729,12 @@ public class SignageService {
                 playTime = encodedResource.getPlayTime(); //영상의 경우 영상 재생시간 적용
             }
             PlayDTO playDTO = PlayDTO.builder()
-                                    .playTime(playTime)
-                                    .resourceType(encodedResource.getResourceType())
-                                    .encodedResourceId(encodedResource.getEncodedResourceId())
-                                    .filePath(encodedResource.getFilePath())
-                                    .sequence(playlistSequence.getSequence())
-                                    .build();
+                    .playTime(playTime)
+                    .resourceType(encodedResource.getResourceType())
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .filePath(encodedResource.getFilePath())
+                    .sequence(playlistSequence.getSequence())
+                    .build();
 
             playDTOList.add(playDTO);
         }
@@ -788,10 +788,10 @@ public class SignageService {
             Device device = accountDeviceMap.getDevice();
 
             SignageStatusDTO signageStatusDTO = SignageStatusDTO.builder()
-                                                                .deviceId(device.getDeviceId())
-                                                                .deviceName(device.getDeviceName())
-                                                                .isConnect(device.getIsConnect())
-                                                                .build();
+                    .deviceId(device.getDeviceId())
+                    .deviceName(device.getDeviceName())
+                    .isConnect(device.getIsConnect())
+                    .build();
 
             signageStatusDTOList.add(signageStatusDTO);
         }

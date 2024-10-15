@@ -4,6 +4,7 @@ import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
+import com.boot.ksis.dto.resolution.ResolutionDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
@@ -136,26 +137,42 @@ public class FileBoardController {
     }
 
     // 원본 파일 제목 수정
-    @CustomAnnotation(activityDetail = "원본 파일 제목 수정")
     @PutMapping("/original/{originalResourceId}")
-    public ResponseEntity<Void> updateOrFileTitle(
+    public ResponseEntity<?> updateOrFileTitle(
             @PathVariable Long originalResourceId,
-            @RequestBody ResourceListDTO resourceListDTO) {
+            @RequestBody ResourceListDTO resourceListDTO, Principal principal) {
 
-        fileBoardService.updateOrFileTitle(originalResourceId, resourceListDTO);
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        fileBoardService.updateOrFileTitle(originalResourceId, resourceListDTO, accountOptional);
         return ResponseEntity.noContent().build();
 
 
     }
 
     // 인코딩 파일 제목 수정
-    @CustomAnnotation(activityDetail = "인코딩 파일 제목 수정")
     @PutMapping("/encoded/{encodedResourceId}")
-    public ResponseEntity<Void> updateFileTitle(
+    public ResponseEntity<?> updateFileTitle(
             @PathVariable Long encodedResourceId,
-            @RequestBody EncodeListDTO encodeListDTO) {
+            @RequestBody EncodeListDTO encodeListDTO, Principal principal) {
 
-        fileBoardService.updateErFileTitle(encodedResourceId, encodeListDTO);
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Account accountOptional = accountRepository.findById(accountId).orElse(null);
+
+        fileBoardService.updateErFileTitle(encodedResourceId, encodeListDTO, accountOptional);
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
 
@@ -183,6 +200,7 @@ public class FileBoardController {
             @RequestBody OriginResourceListDTO originResourceListDTO) {
         try {
             // 서비스 메서드 호출
+            System.out.println("getResolution : " +originResourceListDTO.getResolution() + " getFileTitle : " + originResourceListDTO.getFileTitle());
             fileEncodingService.imageEncodingBoard(originalResourceId, originResourceListDTO);
             return ResponseEntity.ok("이미지 인코딩이 성공적으로 시작되었습니다 . ");
         } catch (IOException e) {
