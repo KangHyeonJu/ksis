@@ -107,6 +107,9 @@ public class SignageController {
     @PutMapping("/update/{signageId}")
     public ResponseEntity<String> signagePut(@PathVariable Long signageId, @RequestBody SignageNoticeStatusDTO signageNoticeStatusDTO) {
         signageService.updateSignageStatus(signageId, signageNoticeStatusDTO.isShowNotice());
+
+        deviceWebSocketHandler.sendNoticeMessage(signageId);
+
         return ResponseEntity.ok("재생장치 공지표시 상태가 정상적으로 수정되었습니다.");
     }
 

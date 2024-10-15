@@ -1,6 +1,7 @@
 package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
+import com.boot.ksis.config.DeviceWebSocketHandler;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
@@ -24,6 +25,8 @@ public class NoticeController {
     private final NoticeService noticeService;
     private final AccountRepository accountRepository;
 
+    private final DeviceWebSocketHandler deviceWebSocketHandler;
+
 
     // 공지 등록
     @CustomAnnotation(activityDetail = "공지 등록")
@@ -46,12 +49,17 @@ public class NoticeController {
         updateNoticeDTO.setAccountId(accountId);
 
         noticeService.updateNotice(noticeId, updateNoticeDTO);
+
+        deviceWebSocketHandler.sendNoticeUpdateMessage(updateNoticeDTO.getDeviceIds());
+
         return ResponseEntity.ok("공지사항이 성공적으로 수정되었습니다.");
     }
 
     // 공지 비활성화
     @PostMapping("/delete/{noticeId}")
     public ResponseEntity<?> DeactivationNotice(@PathVariable Long noticeId) {
+        deviceWebSocketHandler.sendNoticeUpdateMessage(noticeService.findDeviceNotice(noticeId));
+
         noticeService.DeactivationNotice(noticeId);
         return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
     }

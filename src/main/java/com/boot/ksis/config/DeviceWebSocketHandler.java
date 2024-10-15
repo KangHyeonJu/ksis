@@ -14,10 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -73,6 +70,40 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
 
                     if(Objects.equals(signageId, deviceId)){
                         session.sendMessage(new TextMessage("playlistUpdate"));
+                    }
+                } catch (IOException e) {
+                    logger.error("Failed to send message to client: {}", session.getId(), e);
+                }
+            }
+        }
+    }
+
+    public void sendNoticeUpdateMessage(List<Long> signageIds){
+        for (WebSocketSession session : sessions) {
+            if (session.isOpen()) {
+                try {
+                    String query = Objects.requireNonNull(session.getUri()).getQuery();
+                    Long deviceId = Long.valueOf(extractDeviceIdFromQuery(query));
+
+                    if(signageIds.contains(deviceId)){
+                        session.sendMessage(new TextMessage("noticeUpdate"));
+                    }
+                } catch (IOException e) {
+                    logger.error("Failed to send message to client: {}", session.getId(), e);
+                }
+            }
+        }
+    }
+
+    public void sendNoticeMessage(Long signageIds){
+        for (WebSocketSession session : sessions) {
+            if (session.isOpen()) {
+                try {
+                    String query = Objects.requireNonNull(session.getUri()).getQuery();
+                    Long deviceId = Long.valueOf(extractDeviceIdFromQuery(query));
+
+                    if(signageIds.equals(deviceId)){
+                        session.sendMessage(new TextMessage("noticeUpdate"));
                     }
                 } catch (IOException e) {
                     logger.error("Failed to send message to client: {}", session.getId(), e);

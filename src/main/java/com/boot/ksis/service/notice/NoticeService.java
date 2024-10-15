@@ -12,7 +12,6 @@ import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -228,6 +227,18 @@ public class NoticeService {
 
         // 공지 저장 (변경 사항 반영)
         noticeRepository.save(notice);
+    }
+
+    public List<Long> findDeviceNotice(Long noticeId){
+        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(noticeId);
+
+        List<Long> deviceIds = new ArrayList<>();
+
+        for(DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps){
+            Long deviceId = deviceNoticeMap.getDeviceId();
+            deviceIds.add(deviceId);
+        }
+        return deviceIds;
     }
 
 

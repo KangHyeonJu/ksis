@@ -1,6 +1,5 @@
 package com.boot.ksis.service.signage;
 
-import com.boot.ksis.config.DeviceWebSocketHandler;
 import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
@@ -53,7 +52,6 @@ public class SignageService {
     private final OriginalResourceRepository originalResourceRepository;
     private final PcRepository pcRepository;
 
-    private final DeviceWebSocketHandler deviceWebSocketHandler;
     @PersistenceContext
     private EntityManager entityManager;
 
