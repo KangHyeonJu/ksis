@@ -193,6 +193,7 @@ public class NoticeService {
         // 해당 공지에 대한 디바이스 매핑 삭제
         deviceNoticeMapRepository.deleteByNoticeId(noticeId);
 
+        
         // 공지 삭제
         noticeRepository.deleteByNoticeId(noticeId);
     }
