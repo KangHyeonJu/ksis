@@ -47,37 +47,6 @@ public class SseEmitterService {
         }
     }
 
-
-    // 사용자별 응답 보내는 메서드
-//    public void sendToUser(String userId, String message) {
-//        SseEmitter emitter = emitters.get(userId);
-//        if (emitter != null) {
-//            try {
-//                System.out.println("Sending message to user: " + userId + " | Message: " + message);
-//                emitter.send(SseEmitter.event().data(message));
-//                System.out.println("Message sent successfully to user: " + userId);
-//            } catch (IOException e) {
-//                System.err.println("Failed to send message to user: " + userId + " | Error: " + e.getMessage());
-//                emitter.completeWithError(e);
-//            }
-//        }else{
-//            System.err.println("No emitter found for user: " + userId);
-//        }
-//    }
-
-    public void sendToUser(String userId, String message) {
-        List<SseEmitter> userEmitters = emitters.get(userId);
-        if (userEmitters != null) {
-            userEmitters.forEach(emitter -> {
-                try {
-                    emitter.send(SseEmitter.event().data(message));
-                } catch (IOException e) {
-                    removeEmitter(userId, emitter);
-                }
-            });
-        }
-    }
-
     public void sendLogoutEvent(String accountId) {
         List<SseEmitter> userEmitters = emitters.get(accountId);
         if (userEmitters != null) {
