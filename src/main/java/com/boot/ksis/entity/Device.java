@@ -8,11 +8,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 @Entity
 @Table(name = "device")
 @Getter
 @Setter
+@DynamicInsert
 public class Device extends BaseEntity {
 
     //디바이스 id
@@ -63,9 +65,9 @@ public class Device extends BaseEntity {
     private DeviceType deviceType;
 
     //접속 상태
-//    @Column(columnDefinition = "TINYINT(0)")
-//    @ColumnDefault("0")
-//    private Boolean isConnect;
+    @Column(columnDefinition = "TINYINT(0)")
+    @ColumnDefault("0")
+    private Boolean isConnect;
 
     public void updatePc(PcFormDTO pcFormDTO){
         this.deviceName = pcFormDTO.getDeviceName();

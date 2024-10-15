@@ -4,7 +4,6 @@ import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.repository.resolution.ResolutionRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class FileEncodingService {
 
-    @Value("/file/encoding/")
+    @Value("${filePath}")
     // file/encoding/
     String dbLocation;
 
@@ -151,7 +150,7 @@ public class FileEncodingService {
 
 
         //db저장 주소 지정
-        String filePath =  dbLocation  + fileName;
+        String filePath =  dbLocation + "/encoding/" + fileName;
 
         encodedResource.setOriginalResource(originalResource);
         encodedResource.setFilePath(filePath);
@@ -284,7 +283,7 @@ public class FileEncodingService {
         EncodedResource encodedResource = new EncodedResource();
 
         //db저장 주소 지정
-        String filePath =  dbLocation  + fileName;
+        String filePath =  dbLocation  + "/encoding/" + fileName;
 
 
 

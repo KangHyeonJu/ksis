@@ -138,8 +138,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(accountId)
                 .claim("auth", authorities) // 액세스 토큰의 경우 auth, 자격증명에 대한 부분이 필요
-                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15분
-//                .setExpiration(new Date(System.currentTimeMillis() + 10 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000)) // 5분
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
