@@ -5,10 +5,7 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.SignageFormDTO;
-import com.boot.ksis.dto.signage.SignageGridDTO;
-import com.boot.ksis.dto.signage.SignageNoticeDTO;
-import com.boot.ksis.dto.signage.SignageResourceDTO;
+import com.boot.ksis.dto.signage.*;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -58,6 +55,45 @@ public class SignageService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    //담당자로 등록된 재생장치 목록 조회
+    public List<DeviceListDTO> getSignageUser(String accountId){
+        List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
+
+        //해당 디바이스의 정보를 DTO에 담아서 return
+        return deviceList.stream().map(device -> {
+            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+                    .stream()
+                    .map(map -> {
+                        Account account = map.getAccount();
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
+                    })
+                    .collect(Collectors.toList());
+
+            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
+        }).collect(Collectors.toList());
+    }
+
+    //모든 재생장치 조회
+    public List<DeviceListDTO> getSignageAdmin(){
+        //디바이스 목록에서 SIGNAGE만 조회
+        List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
+
+        //해당 디바이스의 정보를 DTO에 담아서 return
+        return deviceList.stream().map(device -> {
+            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+                    .stream()
+                    .map(map -> {
+                        Account account = map.getAccount();
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
+                    })
+                    .collect(Collectors.toList());
+
+            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
+        }).collect(Collectors.toList());
+    }
 
     //담당자로 등록된 재생장치 목록 조회
     public Page<DeviceListDTO> getSignageList(String accountId, int page, int size, String searchTerm, String searchCategory){
@@ -741,5 +777,25 @@ public class SignageService {
         }else {
             return null;
         }
+    }
+
+    public List<SignageStatusDTO> signageStatus(String accountId){
+        List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<SignageStatusDTO> signageStatusDTOList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMaps){
+            Device device = accountDeviceMap.getDevice();
+
+            SignageStatusDTO signageStatusDTO = SignageStatusDTO.builder()
+                                                                .deviceId(device.getDeviceId())
+                                                                .deviceName(device.getDeviceName())
+                                                                .isConnect(device.getIsConnect())
+                                                                .build();
+
+            signageStatusDTOList.add(signageStatusDTO);
+        }
+
+        return signageStatusDTOList;
     }
 }
