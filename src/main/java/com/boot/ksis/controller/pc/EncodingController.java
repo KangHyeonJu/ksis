@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -29,5 +30,6 @@ public class EncodingController {
         encodedResourceService.startEncoding(encodings);
 
         return ResponseEntity.ok("Encoding process started.");
+
     }
 }
