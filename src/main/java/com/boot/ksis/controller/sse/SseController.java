@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.UUID;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/sse")
@@ -49,13 +47,6 @@ public class SseController {
         } else {
             throw new RuntimeException("Authorization token is missing or invalid");
         }
-    }
-
-    @GetMapping("/connect")
-    public SseEmitter connect() {
-        String clientId = UUID.randomUUID().toString();
-
-        return emitterService.addEmitter(clientId);
     }
 }
 
