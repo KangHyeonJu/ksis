@@ -1,7 +1,6 @@
 package com.boot.ksis.controller.signage;
 
 import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.controller.sse.SseController;
 import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;
@@ -32,11 +31,7 @@ public class SignageController {
 
     //재생장치 목록 조회
     @GetMapping()
-    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role,
-                                         @RequestParam int page,
-                                         @RequestParam int size,
-                                         @RequestParam(required = false) String searchTerm,
-                                         @RequestParam(required = false) String searchCategory){
+    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role){
         //현재 로그인한 id 가져오기
         String accountId = principal.getName();
 
