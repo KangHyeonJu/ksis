@@ -40,6 +40,7 @@ public class NoticeService {
         notice.setCreatedBy(noticeDTO.getName());//작성자 이름
         notice.setStartDate(noticeDTO.getStartDate()); // 노출 시작일 설정
         notice.setEndDate(noticeDTO.getEndDate()); // 노출 종료일 설정
+        notice.setActive(notice.isActive());
 
         // 공지 저장
         noticeRepository.save(notice);
@@ -155,7 +156,7 @@ public class NoticeService {
 
 
     // 공지 상세 조회
-    public DetailNoticeDTO getNoticeById(Long noticeId) {
+    public DetailNoticeDTO getActiveNoticeById(Long noticeId) {
         // 비활성화된 공지를 포함한 조회
         Optional<Notice> noticeOptional = noticeRepository.findByNoticeIdAndIsActiveOrderByRegTimeDesc(noticeId, true);
 
@@ -176,6 +177,7 @@ public class NoticeService {
         dto.setRegDate(notice.getRegTime());
         dto.setStartDate(notice.getStartDate());
         dto.setEndDate(notice.getEndDate());
+
 
         // 디바이스 정보 설정
         List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());

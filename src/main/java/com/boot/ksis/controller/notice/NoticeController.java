@@ -92,7 +92,7 @@ public class NoticeController {
     public ResponseEntity<?> getNoticeById(@PathVariable Long noticeId) {
         try {
             // 공지 상세 조회 서비스 호출
-            DetailNoticeDTO notice = noticeService.getNoticeById(noticeId);
+            DetailNoticeDTO notice = noticeService.getActiveNoticeById(noticeId);
             return ResponseEntity.ok(notice); // 성공 시 상세 공지 반환
 
         } catch (RuntimeException e) {
