@@ -12,9 +12,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final DeviceWebSocketHandler deviceWebSocketHandler;
+    private final NotificationWebSocketHandler notificationWebSocketHandler;
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(deviceWebSocketHandler, "/ws/device")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(notificationWebSocketHandler, "/ws/notifications")
                 .setAllowedOrigins("*");
     }
 }

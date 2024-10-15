@@ -1,5 +1,6 @@
 package com.boot.ksis.service.upload;
 
+import com.boot.ksis.config.NotificationWebSocketHandler;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
@@ -48,8 +49,8 @@ public class EncodedResourceService {
     private final OriginalResourceRepository originalResourceRepository;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
-    private final FileSizeRepository fileSizeRepository;
     private final SseEmitterService sseNotificationEmitterService;
+    private final NotificationWebSocketHandler notificationWebSocketHandler;
     private final UploadLogRepository uploadLogRepository;
     private final FileSizeService fileSizeService;
 
@@ -144,8 +145,7 @@ public class EncodedResourceService {
 
 
                 } catch (IOException e) {
-                    failEncoding(fileName, format, resolution); // 인코딩 실패 데이터베이스 저장
-                    failEncodingNotification(accountId, fileName, format, resolution, resourceType); // 인코딩 실패 알림 데이터베이스 저장
+                    failEncoding(accountId, fileName, format, resolution); // 인코딩 실패 데이터베이스 저장
                     e.printStackTrace();
                 }
             });
@@ -341,22 +341,11 @@ public class EncodedResourceService {
                 //인코딩 용량 추가
                 fileSizeService.updateTotalFileSize(encodedResource);
 
-                // 클라이언트로 인코딩 완료 알림 전송
-//                sseEncodingController.sendEvent(encodedResource.getFileTitle());
-
-//                System.out.println("인코딩 알람 sse 통신 아이디 시도하는 사람" + encodedResource.getOriginalResource().getAccount().getAccountId());
-
                 // 업로드 로그 저장
-                String accountId = encodedResource.getOriginalResource().getAccount().getAccountId();
-                Account account = accountRepository.findByAccountId(accountId).orElseThrow(null);
-
-                UploadLog uploadLog = new UploadLog();
-                uploadLog.setMessage(encodedResource.getFileTitle() + " 인코딩 완료");
-                uploadLog.setAccount(account);
-                uploadLogRepository.save(uploadLog);
+                logSave(encodedResource, "인코딩 완료");
 
                 // 알림 개수 업데이트
-                sseNotificationEmitterService.sendToUser(encodedResource.getOriginalResource().getAccount().getAccountId(), "Notification Updated");
+                notificationWebSocketHandler.sendToUser(encodedResource.getOriginalResource().getAccount().getAccountId(), "Notification Updated");
             } else {
                 throw new IllegalArgumentException("Encoded resource not found for fileName: " + outputFileName);
             }
@@ -366,7 +355,7 @@ public class EncodedResourceService {
     }
 
     // 인코딩 실패 데이터베이스 상태 FAIL 업데이트
-    public void failEncoding(String fileName, String format, String resolution){
+    public void failEncoding(String accountId, String fileName, String format, String resolution){
         // 파일 이름에서 확장자 제거
         String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
 
@@ -379,6 +368,11 @@ public class EncodedResourceService {
         EncodedResource encodedResource = encodedResourceOpt.get();
         encodedResource.setResourceStatus(ResourceStatus.FAIL);
         encodedResourceRepository.save(encodedResource);
+
+        failEncodingNotification(accountId, fileName, format, resolution); // 인코딩 실패 알림 데이터베이스 저장
+
+        // 실패 로그
+        logSave(encodedResource, "인코딩 실패");
 
     }
 
@@ -431,7 +425,7 @@ public class EncodedResourceService {
     }
 
     // 인코딩 실패 알림 데이터베이스 저장
-    public void failEncodingNotification(String accountId, String fileName, String format, String resolution, String resourceType){
+    public void failEncodingNotification(String accountId, String fileName, String format, String resolution){
 
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
 
@@ -446,18 +440,34 @@ public class EncodedResourceService {
 
         EncodedResource encodedResource = encodedResourceOpt.get();
 
-        String message = encodedResource.getFileTitle() + "_" + resolution + "_" + format + " 인코딩 실패";
-
-        ResourceType Type = ResourceType.valueOf(resourceType);
+        String message = encodedResource.getFileTitle() + " 인코딩 실패";
 
         Notification notification = new Notification();
         notification.setIsRead(false);
         notification.setAccount(account);
         notification.setMessage(message);
-        notification.setResourceType(Type);
+        notification.setResourceType(ResourceType.IMAGE);
 
         notificationRepository.save(notification);
 
+        // 알림 개수 업데이트
+        notificationWebSocketHandler.sendToUser(account.getAccountId(), "Notification Updated");
+
     }
 
+    // 업로드 로그 저장
+    private void logSave(EncodedResource encodedResource, String message){
+        String accountId = encodedResource.getOriginalResource().getAccount().getAccountId();
+        Account account = accountRepository.findByAccountId(accountId).orElseThrow(null);
+
+        UploadLog uploadLog = new UploadLog();
+        uploadLog.setMessage(encodedResource.getFileTitle() + " " + message);
+        uploadLog.setAccount(account);
+        uploadLogRepository.save(uploadLog);
+    }
+
+
+
 }
+
+
