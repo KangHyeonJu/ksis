@@ -2,12 +2,11 @@ package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
+import com.boot.ksis.dto.upload.OriginalResourceDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.Log.ActivityLog;
 import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.repository.log.ActivityLogRepository;
 import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
@@ -105,6 +104,32 @@ public class FileEncodingService {
         encodedResourceRepository.save(encodedResource);
     }
 
+    // 인코딩 성공 시 로그남기기
+    private void updateEncodedResourceCompleteLog(EncodedResource encodedResource, Account account) {
+
+        String encodingFileTitle = encodedResource.getFileTitle();
+
+        UploadLog uploadLog = new UploadLog();
+        uploadLog.setAccount(account);
+        uploadLog.setMessage(encodingFileTitle+"의 인코딩에 성공하였습니다.");
+        uploadLogRepository.save(uploadLog);
+
+    }
+
+    public boolean checkResolution(OriginResourceListDTO originResourceListDTO) {
+        // originalResourceId를 사용해 OriginalResource에서 fileName을 가져옴
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originResourceListDTO.getOriginalResourceId());
+        if (!originalResourceOpt.isPresent()) {
+            throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: id=" + originResourceListDTO.getOriginalResourceId());
+        }
+
+        OriginalResource originalResource = originalResourceOpt.get();
+
+       EncodedResource encodedResource = encodedResourceRepository.findByOriginalResourceAndResolutionAndFormat(originalResource, originResourceListDTO.getResolution(), originResourceListDTO.getFormat());
+
+        return encodedResource == null;
+    }
+
     // 이미지 인코딩
     public void imageEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
 
@@ -172,12 +197,8 @@ public class FileEncodingService {
         }
         System.out.println("Image encoded: " + outputFileName);
 
-
-        //db저장 주소 지정
-        String filePath = dbLocation + "/encoding/" + fileName;
-
         encodedResource.setOriginalResource(originalResource);
-        encodedResource.setFilePath(filePath);
+        encodedResource.setFilePath(dbLocation + "/encoding/" + fileName);
         encodedResource.setFileName(fileName);
         encodedResource.setFileTitle(originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
         encodedResource.setResolution(originResourceListDTO.getResolution());
@@ -202,6 +223,8 @@ public class FileEncodingService {
                 System.out.println("이미지 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
 
                 fileSizeService.updateTotalFileSize(encoded);
+
+                updateEncodedResourceCompleteLog(encodedResource, encodedResource.getOriginalResource().getAccount());
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName);
             }
@@ -289,6 +312,7 @@ public class FileEncodingService {
                 e.printStackTrace();
             }
         }).start();
+
         // EncodedResource 엔티티 생성 및 저장
         EncodedResource encodedResource = new EncodedResource();
 
@@ -341,6 +365,7 @@ public class FileEncodingService {
                 System.out.println("영상 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
 
                 fileSizeService.updateTotalFileSize(encoded);
+                updateEncodedResourceCompleteLog(encodedResource, encodedResource.getOriginalResource().getAccount());
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName); // EncodedResource가 없을 때
             }
