@@ -5,10 +5,7 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.SignageFormDTO;
-import com.boot.ksis.dto.signage.SignageGridDTO;
-import com.boot.ksis.dto.signage.SignageNoticeDTO;
-import com.boot.ksis.dto.signage.SignageResourceDTO;
+import com.boot.ksis.dto.signage.*;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -780,5 +777,25 @@ public class SignageService {
         }else {
             return null;
         }
+    }
+
+    public List<SignageStatusDTO> signageStatus(String accountId){
+        List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<SignageStatusDTO> signageStatusDTOList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMaps){
+            Device device = accountDeviceMap.getDevice();
+
+            SignageStatusDTO signageStatusDTO = SignageStatusDTO.builder()
+                                                                .deviceId(device.getDeviceId())
+                                                                .deviceName(device.getDeviceName())
+                                                                .isConnect(device.getIsConnect())
+                                                                .build();
+
+            signageStatusDTOList.add(signageStatusDTO);
+        }
+
+        return signageStatusDTOList;
     }
 }
