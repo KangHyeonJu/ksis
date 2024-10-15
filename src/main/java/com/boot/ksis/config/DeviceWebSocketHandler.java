@@ -3,6 +3,7 @@ package com.boot.ksis.config;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.repository.signage.SignageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -13,8 +14,10 @@ import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DeviceWebSocketHandler extends TextWebSocketHandler {
     private final SignageRepository signageRepository;
+    private final MainWebSocketHandler mainWebSocketHandler;
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) throws Exception {
@@ -37,8 +40,12 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
         if (device != null) {
             device.setIsConnect(isConnected);  // 연결 상태 업데이트
             signageRepository.save(device);
+
+            mainWebSocketHandler.sendStatusUpdateMessage();
         }
     }
+
+
 
     private String extractDeviceIdFromQuery(String query) {
         if (query != null && query.contains("deviceId=")) {
