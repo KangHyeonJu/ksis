@@ -1,5 +1,6 @@
 package com.boot.ksis.service.signage;
 
+import com.boot.ksis.config.DeviceWebSocketHandler;
 import com.boot.ksis.constant.DeviceType;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
@@ -50,9 +51,9 @@ public class SignageService {
     private final EncodedResourceRepository encodedResourceRepository;
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
     private final OriginalResourceRepository originalResourceRepository;
-
     private final PcRepository pcRepository;
 
+    private final DeviceWebSocketHandler deviceWebSocketHandler;
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -797,5 +798,11 @@ public class SignageService {
         }
 
         return signageStatusDTOList;
+    }
+
+    public Long findPlaylistDevice(Long playListId){
+        PlayList playList = playListRepository.findByPlaylistId(playListId);
+
+        return playList.getDevice().getDeviceId();
     }
 }
