@@ -200,7 +200,6 @@ public class FileBoardController {
             @RequestBody OriginResourceListDTO originResourceListDTO) {
         try {
             // 서비스 메서드 호출
-            System.out.println("getResolution : " +originResourceListDTO.getResolution() + " getFileTitle : " + originResourceListDTO.getFileTitle());
             fileEncodingService.imageEncodingBoard(originalResourceId, originResourceListDTO);
             return ResponseEntity.ok("이미지 인코딩이 성공적으로 시작되었습니다 . ");
         } catch (IOException e) {

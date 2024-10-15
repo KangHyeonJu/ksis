@@ -2,8 +2,13 @@ package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.Log.ActivityLog;
+import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.log.ActivityLogRepository;
+import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +45,7 @@ public class FileEncodingService {
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
     private final FileSizeService fileSizeService;
+    private final UploadLogRepository uploadLogRepository;
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(OriginResourceListDTO originResourceListDTO) {
@@ -75,6 +81,7 @@ public class FileEncodingService {
         }
     }
 
+    //파일 사이즈 가져오기
     private long getFileSize(String filePath) throws IOException {
         File file = new File(filePath);
         if (file.exists()) {
@@ -82,6 +89,20 @@ public class FileEncodingService {
         } else {
             throw new IOException("파일을 찾을 수 없습니다: " + filePath);
         }
+    }
+
+    // 인코딩 실패 시 DB 상태를 FAIL로 변경
+    private void updateEncodedResourceStatusToFail(EncodedResource encodedResource, Account account) {
+
+        String encodingFileTitle = encodedResource.getFileTitle();
+
+        UploadLog uploadLog = new UploadLog();
+        uploadLog.setAccount(account);
+        uploadLog.setMessage(encodingFileTitle+"의 인코딩에 실패하였습니다.");
+        uploadLogRepository.save(uploadLog);
+
+        encodedResource.setResourceStatus(ResourceStatus.FAIL);
+        encodedResourceRepository.save(encodedResource);
     }
 
     // 이미지 인코딩
@@ -104,11 +125,10 @@ public class FileEncodingService {
         String inputFilePath = uploadLocation + baseName;
 
         // 출력 파일 이름 설정
-        String outputFileName = encodingLocation  + fileName;
+        String outputFileName = encodingLocation + fileName;
 
         // 이미지 해상도 설정
         Dimension newSize = getResolutionDimensions(originResourceListDTO);
-        System.out.println("인코딩 부분 getResolution : "+originalResource.getResolution());
         if (newSize == null) {
             throw new IllegalArgumentException("잘못된 해상도 형식입니다: " + originResourceListDTO.getResolution());
         }
@@ -122,11 +142,14 @@ public class FileEncodingService {
                 break;
             case "jpg":
                 command = String.format("ffmpeg -i %s -vf %s -q:v 2 %s",  // -q:v 옵션은 JPG 품질 설정
-                        inputFilePath,  scaleFilter, outputFileName);
+                        inputFilePath, scaleFilter, outputFileName);
                 break;
             default:
                 throw new IOException("지원되지 않는 이미지 형식: " + originResourceListDTO.getFormat());
         }
+
+        // EncodedResource 엔티티 생성 및 저장
+        EncodedResource encodedResource = new EncodedResource();
 
         Process process = Runtime.getRuntime().exec(command);
         boolean completed;
@@ -137,25 +160,26 @@ public class FileEncodingService {
             if (!completed) {
                 // 타임아웃 발생시 프로세스를 강제 종료
                 process.destroyForcibly();
+                // 인코딩 실패 시 상태를 FAIL로 변경
+                updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount());
                 throw new IOException("인코딩 실패: 1시간이 초과되었습니다.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            // 인코딩 실패 시 상태를 FAIL로 변경
+            updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount());
             throw new IOException("인코딩이 중단되었습니다.", e);
         }
         System.out.println("Image encoded: " + outputFileName);
 
-        // EncodedResource 엔티티 생성 및 저장
-        EncodedResource encodedResource = new EncodedResource();
-
 
         //db저장 주소 지정
-        String filePath =  dbLocation + "/encoding/" + fileName;
+        String filePath = dbLocation + "/encoding/" + fileName;
 
         encodedResource.setOriginalResource(originalResource);
         encodedResource.setFilePath(filePath);
         encodedResource.setFileName(fileName);
-        encodedResource.setFileTitle(originalResource.getFileTitle()+ "_" +originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
+        encodedResource.setFileTitle(originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat());
         encodedResource.setResolution(originResourceListDTO.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setRegTime(LocalDateTime.now());
@@ -182,6 +206,7 @@ public class FileEncodingService {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName);
             }
         } catch (IOException e) {
+            updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount()); // 인코딩 실패 시 상태 변경
             e.printStackTrace();
         }
     }
@@ -206,7 +231,7 @@ public class FileEncodingService {
         String inputFilePath = uploadLocation + baseName;
 
         // 출력 파일 이름 설정
-        String outputFileName = encodingLocation  + fileName;
+        String outputFileName = encodingLocation + fileName;
 
         // 해상도에 따른 크기 설정
         String scale = getResolutionScale(originResourceListDTO);
@@ -260,9 +285,12 @@ public class FileEncodingService {
                     System.err.println(line);  // 에러 스트림을 표준 에러 출력으로 출력
                 }
             } catch (IOException e) {
+
                 e.printStackTrace();
             }
         }).start();
+        // EncodedResource 엔티티 생성 및 저장
+        EncodedResource encodedResource = new EncodedResource();
 
         boolean completed;
         try {
@@ -271,30 +299,26 @@ public class FileEncodingService {
             if (!completed) {
                 // 타임아웃 발생시 프로세스를 강제 종료
                 process.destroyForcibly();
+                // 인코딩 실패 시 상태를 FAIL로 변경
+                updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount());
                 throw new IOException("인코딩 실패: 1시간이 초과되었습니다.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            // 인코딩 실패 시 상태를 FAIL로 변경
+            updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount());
             throw new IOException("인코딩이 중단되었습니다.", e);
+
         }
         System.out.println("Video encoded: " + outputFileName);
 
-        // EncodedResource 엔티티 생성 및 저장
-        EncodedResource encodedResource = new EncodedResource();
-
-        //db저장 주소 지정
-        String filePath =  dbLocation  + "/encoding/" + fileName;
-
-
 
         encodedResource.setOriginalResource(originalResource);
-        encodedResource.setFilePath(filePath);
+        encodedResource.setFilePath(dbLocation + "/encoding/" + fileName);
         encodedResource.setFileName(fileName);
-        encodedResource.setFileTitle(originalResource.getFileTitle()+ "_" +originResourceListDTO.getResolution()
+        encodedResource.setFileTitle(originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution()
                 + "_" + originResourceListDTO.getFormat());
-        System.out.println("getFileTitle : "+originalResource.getFileTitle());
         encodedResource.setResolution(originResourceListDTO.getResolution());
-        System.out.println("getResolution : "+originalResource.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setPlayTime(originalResource.getPlayTime());
         encodedResource.setRegTime(LocalDateTime.now());
@@ -321,6 +345,7 @@ public class FileEncodingService {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName); // EncodedResource가 없을 때
             }
         } catch (IOException e) {
+            updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount()); // 인코딩 실패 시 상태 변경
             e.printStackTrace(); // 파일 사이즈 확인 중 오류 발생
         }
     }

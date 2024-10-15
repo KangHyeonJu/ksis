@@ -12,7 +12,6 @@ import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
