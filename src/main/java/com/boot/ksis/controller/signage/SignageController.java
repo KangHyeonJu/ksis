@@ -41,6 +41,22 @@ public class SignageController {
         String accountId = principal.getName();
 
         if(role.contains("ADMIN")){     //관리자일 경우 전체 목록 조회
+            return new ResponseEntity<>(signageService.getSignageAdmin(), HttpStatus.OK);
+        }else{      //USER일 경우 해당 USER가 담당자인 재생장치만 조회
+            return new ResponseEntity<>(signageService.getSignageUser(accountId), HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role,
+                                         @RequestParam int page,
+                                         @RequestParam int size,
+                                         @RequestParam(required = false) String searchTerm,
+                                         @RequestParam(required = false) String searchCategory){
+        //현재 로그인한 id 가져오기
+        String accountId = principal.getName();
+
+        if(role.contains("ADMIN")){     //관리자일 경우 전체 목록 조회
             return new ResponseEntity<>(signageService.getSignageAll(page, size, searchTerm, searchCategory), HttpStatus.OK);
         }else{      //USER일 경우 해당 USER가 담당자인 재생장치만 조회
             return new ResponseEntity<>(signageService.getSignageList(accountId, page, size, searchTerm, searchCategory), HttpStatus.OK);

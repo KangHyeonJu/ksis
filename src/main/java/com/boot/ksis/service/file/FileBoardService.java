@@ -2,10 +2,13 @@ package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.controller.log.AccessLogController;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.entity.*;
+import com.boot.ksis.entity.Log.ActivityLog;
 import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.repository.log.ActivityLogRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.DeviceEncodeMapRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +53,8 @@ public class FileBoardService {
     private final FileSizeRepository fileSizeRepository;
 
     private final PlaylistSequenceRepository playlistSequenceRepository;
+
+    private final ActivityLogRepository activityLogRepository;
 
 
     // 조회
@@ -255,22 +261,31 @@ public class FileBoardService {
 
     //수정
     // 원본 파일 제목 수정
-    public void updateOrFileTitle(Long id, ResourceListDTO resourceListDTO) {
+    public void updateOrFileTitle(Long id, ResourceListDTO resourceListDTO, Account account) {
 
         OriginalResource originalResource = originalResourceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
-
+        String oldTitle = originalResource.getFileTitle();
         originalResource.setFileTitle(resourceListDTO.getFileTitle());
+        String newTitle = resourceListDTO.getFileTitle();
+
+        ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail("원본 " +oldTitle + "에서 " + newTitle + "로 변경되었습니다.").dateTime(LocalDateTime.now()).build();
+        activityLogRepository.save(activityLog);
         originalResourceRepository.save(originalResource);
 
     }
 
     // 인코딩 파일 제목 수정
-    public void updateErFileTitle(Long id, EncodeListDTO encodeListDTO) {
+    public void updateErFileTitle(Long id, EncodeListDTO encodeListDTO, Account account) {
         EncodedResource encodedResource = encodedResourceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
-
+        String oldTitle = encodedResource.getFileTitle();
         encodedResource.setFileTitle(encodeListDTO.getFileTitle());
+        String newTitle = encodeListDTO.getFileTitle();
+
+
+        ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail("인코딩 " + oldTitle + "에서 " + newTitle + "로 변경되었습니다.").dateTime(LocalDateTime.now()).build();
+        activityLogRepository.save(activityLog);
         encodedResourceRepository.save(encodedResource); // 변경된 내용을 저장
     }
 

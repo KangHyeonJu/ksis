@@ -49,10 +49,10 @@ public class NoticeController {
         return ResponseEntity.ok("공지사항이 성공적으로 수정되었습니다.");
     }
 
-    // 공지 삭제
-    @DeleteMapping("/{noticeId}")
-    public ResponseEntity<?> deleteNotice(@PathVariable Long noticeId) {
-        noticeService.deleteNotice(noticeId);
+    // 공지 비활성화
+    @PostMapping("/delete/{noticeId}")
+    public ResponseEntity<?> DeactivationNotice(@PathVariable Long noticeId) {
+        noticeService.DeactivationNotice(noticeId);
         return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
     }
 
@@ -80,9 +80,9 @@ public class NoticeController {
         }
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllNotices(), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllActiveNotices(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserNotices(accountId), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserActiveNotices(accountId), HttpStatus.OK);
         }
     }
 
@@ -94,10 +94,10 @@ public class NoticeController {
             // 공지 상세 조회 서비스 호출
             DetailNoticeDTO notice = noticeService.getNoticeById(noticeId);
             return ResponseEntity.ok(notice); // 성공 시 상세 공지 반환
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 공지 없음 예외 처리
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("공지 상세 조회에 실패했습니다.");
+            // 비활성화된 공지일 경우 사용자에게 메시지 반환
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 공지는 비활성화된 상태입니다.");
         }
     }
 }

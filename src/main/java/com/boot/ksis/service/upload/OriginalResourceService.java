@@ -12,7 +12,6 @@ import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -239,7 +238,7 @@ public class OriginalResourceService {
 
         // 이미지 파일을 읽어와서 썸네일을 생성하고 저장
         Thumbnails.of(new File(imagePath))
-                .size(200, 200) // 원하는 썸네일 크기 설정
+                .size(500, 500) // 원하는 썸네일 크기 설정
                 .outputFormat("jpg")
                 .toFile(new File(thumbnailPath));
 
@@ -260,7 +259,7 @@ public class OriginalResourceService {
         // 추출한 이미지를 썸네일 크기로 조정하고 파일로 저장
         BufferedImage bufferedImage = ImageIO.read(new File(thumbnailPath));
         BufferedImage thumbnailImage = Thumbnails.of(bufferedImage)
-                .size(200, 200)
+                .size(500, 500)
                 .asBufferedImage();
         ImageIO.write(thumbnailImage, "jpg", new File(thumbnailPath));
 
