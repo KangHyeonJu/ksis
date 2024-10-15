@@ -71,6 +71,8 @@ dependencies {
 
     // file type
     implementation 'org.apache.tika:tika-core:2.4.1'
+    //websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 
 }
