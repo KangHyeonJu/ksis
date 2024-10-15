@@ -417,7 +417,7 @@ public class EncodedResourceService {
 
         EncodedResource encodedResource = encodedResourceOpt.get();
 
-        String message = encodedResource.getFileTitle() + "_" + resolution + "_" + format + " 인코딩 성공";
+        String message = encodedResource.getFileTitle() + " 인코딩 성공";
 
         ResourceType Type = ResourceType.valueOf(resourceType);
 

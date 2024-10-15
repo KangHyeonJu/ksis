@@ -5,10 +5,7 @@ import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
 import com.boot.ksis.dto.playlist.*;
-import com.boot.ksis.dto.signage.SignageFormDTO;
-import com.boot.ksis.dto.signage.SignageGridDTO;
-import com.boot.ksis.dto.signage.SignageNoticeDTO;
-import com.boot.ksis.dto.signage.SignageResourceDTO;
+import com.boot.ksis.dto.signage.*;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.MapsId.AccountDeviceMap;
 import com.boot.ksis.entity.MapsId.DeviceEncodeMap;
@@ -16,6 +13,7 @@ import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.pc.PcRepository;
 import com.boot.ksis.repository.playlist.PlayListRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.*;
@@ -53,11 +51,13 @@ public class SignageService {
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
     private final OriginalResourceRepository originalResourceRepository;
 
+    private final PcRepository pcRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     //담당자로 등록된 재생장치 목록 조회
-    public List<DeviceListDTO> getSignageList(String accountId){
+    public List<DeviceListDTO> getSignageUser(String accountId){
         List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
 
         //해당 디바이스의 정보를 DTO에 담아서 return
@@ -76,7 +76,7 @@ public class SignageService {
     }
 
     //모든 재생장치 조회
-    public List<DeviceListDTO> getSignageAll(){
+    public List<DeviceListDTO> getSignageAdmin(){
         //디바이스 목록에서 SIGNAGE만 조회
         List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
 
@@ -96,39 +96,107 @@ public class SignageService {
     }
 
     //담당자로 등록된 재생장치 목록 조회
-    public List<SignageGridDTO> getSignageGridList(String accountId){
-        List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
+    public Page<DeviceListDTO> getSignageList(String accountId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
-        List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceTypeAndDeviceName(accountId, DeviceType.SIGNAGE, searchTerm, pageable);
+            }else {
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
 
         for(Device device : deviceList){
-            //디바이스에 선택된 재생목록 가져오기
-            PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+                    .stream()
+                    .map(map -> {
+                        Account account = map.getAccount();
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
+                    })
+                    .toList();
 
-            String thumbNailPath;
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
 
-            if(playList != null){
-                //재생목록에서 첫 번째 파일 가져오기
-                PlaylistSequence playlistSequence = playlistSequenceRepository.findByPlaylistIdAndSequence(playList.getPlaylistId(), 1);
-
-                //해당 파일의 썸네일 경로 가져오기
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(playlistSequence.getEncodedResource().getOriginalResource());
-                thumbNailPath = thumbNail.getFilePath();
-            }else {
-                thumbNailPath = device.getDeviceName();
-            }
-            //DTO에 정보 담아서 return
-            SignageGridDTO signageGridDTO = SignageGridDTO.builder().deviceId(device.getDeviceId()).deviceName(device.getDeviceName()).thumbNail(thumbNailPath).build();
-
-            signageGridDTOList.add(signageGridDTO);
+            deviceListDTOList.add(deviceListDTO);
         }
-        return signageGridDTOList;
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
     //모든 재생장치 조회
-    public List<SignageGridDTO> getSignageGridAll(){
-        //디바이스 목록에서 SIGNAGE만 조회
-        List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
+    public Page<DeviceListDTO> getSignageAll(int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findByDeviceTypeAndDeviceNameContainingIgnoreCase(DeviceType.SIGNAGE, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                // accountId 또는 name 에서 검색
+                List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.searchByAccountIdOrName(searchTerm, DeviceType.SIGNAGE);
+
+                List<Long> deviceIds = accountDeviceMaps.stream()
+                        .map(map -> map.getDevice().getDeviceId())
+                        .collect(Collectors.toList());
+
+                deviceList = pcRepository.findByDeviceIdIn(deviceIds, pageable);
+            }else {
+                deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
+            List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
+                    .stream()
+                    .map(map -> {
+                        Account account = map.getAccount();
+                        return new AccountDeviceDTO(account.getAccountId(), account.getName());
+                    })
+                    .toList();
+
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
+    }
+
+    //담당자로 등록된 재생장치 목록 조회
+    public Page<SignageGridDTO> getSignageGridList(String accountId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceTypeAndDeviceName(accountId, DeviceType.SIGNAGE, searchTerm, pageable);
+            }else {
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+        }
 
         List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
 
@@ -153,7 +221,59 @@ public class SignageService {
 
             signageGridDTOList.add(signageGridDTO);
         }
-        return signageGridDTOList;
+        return new PageImpl<>(signageGridDTOList, pageable, deviceList.getTotalElements());
+    }
+
+    //모든 재생장치 조회
+    public Page<SignageGridDTO> getSignageGridAll(int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findByDeviceTypeAndDeviceNameContainingIgnoreCase(DeviceType.SIGNAGE, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                // accountId 또는 name 에서 검색
+                List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.searchByAccountIdOrName(searchTerm, DeviceType.SIGNAGE);
+
+                List<Long> deviceIds = accountDeviceMaps.stream()
+                        .map(map -> map.getDevice().getDeviceId())
+                        .collect(Collectors.toList());
+
+                deviceList = pcRepository.findByDeviceIdIn(deviceIds, pageable);
+            }else {
+                deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+        }
+
+        List<SignageGridDTO> signageGridDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
+            //디바이스에 선택된 재생목록 가져오기
+            PlayList playList = playListRepository.findByDeviceAndIsDefault(device, true);
+
+            String thumbNailPath;
+
+            if(playList != null){
+                //재생목록에서 첫 번째 파일 가져오기
+                PlaylistSequence playlistSequence = playlistSequenceRepository.findByPlaylistIdAndSequence(playList.getPlaylistId(), 1);
+
+                //해당 파일의 썸네일 경로 가져오기
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(playlistSequence.getEncodedResource().getOriginalResource());
+                thumbNailPath = thumbNail.getFilePath();
+            }else {
+                thumbNailPath = device.getDeviceName();
+            }
+            //DTO에 정보 담아서 return
+            SignageGridDTO signageGridDTO = SignageGridDTO.builder().deviceId(device.getDeviceId()).deviceName(device.getDeviceName()).thumbNail(thumbNailPath).build();
+
+            signageGridDTOList.add(signageGridDTO);
+        }
+
+        return new PageImpl<>(signageGridDTOList, pageable, deviceList.getTotalElements());
     }
 
     //재생장치 등록
@@ -289,26 +409,6 @@ public class SignageService {
 
         Page<DeviceEncodeMap> deviceEncodeMaps;
 
-//        if(searchCategory.equals("image")){
-//            if(searchTerm != null && !searchTerm.isEmpty()){
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(signageId, searchTerm, ResourceType.IMAGE ,pageable);
-//            }else {
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(signageId, ResourceType.IMAGE ,pageable);
-//            }
-//        }else if(searchCategory.equals("video")){
-//            if(searchTerm != null && !searchTerm.isEmpty()){
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCaseAndEncodedResource_ResourceType(signageId, searchTerm, ResourceType.VIDEO ,pageable);
-//            }else {
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_ResourceType(signageId, ResourceType.VIDEO ,pageable);
-//            }
-//        }else {
-//            if(searchTerm != null && !searchTerm.isEmpty()){
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceIdAndEncodedResource_FileTitleContainingIgnoreCase(signageId, searchTerm ,pageable);
-//            }else {
-//                deviceEncodeMaps = deviceEncodeRepository.findByDeviceId(signageId, pageable);
-//            }
-//        }
-
         ResourceType resourceType = null;
         if (searchCategory.equals("image")) {
             resourceType = ResourceType.IMAGE;
@@ -367,10 +467,10 @@ public class SignageService {
 
             //인코딩 resource 목록을 DTO에 담아서 return
             SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
-                                                    .encodedResourceId(encodedResource.getEncodedResourceId())
-                                                    .fileTitle(encodedResource.getFileTitle())
-                                                    .thumbFilePath(thumbNail.getFilePath())
-                                                    .build();
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .fileTitle(encodedResource.getFileTitle())
+                    .thumbFilePath(thumbNail.getFilePath())
+                    .build();
 
             signageResourceDTOList.add(signageResourceDTO);
         }
@@ -397,10 +497,10 @@ public class SignageService {
 
                     //인코딩 resource 목록을 DTO에 담아서 return
                     SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
-                                                            .encodedResourceId(encodedResource.getEncodedResourceId())
-                                                            .fileTitle(encodedResource.getFileTitle())
-                                                            .thumbFilePath(thumbNail.getFilePath())
-                                                            .build();
+                            .encodedResourceId(encodedResource.getEncodedResourceId())
+                            .fileTitle(encodedResource.getFileTitle())
+                            .thumbFilePath(thumbNail.getFilePath())
+                            .build();
 
                     signageResourceDTOList.add(signageResourceDTO);
                 }
@@ -508,11 +608,11 @@ public class SignageService {
             EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(playListSequenceDTO.getEncodedResourceId());
 
             PlaylistSequence playlistSequence = PlaylistSequence.builder()
-                                                                .playlistId(playList.getPlaylistId())
-                                                                .playList(playList)
-                                                                .encodedResource(encodedResource)
-                                                                .sequence(playListSequenceDTO.getSequence())
-                                                                .build();
+                    .playlistId(playList.getPlaylistId())
+                    .playList(playList)
+                    .encodedResource(encodedResource)
+                    .sequence(playListSequenceDTO.getSequence())
+                    .build();
 
             playlistSequenceRepository.save(playlistSequence);
         }
@@ -559,10 +659,10 @@ public class SignageService {
             EncodedResource encodedResource = sequence.getEncodedResource();
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
             SignageResourceDTO signageResourceDTO = SignageResourceDTO.builder()
-                                                                    .encodedResourceId(encodedResource.getEncodedResourceId())
-                                                                    .fileTitle(encodedResource.getFileTitle())
-                                                                    .thumbFilePath(thumbNail.getFilePath())
-                                                                    .build();
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .fileTitle(encodedResource.getFileTitle())
+                    .thumbFilePath(thumbNail.getFilePath())
+                    .build();
 
             signageResourceDTOList.add(signageResourceDTO);
         }
@@ -571,10 +671,10 @@ public class SignageService {
 
         //DTO에 담아서 return
         return PlayListUpdateDTO.builder()
-                                .slideTime(playList.getSlideTime())
-                                .fileTitle(playList.getFileTitle())
-                                .SignageResourceDTO(signageResourceDTOList)
-                                .build();
+                .slideTime(playList.getSlideTime())
+                .fileTitle(playList.getFileTitle())
+                .SignageResourceDTO(signageResourceDTOList)
+                .build();
     }
 
     //재생장치 삭제
@@ -629,12 +729,12 @@ public class SignageService {
                 playTime = encodedResource.getPlayTime(); //영상의 경우 영상 재생시간 적용
             }
             PlayDTO playDTO = PlayDTO.builder()
-                                    .playTime(playTime)
-                                    .resourceType(encodedResource.getResourceType())
-                                    .encodedResourceId(encodedResource.getEncodedResourceId())
-                                    .filePath(encodedResource.getFilePath())
-                                    .sequence(playlistSequence.getSequence())
-                                    .build();
+                    .playTime(playTime)
+                    .resourceType(encodedResource.getResourceType())
+                    .encodedResourceId(encodedResource.getEncodedResourceId())
+                    .filePath(encodedResource.getFilePath())
+                    .sequence(playlistSequence.getSequence())
+                    .build();
 
             playDTOList.add(playDTO);
         }
@@ -677,5 +777,25 @@ public class SignageService {
         }else {
             return null;
         }
+    }
+
+    public List<SignageStatusDTO> signageStatus(String accountId){
+        List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.findByAccountId(accountId);
+
+        List<SignageStatusDTO> signageStatusDTOList = new ArrayList<>();
+
+        for(AccountDeviceMap accountDeviceMap : accountDeviceMaps){
+            Device device = accountDeviceMap.getDevice();
+
+            SignageStatusDTO signageStatusDTO = SignageStatusDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .deviceName(device.getDeviceName())
+                    .isConnect(device.getIsConnect())
+                    .build();
+
+            signageStatusDTOList.add(signageStatusDTO);
+        }
+
+        return signageStatusDTOList;
     }
 }

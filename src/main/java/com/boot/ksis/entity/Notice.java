@@ -4,6 +4,7 @@ import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,4 +38,9 @@ public class Notice extends BaseEntity {
 
     //노출 종료일
     private LocalDate endDate;
+
+   // 활성화 상태 (추가)
+    @Column(name = "is_active", nullable = false, columnDefinition = "TINYINT(1)")
+    @ColumnDefault("1") // 활성화 1
+    private boolean isActive = true;  // 기본값: 활성 상태
 }

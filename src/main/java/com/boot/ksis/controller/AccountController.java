@@ -65,8 +65,13 @@ public class AccountController {
     }
 
     @GetMapping("/admin/accountList")
-    public ResponseEntity<?> accountList() {
-        return new ResponseEntity<>(accountService.getAccountList(), HttpStatus.OK);
+    public ResponseEntity<?> accountList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) String searchCategory
+    ) {
+        return new ResponseEntity<>(accountService.getAccountList(page, size, searchTerm, searchCategory), HttpStatus.OK);
     }
 
     @PostMapping("/login")

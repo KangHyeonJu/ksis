@@ -17,9 +17,25 @@ import java.util.List;
 public class ResolutionController {
     private final ResolutionService resolutionService;
 
+    @GetMapping("/all")
+    public ResponseEntity<?> resolutionList(@RequestParam int page,
+                                                              @RequestParam int size,
+                                                              @RequestParam(required = false) String searchTerm,
+                                                              @RequestParam(required = false) String searchCategory){
+        try{
+            return new ResponseEntity<>(resolutionService.getResolutionList(page, size, searchTerm, searchCategory), HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>("해상도 조회에 실패했습니다.", HttpStatus.OK);
+        }
+    }
+
     @GetMapping()
-    public ResponseEntity<List<ResolutionDTO>> resolutionList(){
-        return new ResponseEntity<>(resolutionService.getResolutionList(), HttpStatus.OK);
+    public ResponseEntity<?> resolutionAll(){
+        try{
+            return new ResponseEntity<>(resolutionService.getResolutionAll(), HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>("해상도 조회에 실패했습니다.", HttpStatus.OK);
+        }
     }
 
     @CustomAnnotation(activityDetail = "해상도 등록")

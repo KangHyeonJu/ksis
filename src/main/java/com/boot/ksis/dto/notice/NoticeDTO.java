@@ -40,4 +40,7 @@ public class NoticeDTO {
     private LocalDateTime regTime;
     //수정 시간
     private LocalDateTime updateTime;
+    
+    //활성화 여부
+    private boolean isActive; 
 }

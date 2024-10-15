@@ -69,6 +69,12 @@ dependencies {
     // random key
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
 
+    // file type
+    implementation 'org.apache.tika:tika-core:2.4.1'
+    
+    //websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 
 }
 

@@ -11,6 +11,9 @@ import com.boot.ksis.util.AESUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -102,9 +105,24 @@ public class AccountService {
         return dto;
     }
 
-    public List<AccountListDTO> getAccountList() {
-        List<Account> accounts = accountRepository.findAll();
-        List<AccountListDTO> accountListDTOs = accounts.stream()
+    public Page<AccountListDTO> getAccountList(int page, int size, String searchTerm, String searchCategory) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Account> accounts;
+
+        // 검색어와 검색 카테고리에 따라 쿼리 다르게 처리
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            accounts = switch (searchCategory) {
+                case "accountId" -> accountRepository.findByAccountIdContainingIgnoreCase(searchTerm, pageable);
+                case "name" -> accountRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
+                case "businessTel" -> accountRepository.findByBusinessTelContainingIgnoreCase(searchTerm, pageable);
+                case "isActive" -> accountRepository.findByIsActive(Boolean.parseBoolean(searchTerm), pageable);
+                default -> accountRepository.findAll(pageable);
+            };
+        } else {
+            accounts = accountRepository.findAll(pageable);
+        }
+
+        Page<AccountListDTO> accountListDTOs = accounts
                 .map(account -> {
                     AccountListDTO dto = new AccountListDTO();
                     dto.setAccountId(account.getAccountId());
@@ -121,10 +139,15 @@ public class AccountService {
 
                     dto.setIsActive(account.getIsActive());
                     return dto;
-                })
-                .collect(Collectors.toList());
+                });
 
-        System.out.println("AccountListDto : " + accountListDTOs);
+        accountListDTOs.forEach(dto -> {
+            System.out.println("AccountId: " + dto.getAccountId());
+            System.out.println("Name: " + dto.getName());
+            System.out.println("BusinessTel: " + dto.getBusinessTel());
+            System.out.println("IsActive: " + dto.getIsActive());
+            System.out.println("-----------------------------");
+        });
         return accountListDTOs;
     }
 

@@ -44,4 +44,5 @@ public class DetailNoticeDTO {
         // 노출 종료일
         private LocalDate endDate;
 
+
 }
