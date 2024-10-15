@@ -32,7 +32,11 @@ public class SignageController {
 
     //재생장치 목록 조회
     @GetMapping()
-    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role){
+    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role,
+                                         @RequestParam int page,
+                                         @RequestParam int size,
+                                         @RequestParam(required = false) String searchTerm,
+                                         @RequestParam(required = false) String searchCategory){
         //현재 로그인한 id 가져오기
         String accountId = principal.getName();
 

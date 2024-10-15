@@ -60,19 +60,39 @@ public class SignageService {
     public List<DeviceListDTO> getSignageUser(String accountId){
         List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);
 
-        //해당 디바이스의 정보를 DTO에 담아서 return
-        return deviceList.stream().map(device -> {
-            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceTypeAndDeviceName(accountId, DeviceType.SIGNAGE, searchTerm, pageable);
+            }else {
+                deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findDevicesByAccountIdAndDeviceType(accountId, DeviceType.SIGNAGE, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
                         return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
-        }).collect(Collectors.toList());
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
     //모든 재생장치 조회
@@ -80,19 +100,48 @@ public class SignageService {
         //디바이스 목록에서 SIGNAGE만 조회
         List<Device> deviceList = signageRepository.findByDeviceTypeOrderByRegTimeDesc(DeviceType.SIGNAGE);
 
-        //해당 디바이스의 정보를 DTO에 담아서 return
-        return deviceList.stream().map(device -> {
-            //계정-디바이스 맵핑 테이블에서 디바이스아이디로 해당 디바이스의 담당자들을 가져옴
+        Page<Device> deviceList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("deviceName")){
+                deviceList = pcRepository.findByDeviceTypeAndDeviceNameContainingIgnoreCase(DeviceType.SIGNAGE, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                // accountId 또는 name 에서 검색
+                List<AccountDeviceMap> accountDeviceMaps = accountDeviceMapRepository.searchByAccountIdOrName(searchTerm, DeviceType.SIGNAGE);
+
+                List<Long> deviceIds = accountDeviceMaps.stream()
+                        .map(map -> map.getDevice().getDeviceId())
+                        .collect(Collectors.toList());
+
+                deviceList = pcRepository.findByDeviceIdIn(deviceIds, pageable);
+            }else {
+                deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+            }
+        }else {
+            deviceList = pcRepository.findByDeviceType(DeviceType.SIGNAGE, pageable);
+        }
+        List<DeviceListDTO> deviceListDTOList = new ArrayList<>();
+
+        for(Device device : deviceList){
             List<AccountDeviceDTO> accountDTOList = accountDeviceMapRepository.findByDeviceId(device.getDeviceId())
                     .stream()
                     .map(map -> {
                         Account account = map.getAccount();
                         return new AccountDeviceDTO(account.getAccountId(), account.getName());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            return new DeviceListDTO(device.getDeviceId(), device.getDeviceName(), accountDTOList, device.getRegTime());
-        }).collect(Collectors.toList());
+            DeviceListDTO deviceListDTO = DeviceListDTO.builder()
+                    .deviceId(device.getDeviceId())
+                    .accountList(accountDTOList)
+                    .deviceName(device.getDeviceName())
+                    .regDate(device.getRegTime())
+                    .build();
+
+            deviceListDTOList.add(deviceListDTO);
+        }
+
+        return new PageImpl<>(deviceListDTOList, pageable, deviceList.getTotalElements());
     }
 
     //담당자로 등록된 재생장치 목록 조회
