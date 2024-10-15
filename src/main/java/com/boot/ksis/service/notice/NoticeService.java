@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -60,16 +61,31 @@ public class NoticeService {
     }
 
 
-    // 공지 조회 (전체)
-    public List<DeviceListDTO> getAllNotices() {
-        List<Notice> notices = noticeRepository.findAll(Sort.by(Sort.Direction.DESC, "regTime"));
+    //ADMIN 공지 조회 (활성화 된 것 전체)
+    public List<DeviceListDTO> getAllActiveNotices() {
+        // 활성화된 공지들만 조회
+        List<Notice> notices = noticeRepository.findByIsActiveOrderByRegTimeDesc(true);
         return convertNoticesToDTO(notices);
     }
 
-    // 공지 조회 (본인 공지)
-    public List<DeviceListDTO> getUserNotices(String accountId) {
-        List<Notice> notices = noticeRepository.findByAccount_AccountIdOrderByRegTimeDesc(accountId);
-        List<Notice> adminNotices = noticeRepository.findByAccount_RoleOrderByRegTimeDesc(Role.ADMIN);
+    //ADMIN 공지 조회(비활성화 전체)
+    public List<DeviceListDTO> getAllNoneActiveNotices() {
+        // 활성화된 공지들만 조회
+        List<Notice> notices = noticeRepository.findByIsActiveOrderByRegTimeDesc(false);
+        return convertNoticesToDTO(notices);
+    }
+
+    //USER 공지 조회 (활성화 본인 공지)
+    public List<DeviceListDTO> getUserActiveNotices(String accountId) {
+        List<Notice> notices = noticeRepository.findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(accountId, true);
+        List<Notice> adminNotices = noticeRepository.findByAccount_RoleAndIsActiveOrderByRegTimeDesc(Role.ADMIN, true);
+        return convertUserNoticesToDTO(notices, adminNotices);
+    }
+
+    //USER 공지 조회 (비활성화 본인 공지)
+    public List<DeviceListDTO> getUserNoneActiveNotices(String accountId) {
+        List<Notice> notices = noticeRepository.findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(accountId, false);
+        List<Notice> adminNotices = noticeRepository.findByAccount_RoleAndIsActiveOrderByRegTimeDesc(Role.ADMIN, true);
         return convertUserNoticesToDTO(notices, adminNotices);
     }
 
@@ -140,33 +156,40 @@ public class NoticeService {
 
     // 공지 상세 조회
     public DetailNoticeDTO getNoticeById(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId).orElse(null);
+        // 비활성화된 공지를 포함한 조회
+        Optional<Notice> noticeOptional = noticeRepository.findByNoticeIdAndIsActiveOrderByRegTimeDesc(noticeId, true);
+
+        // 공지가 비활성화된 경우 예외 처리
+        if (noticeOptional.isEmpty()) {
+            throw new RuntimeException("해당 공지는 비활성화된 상태입니다."); // 예외 던지기
+        }
+
+        Notice notice = noticeOptional.get(); // 공지를 가져옵니다.
         DetailNoticeDTO dto = new DetailNoticeDTO();
-            if (notice != null) {
-                dto.setNoticeId(notice.getNoticeId());
-                dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
-                dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
-                dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
-                dto.setTitle(notice.getTitle());
-                dto.setContent(notice.getContent());
-                dto.setRegDate(notice.getRegTime());
-                dto.setStartDate(notice.getStartDate());
-                dto.setEndDate(notice.getEndDate());
 
-                // 디바이스 정보 설정
-                List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
+        dto.setNoticeId(notice.getNoticeId());
+        dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
+        dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
+        dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
+        dto.setTitle(notice.getTitle());
+        dto.setContent(notice.getContent());
+        dto.setRegDate(notice.getRegTime());
+        dto.setStartDate(notice.getStartDate());
+        dto.setEndDate(notice.getEndDate());
 
-                List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
-                for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
-                    Device device = deviceNoticeMap.getDevice();
+        // 디바이스 정보 설정
+        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
 
-                    DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(),
-                            device.getDeviceName());
+        List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
+        for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
+            Device device = deviceNoticeMap.getDevice();
 
-                    deviceNoticeDTOList.add(deviceNoticeDTO);
-                }
-                dto.setDeviceList(deviceNoticeDTOList);
-            }
+            DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(),
+                    device.getDeviceName());
+
+            deviceNoticeDTOList.add(deviceNoticeDTO);
+        }
+        dto.setDeviceList(deviceNoticeDTOList);
 
         return dto;
     }
@@ -188,14 +211,23 @@ public class NoticeService {
     }
 
     @Transactional
-    // 공지 삭제
-    public void deleteNotice(Long noticeId) {
+    // 공지 비활성화
+    public void DeactivationNotice(Long noticeId) {
+
+        // 공지 엔티티 조회
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new RuntimeException("해당 공지를 찾을 수 없습니다."));
+
         // 해당 공지에 대한 디바이스 매핑 삭제
         deviceNoticeMapRepository.deleteByNoticeId(noticeId);
 
-        // 공지 삭제
-        noticeRepository.deleteByNoticeId(noticeId);
+        // 공지 비활성화
+        notice.setActive(false);
+
+        // 공지 저장 (변경 사항 반영)
+        noticeRepository.save(notice);
     }
+
 
 
     // 공지 수정

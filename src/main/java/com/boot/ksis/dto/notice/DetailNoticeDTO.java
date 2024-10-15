@@ -44,4 +44,7 @@ public class DetailNoticeDTO {
         // 노출 종료일
         private LocalDate endDate;
 
+        //활성화 여부
+        private boolean isActive;
+
 }

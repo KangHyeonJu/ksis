@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -14,7 +15,11 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     void deleteByNoticeId(Long noticeId);
 
     // Account 엔터티의 accountId로 공지 조회
-    List<Notice> findByAccount_AccountIdOrderByRegTimeDesc(String accountId);
+    List<Notice> findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(String accountId, boolean isActive);
 
-    List<Notice> findByAccount_RoleOrderByRegTimeDesc(Role role);
+    List<Notice> findByAccount_RoleAndIsActiveOrderByRegTimeDesc(Role role, boolean isActive);
+
+    List<Notice> findByIsActiveOrderByRegTimeDesc(boolean isActive);
+
+    Optional<Notice> findByNoticeIdAndIsActiveOrderByRegTimeDesc(Long noticeId, boolean isActive);
 }
