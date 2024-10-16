@@ -181,7 +181,7 @@ public class FileBoardController {
     @CustomAnnotation(activityDetail = "원본 파일 삭제")
     @DeleteMapping("/original/{originalResource}")
     public ResponseEntity<Void> deleteFile(@PathVariable Long originalResource) {
-        fileBoardService.deleteFile(originalResource);
+        fileBoardService.deactivationFile(originalResource);
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
 
