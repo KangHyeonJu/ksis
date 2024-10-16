@@ -38,6 +38,8 @@ public class NoticeController {
         noticeDTO.setName(noticeDTO.getName());
         //공지 등록
         noticeService.createNotice(noticeDTO);
+
+        deviceWebSocketHandler.sendNoticeUpdateMessage(noticeDTO.getDeviceIds());
         return ResponseEntity.ok("공지가 정상적으로 등록되었습니다.");
     }
 
