@@ -26,6 +26,4 @@ public class ResourceListDTO {
     private String format;
     //등록일
     private LocalDateTime regTime;
-    //활성화
-  //
 }

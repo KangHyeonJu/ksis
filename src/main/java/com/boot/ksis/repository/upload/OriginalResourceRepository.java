@@ -35,4 +35,6 @@ public interface OriginalResourceRepository extends JpaRepository<OriginalResour
     //본인이 업로드 완료한 것만 조회
     List<OriginalResource> findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc(Account accountId, ResourceStatus resourceStatus, Boolean isActive);
 
+    //관리자 조회
+    List<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive);
 }
