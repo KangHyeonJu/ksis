@@ -86,7 +86,7 @@ public class FileBoardService {
     }
 
     // 본인이 업로드한 원본 이미지 파일만 조회
-    public List<ResourceListDTO> getRsImageFiles(Account accountId, Role role) {
+    public List<ResourceListDTO> getRsActiveImageFiles(Account accountId, Role role) {
 
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
@@ -136,7 +136,7 @@ public class FileBoardService {
 
 
     // 인코딩된 이미지 파일만 조회
-    public List<EncodeListDTO> getEcImageFiles(Account accountId, Role role) {
+    public List<EncodeListDTO> getEcActiveImageFiles(Account accountId, Role role) {
 
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
@@ -198,7 +198,7 @@ public class FileBoardService {
 
 
     // 본인이 업로드한, 업로드가 완료된 원본 동영상 파일만 조회
-    public List<ResourceListDTO> getRsVideoFiles(Account accountId, Role role) {
+    public List<ResourceListDTO> getRsActiveVideoFiles(Account accountId, Role role) {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
         if(role.equals(Role.ADMIN)){
@@ -246,7 +246,7 @@ public class FileBoardService {
     }
 
     //본인이 올린 동영상 파일만 조회(인코딩이 완료된것만)
-    public List<EncodeListDTO> getEcVideoFiles(Account accountId, Role role) {
+    public List<EncodeListDTO> getEcActiveVideoFiles(Account accountId, Role role) {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
         if(role.equals(Role.ADMIN)){

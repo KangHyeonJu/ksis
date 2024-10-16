@@ -39,7 +39,7 @@ public class FileBoardController {
     }
 
     // 업로드된 원본 이미지 파일 목록 조회
-    @GetMapping("/RsImages")
+    @GetMapping("/Active/RsImages")
     public ResponseEntity<?> getRsImageFiles(Principal principal) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -58,13 +58,13 @@ public class FileBoardController {
         Role role = account.getRole();
 
         // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
-        List<ResourceListDTO> imageFiles = fileBoardService.getRsImageFiles(account, role);
+        List<ResourceListDTO> imageFiles = fileBoardService.getRsActiveImageFiles(account, role);
 
         return ResponseEntity.ok(imageFiles);
     }
 
     // 업로드된 원본 동영상 파일 목록 조회
-    @GetMapping("/RsVideos")
+    @GetMapping("/Active/RsVideos")
     public ResponseEntity<?> getVideoFiles(Principal principal) {
 
         if (principal == null) {
@@ -84,7 +84,7 @@ public class FileBoardController {
         Role role = account.getRole();
 
 
-        List<ResourceListDTO> videoFiles = fileBoardService.getRsVideoFiles(account, role);
+        List<ResourceListDTO> videoFiles = fileBoardService.getRsActiveVideoFiles(account, role);
         return ResponseEntity.ok(videoFiles);
     }
 
@@ -110,7 +110,7 @@ public class FileBoardController {
         Role role = account.getRole();
 
         // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
-        List<EncodeListDTO> imageFiles = fileBoardService.getEcImageFiles(account, role);
+        List<EncodeListDTO> imageFiles = fileBoardService.getEcActiveImageFiles(account, role);
 
         return ResponseEntity.ok(imageFiles);
 
@@ -136,7 +136,7 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        List<EncodeListDTO> videoFiles = fileBoardService.getEcVideoFiles(account, role);
+        List<EncodeListDTO> videoFiles = fileBoardService.getEcActiveVideoFiles(account, role);
         return ResponseEntity.ok(videoFiles);
     }
 
