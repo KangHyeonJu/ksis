@@ -374,9 +374,9 @@ public class FileBoardService {
 
             // 리소스 타입에 따른 용량 처리
             if (originalResource.getResourceType() == ResourceType.IMAGE) {
-                fileSize.setTotalImage(fileSize.getTotalImage() - totalEncodedFileSize);
+                fileSize.setTotalEncodedImage(fileSize.getTotalEncodedImage() - totalEncodedFileSize);
             } else if (originalResource.getResourceType() == ResourceType.VIDEO) {
-                fileSize.setTotalVideo(fileSize.getTotalVideo() - totalEncodedFileSize);
+                fileSize.setTotalEncodedVideo(fileSize.getTotalEncodedVideo() - totalEncodedFileSize);
             }
         }
 

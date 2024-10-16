@@ -49,10 +49,6 @@ public class FileBoardController {
         // Account 객체를 repository를 통해 조회
         Account accountOptional = accountRepository.findById(accountId).orElse(null);
 
-//        if (!accountOptional.isPresent()) {
-//            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
-//        }
-
         // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
         List<ResourceListDTO> imageFiles = fileBoardService.getRsImageFiles(accountOptional);
 
