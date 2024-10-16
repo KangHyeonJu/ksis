@@ -720,6 +720,9 @@ public class SignageService {
         //재생 순서에 따라 인코딩 resource 담기
         for(PlaylistSequence playlistSequence : playlistSequenceList){
             EncodedResource encodedResource = playlistSequence.getEncodedResource();
+
+            String[] resolution = encodedResource.getResolution().split("x");
+
             float playTime;
 
             if(encodedResource.getResourceType() == ResourceType.IMAGE){ //이미지일 경우 재생목록에 설정된 재생시간 적용
@@ -727,12 +730,14 @@ public class SignageService {
             }else {
                 playTime = encodedResource.getPlayTime(); //영상의 경우 영상 재생시간 적용
             }
+
             PlayDTO playDTO = PlayDTO.builder()
                     .playTime(playTime)
                     .resourceType(encodedResource.getResourceType())
                     .encodedResourceId(encodedResource.getEncodedResourceId())
                     .filePath(encodedResource.getFilePath())
                     .sequence(playlistSequence.getSequence())
+                    .resolution(Integer.parseInt(resolution[0]) > Integer.parseInt(resolution[1]))
                     .build();
 
             playDTOList.add(playDTO);

@@ -1,6 +1,6 @@
-package com.boot.ksis.controller;
+package com.boot.ksis.controller.account;
 
-import com.boot.ksis.service.MacService;
+import com.boot.ksis.service.account.MacService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

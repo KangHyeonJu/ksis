@@ -1,7 +1,7 @@
 package com.boot.ksis.controller.signage;
 
 import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.config.DeviceWebSocketHandler;
+import com.boot.ksis.handler.DeviceWebSocketHandler;
 import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;

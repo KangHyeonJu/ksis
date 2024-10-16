@@ -1,4 +1,4 @@
-package com.boot.ksis.controller.pc;
+package com.boot.ksis.controller.electron;
 
 import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;

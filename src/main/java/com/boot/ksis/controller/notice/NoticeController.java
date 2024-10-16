@@ -1,7 +1,7 @@
 package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.config.DeviceWebSocketHandler;
+import com.boot.ksis.handler.DeviceWebSocketHandler;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;

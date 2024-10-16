@@ -1,6 +1,6 @@
 package com.boot.ksis.service.notification;
 
-import com.boot.ksis.config.NotificationWebSocketHandler;
+import com.boot.ksis.handler.NotificationWebSocketHandler;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.notification.UploadNotificationDTO;
 import com.boot.ksis.dto.notification.AccountNotificationDTO;
@@ -8,7 +8,6 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
-import com.boot.ksis.service.sse.SseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

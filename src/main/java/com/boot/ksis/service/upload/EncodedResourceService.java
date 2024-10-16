@@ -1,13 +1,12 @@
 package com.boot.ksis.service.upload;
 
-import com.boot.ksis.config.NotificationWebSocketHandler;
+import com.boot.ksis.handler.NotificationWebSocketHandler;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.repository.account.AccountRepository;
-import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;

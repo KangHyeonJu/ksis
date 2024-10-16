@@ -1,4 +1,4 @@
-package com.boot.ksis.repository;
+package com.boot.ksis.repository.signage;
 
 import com.boot.ksis.entity.Device;
 import org.springframework.data.jpa.repository.JpaRepository;

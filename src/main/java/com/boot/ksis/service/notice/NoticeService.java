@@ -6,7 +6,7 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.Notice;
-import com.boot.ksis.repository.DeviceRepository;
+import com.boot.ksis.repository.signage.DeviceRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;

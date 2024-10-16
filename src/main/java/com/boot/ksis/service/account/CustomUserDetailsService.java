@@ -1,4 +1,4 @@
-package com.boot.ksis.service;
+package com.boot.ksis.service.account;
 
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.repository.account.AccountRepository;

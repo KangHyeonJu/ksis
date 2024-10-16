@@ -1,12 +1,12 @@
-package com.boot.ksis.controller;
+package com.boot.ksis.controller.account;
 
 import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.account.AccountActiveDTO;
 import com.boot.ksis.dto.account.AccountDTO;
 import com.boot.ksis.dto.login.LoginDTO;
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.service.AccountService;
-import com.boot.ksis.service.AuthService;
+import com.boot.ksis.service.account.AccountService;
+import com.boot.ksis.service.account.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
