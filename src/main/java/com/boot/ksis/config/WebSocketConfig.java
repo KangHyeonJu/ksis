@@ -13,12 +13,16 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final DeviceWebSocketHandler deviceWebSocketHandler;
     private final MainWebSocketHandler mainWebSocketHandler;
+    private final LoginWebSocketHandler loginWebSocketHandler;
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(deviceWebSocketHandler, "/ws/device")
                 .setAllowedOrigins("*");
 
         registry.addHandler(mainWebSocketHandler, "/ws/main")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(loginWebSocketHandler, "/ws/login")
                 .setAllowedOrigins("*");
     }
 }

@@ -37,8 +37,6 @@ public class AuthController {
     @DeleteMapping("/logout/{accountId}")
     public ResponseEntity<?> logout(@PathVariable String accountId){
         authService.deleteRefreshToken(accountId);
-//        eventController.sendLogoutEvent(accountId); // 로그아웃 이벤트 전송
-        sseEmitterService.sendLogoutEvent(accountId);
 
         System.out.println("RefreshToken deleted by accountId : " + accountId);
         return ResponseEntity.ok("로그아웃 성공");

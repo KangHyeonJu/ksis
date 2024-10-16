@@ -48,7 +48,7 @@ public class JwtTokenProvider {
         long now = (new Date()).getTime();
 
 //        // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 5 * 60 * 1000); // 5분
+        Date accessTokenExpiresIn = new Date(now + 15 * 60 * 1000); // 15분
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -58,7 +58,7 @@ public class JwtTokenProvider {
 
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 24 * 60 * 60 * 1000 )) // 1일
+                .setExpiration(new Date(now + 24 * 60 * 60 * 1000 * 7)) // 7일
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -107,6 +107,11 @@ public class JwtTokenProvider {
             log.info("JWT claims string is empty.", e); // 토큰이 비어 있거나 잘못된 경우 처리
         }
         return false;
+    }
+
+    public String getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getSubject(); // 여기서 사용자 ID를 반환
     }
 
     // accessToken
