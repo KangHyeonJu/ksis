@@ -2,6 +2,7 @@ package com.boot.ksis.service.file;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
+import com.boot.ksis.constant.Role;
 import com.boot.ksis.controller.log.AccessLogController;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
@@ -85,8 +86,29 @@ public class FileBoardService {
     }
 
     // 본인이 업로드한 원본 이미지 파일만 조회
-    public List<ResourceListDTO> getRsImageFiles(Account accountId) {
+    public List<ResourceListDTO> getRsImageFiles(Account accountId, Role role) {
+
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+
+        if(role.equals(Role.ADMIN)){
+            List<OriginalResource> originalResourceList
+                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}else{
 
         // accountId로 본인이 업로드한 이미지만 조회
         List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
@@ -106,7 +128,7 @@ public class FileBoardService {
                     originalResource.getRegTime()
             );
             resourceListDTOList.add(resource);
-        }
+        }}
 
         // 최종적으로 생성된 resourceListDTOList 반환
         return resourceListDTOList;
@@ -114,83 +136,172 @@ public class FileBoardService {
 
 
     // 인코딩된 이미지 파일만 조회
-    public List<EncodeListDTO> getEcImageFiles(Account accountId) {
+    public List<EncodeListDTO> getEcImageFiles(Account accountId, Role role) {
+
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
-        // 로그인한 사용자의 originalResource를 먼저 필터링
-        List<OriginalResource> originalResourceList = originalResourceRepository
-                .findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc
-                        (accountId, ResourceStatus.COMPLETED,true);
+        if(role.equals(Role.ADMIN)){
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
 
-        // 해당 originalResourceId와 연관된 인코딩 리소스 조회
-        List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
-                originalResourceList, ResourceStatus.COMPLETED, ResourceType.IMAGE);
+            // 해당 originalResourceId와 연관된 인코딩 리소스 조회
+            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
+                    originalResourceList, ResourceStatus.COMPLETED, ResourceType.IMAGE);
 
-        // 필터링된 encodedResource로 DTO 생성
-        for (EncodedResource encodedResource : encodedResourceList) {
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+            // 필터링된 encodedResource로 DTO 생성
+            for (EncodedResource encodedResource : encodedResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
 
-            // EncodeListDTO 객체 생성 후 리스트에 추가
-            EncodeListDTO encoded = new EncodeListDTO(
-                    encodedResource.getEncodedResourceId(),
-                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                    encodedResource.getFilePath(),
-                    encodedResource.getFileTitle(),
-                    encodedResource.getResolution(),
-                    encodedResource.getFormat(),
-                    encodedResource.getRegTime()
-            );
+                // EncodeListDTO 객체 생성 후 리스트에 추가
+                EncodeListDTO encoded = new EncodeListDTO(
+                        encodedResource.getEncodedResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        encodedResource.getFilePath(),
+                        encodedResource.getFileTitle(),
+                        encodedResource.getResolution(),
+                        encodedResource.getFormat(),
+                        encodedResource.getRegTime()
+                );
 
-            encodeListDTOList.add(encoded);
+                encodeListDTOList.add(encoded);
+            }
+        }else {
+
+            // 로그인한 사용자의 originalResource를 먼저 필터링
+            List<OriginalResource> originalResourceList = originalResourceRepository
+                    .findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc
+                            (accountId, ResourceStatus.COMPLETED, true);
+
+            // 해당 originalResourceId와 연관된 인코딩 리소스 조회
+            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
+                    originalResourceList, ResourceStatus.COMPLETED, ResourceType.IMAGE);
+
+            // 필터링된 encodedResource로 DTO 생성
+            for (EncodedResource encodedResource : encodedResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+                // EncodeListDTO 객체 생성 후 리스트에 추가
+                EncodeListDTO encoded = new EncodeListDTO(
+                        encodedResource.getEncodedResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        encodedResource.getFilePath(),
+                        encodedResource.getFileTitle(),
+                        encodedResource.getResolution(),
+                        encodedResource.getFormat(),
+                        encodedResource.getRegTime()
+                );
+
+                encodeListDTOList.add(encoded);
+            }
         }
-
         return encodeListDTOList;
     }
 
 
     // 본인이 업로드한, 업로드가 완료된 원본 동영상 파일만 조회
-    public List<ResourceListDTO> getRsVideoFiles(Account accountId) {
+    public List<ResourceListDTO> getRsVideoFiles(Account accountId, Role role) {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
-        // accountId로 본인이 업로드한 영상 조회
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
-                accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
-        for (OriginalResource originalResource : originalResourceList) {
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            ResourceListDTO resource = new ResourceListDTO(
-                    originalResource.getOriginalResourceId(),
-                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                    originalResource.getFilePath(),
-                    originalResource.getFileTitle(),
-                    originalResource.getResolution(),
-                    originalResource.getFormat(),
-                    originalResource.getRegTime());
-            resourceListDTOList.add(resource);
-        }
+        if(role.equals(Role.ADMIN)){
+            List<OriginalResource> originalResourceList
+                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}else{
+
+            // accountId로 본인이 업로드한 이미지만 조회
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+                    accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}
+
+        // 최종적으로 생성된 resourceListDTOList 반환
         return resourceListDTOList;
     }
 
     //본인이 올린 동영상 파일만 조회(인코딩이 완료된것만)
-    public List<EncodeListDTO> getEcVideoFiles(Account accountId) {
+    public List<EncodeListDTO> getEcVideoFiles(Account accountId, Role role) {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
-        // 로그인한 사용자의 originalResource를 먼저 필터링
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc(accountId, ResourceStatus.COMPLETED, true);
+        if(role.equals(Role.ADMIN)){
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
 
-        List<EncodedResource> EncodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
-                originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
-        for (EncodedResource encodedResource : EncodedResourceList){
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
-            EncodeListDTO encoded = new EncodeListDTO(encodedResource.getEncodedResourceId(),
-                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                    encodedResource.getFilePath(),
-                    encodedResource.getFileTitle(),
-                    encodedResource.getResolution(),
-                    encodedResource.getFormat(),
-                    encodedResource.getRegTime());
-            encodeListDTOList.add(encoded);
+            // 해당 originalResourceId와 연관된 인코딩 리소스 조회
+            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
+                    originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
+
+            // 필터링된 encodedResource로 DTO 생성
+            for (EncodedResource encodedResource : encodedResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+                // EncodeListDTO 객체 생성 후 리스트에 추가
+                EncodeListDTO encoded = new EncodeListDTO(
+                        encodedResource.getEncodedResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        encodedResource.getFilePath(),
+                        encodedResource.getFileTitle(),
+                        encodedResource.getResolution(),
+                        encodedResource.getFormat(),
+                        encodedResource.getRegTime()
+                );
+
+                encodeListDTOList.add(encoded);
+            }
+        }else {
+
+            // 로그인한 사용자의 originalResource를 먼저 필터링
+            List<OriginalResource> originalResourceList = originalResourceRepository
+                    .findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc
+                            (accountId, ResourceStatus.COMPLETED, true);
+
+            // 해당 originalResourceId와 연관된 인코딩 리소스 조회
+            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
+                    originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
+
+            // 필터링된 encodedResource로 DTO 생성
+            for (EncodedResource encodedResource : encodedResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+                // EncodeListDTO 객체 생성 후 리스트에 추가
+                EncodeListDTO encoded = new EncodeListDTO(
+                        encodedResource.getEncodedResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        encodedResource.getFilePath(),
+                        encodedResource.getFileTitle(),
+                        encodedResource.getResolution(),
+                        encodedResource.getFormat(),
+                        encodedResource.getRegTime()
+                );
+
+                encodeListDTOList.add(encoded);
+            }
         }
-
         return encodeListDTOList;
     }
 
