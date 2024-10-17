@@ -4,8 +4,11 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Base.BaseEntity;
 import com.boot.ksis.entity.EncodedResource;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "upload_log")

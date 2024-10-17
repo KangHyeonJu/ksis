@@ -4,8 +4,10 @@ import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
 import com.boot.ksis.entity.*;
+import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.file.FileSizeRepository;
+import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
@@ -46,6 +48,7 @@ public class OriginalResourceService {
     private final FileSizeRepository fileSizeRepository;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
+    private final UploadLogRepository uploadLogRepository;
 
     @Value("${uploadLocation}")
     String uploadLocation;
@@ -144,6 +147,8 @@ public class OriginalResourceService {
                 updateStatusToFail(fileName);
                 // 실패알림 전송
                 failNotification(fileName);
+                // 업로드 실패 로그 저장
+                uploadLog(fileName);
 
                 // 예외 재발생하여 메서드 종료
                 throw new RuntimeException("청크 업로드 실패", e);
@@ -341,5 +346,21 @@ public class OriginalResourceService {
             executorService.shutdown();
         }
     }
+
+    // 업로드 실패 로그 메서드
+    public void uploadLog(String fileName){
+        // fileName에 해당하는 OriginalResource를 찾음
+        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findByFileName(fileName);
+
+        Account userAccount = originalResourceOpt.get().getAccount();
+
+        UploadLog uploadLog = new UploadLog();
+        uploadLog.setAccount(userAccount);
+        uploadLog.setMessage(fileName + " 업로드 실패");
+
+        uploadLogRepository.save(uploadLog);
+
+    }
+
 
 }

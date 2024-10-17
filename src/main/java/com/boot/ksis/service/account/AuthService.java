@@ -1,8 +1,8 @@
-package com.boot.ksis.service;
+package com.boot.ksis.service.account;
 
 import com.boot.ksis.dto.login.JwtTokenDTO;
 import com.boot.ksis.entity.RefreshToken;
-import com.boot.ksis.repository.RefreshTokenRepository;
+import com.boot.ksis.repository.account.RefreshTokenRepository;
 import com.boot.ksis.util.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

@@ -25,4 +25,7 @@ public class PlayDTO {
 
     //재생시간
     private float playTime;
+
+    //파일 해상도
+    private boolean resolution;
 }

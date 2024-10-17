@@ -1,4 +1,4 @@
-package com.boot.ksis.config;
+package com.boot.ksis.handler;
 
 import com.boot.ksis.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
