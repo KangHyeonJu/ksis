@@ -60,7 +60,6 @@ public class NoticeService {
 
     }
 
-
     //ADMIN 공지 조회 (활성화 된 것 전체)
     public List<DeviceListDTO> getAllActiveNotices() {
         // 활성화된 공지들만 조회

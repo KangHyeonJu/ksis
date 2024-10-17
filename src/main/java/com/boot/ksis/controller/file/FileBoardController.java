@@ -39,8 +39,8 @@ public class FileBoardController {
     }
 
     // 업로드된 원본 이미지 파일 목록 조회
-    @GetMapping("/Active/RsImages")
-    public ResponseEntity<?> getRsImageFiles(Principal principal) {
+    @GetMapping("/active/RsImages")
+    public ResponseEntity<?> getActiveRsImageFiles(Principal principal) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -64,8 +64,8 @@ public class FileBoardController {
     }
 
     // 업로드된 원본 동영상 파일 목록 조회
-    @GetMapping("/Active/RsVideos")
-    public ResponseEntity<?> getVideoFiles(Principal principal) {
+    @GetMapping("/active/RsVideos")
+    public ResponseEntity<?> getActiveVideoFiles(Principal principal) {
 
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -85,6 +85,56 @@ public class FileBoardController {
 
 
         List<ResourceListDTO> videoFiles = fileBoardService.getRsActiveVideoFiles(account, role);
+        return ResponseEntity.ok(videoFiles);
+    }
+
+    // 업로드된 비활성화 원본 이미지 파일 목록 조회
+    @GetMapping("/deactivation/Images")
+    public ResponseEntity<?> getDeactivationImageFiles(Principal principal) {
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+
+        if (!accountOptional.isPresent()) {
+            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        Account account = accountOptional.get();
+        Role role = account.getRole();
+
+        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
+        List<ResourceListDTO> imageFiles = fileBoardService.getDeactiveImageFiles(account, role);
+
+        return ResponseEntity.ok(imageFiles);
+    }
+
+    // 업로드된 비활성화 원본 동영상 파일 목록 조회
+    @GetMapping("/deactivation/Videos")
+    public ResponseEntity<?> getDeactivationVideoFiles(Principal principal) {
+
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+
+        if (!accountOptional.isPresent()) {
+            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        Account account = accountOptional.get();
+        Role role = account.getRole();
+
+
+        List<ResourceListDTO> videoFiles = fileBoardService.getDeactiveVideoFiles(account, role);
         return ResponseEntity.ok(videoFiles);
     }
 
@@ -203,11 +253,19 @@ public class FileBoardController {
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
 
+    // 비활성화 한 원본 소스 다시 활성화
+    @CustomAnnotation(activityDetail = "원본 파일 활성화")
+    @PostMapping("/active/{originalResource}")
+    public ResponseEntity<Void> activeFile(@PathVariable Long originalResource) {
+        fileBoardService.activationFile(originalResource);
+        return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
+    }
+
     // 파일 삭제
     // 삭제하면 인코딩 파일, 썸네일 다 DB에서 삭제
-    @CustomAnnotation(activityDetail = "원본 파일 삭제")
-    @DeleteMapping("/original/{originalResource}")
-    public ResponseEntity<Void> deleteFile(@PathVariable Long originalResource) {
+    @CustomAnnotation(activityDetail = "원본 파일 비활성화")
+    @PostMapping("/deactive/{originalResource}")
+    public ResponseEntity<Void> deactiveFile(@PathVariable Long originalResource) {
         fileBoardService.deactivationFile(originalResource);
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }

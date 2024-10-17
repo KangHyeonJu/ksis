@@ -85,12 +85,12 @@ public class FileBoardService {
         return resourceListDTOS;
     }
 
-    // 본인이 업로드한 원본 이미지 파일만 조회
+    // 본인이 업로드한  활성화 된 원본 이미지 파일만 조회
     public List<ResourceListDTO> getRsActiveImageFiles(Account accountId, Role role) {
 
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
-        if(role.equals(Role.ADMIN)){
+        if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList
                     = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
 
@@ -134,13 +134,12 @@ public class FileBoardService {
         return resourceListDTOList;
     }
 
-
     // 인코딩된 이미지 파일만 조회
     public List<EncodeListDTO> getEcActiveImageFiles(Account accountId, Role role) {
 
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
-        if(role.equals(Role.ADMIN)){
+        if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
 
             // 해당 originalResourceId와 연관된 인코딩 리소스 조회
@@ -197,11 +196,11 @@ public class FileBoardService {
     }
 
 
-    // 본인이 업로드한, 업로드가 완료된 원본 동영상 파일만 조회
+    // 본인이 업로드한, 업로드가 완료된 활성화 원본 동영상 파일만 조회
     public List<ResourceListDTO> getRsActiveVideoFiles(Account accountId, Role role) {
         List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
 
-        if(role.equals(Role.ADMIN)){
+        if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList
                     = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
 
@@ -305,6 +304,104 @@ public class FileBoardService {
         return encodeListDTOList;
     }
 
+    //비활성화
+    // 본인이 업로드한  활성화 된 원본 이미지 파일만 조회
+    public List<ResourceListDTO> getDeactiveImageFiles(Account accountId, Role role) {
+
+
+        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+
+        if(role == Role.ADMIN){
+            List<OriginalResource> originalResourceList
+                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}else{
+
+            // accountId로 본인이 업로드한 이미지만 조회
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+                    accountId, ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}
+
+        // 최종적으로 생성된 resourceListDTOList 반환
+        return resourceListDTOList;
+    }
+
+
+    public List<ResourceListDTO> getDeactiveVideoFiles(Account accountId, Role role) {
+        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+
+        if(role == Role.ADMIN){
+            List<OriginalResource> originalResourceList
+                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}else{
+
+            // accountId로 본인이 업로드한 이미지만 조회
+            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+                    accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
+
+            for (OriginalResource originalResource : originalResourceList) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+
+                // ResourceListDTO 객체 생성 후 리스트에 추가
+                ResourceListDTO resource = new ResourceListDTO(
+                        originalResource.getOriginalResourceId(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                        originalResource.getFilePath(),
+                        originalResource.getFileTitle(),
+                        originalResource.getResolution(),
+                        originalResource.getFormat(),
+                        originalResource.getRegTime()
+                );
+                resourceListDTOList.add(resource);
+            }}
+
+        // 최종적으로 생성된 resourceListDTOList 반환
+        return resourceListDTOList;
+    }
 
     // 특정 이미지 원본 파일 조회
     public List<EncodeListDTO> getResourceImgDtl(Long originalResourceId) {
@@ -420,15 +517,21 @@ public class FileBoardService {
         }
     }
 
+    //비활성화 된 파일 다시 활성화
+    public void activationFile(Long id) {
+        OriginalResource originalResource = originalResourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 파일을 찾을 수 없습니다."));
+
+        originalResource.setActive(true);
+        originalResourceRepository.save(originalResource);
+
+    }
 
     // 파일 삭제 및 관련된 썸네일 삭제
-    @Transactional
     public void deactivationFile(Long id) {
         OriginalResource originalResource = originalResourceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 파일을 찾을 수 없습니다."));
         List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
-        ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-
 
         // 리스트 내의 인코딩된 파일 삭제
         for (EncodedResource encodedResource : encodedResources) {
