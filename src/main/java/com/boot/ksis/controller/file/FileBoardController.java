@@ -204,6 +204,8 @@ public class FileBoardController {
             fileEncodingService.imageEncodingBoard(originalResourceId, originResourceListDTO);
             return ResponseEntity.ok("이미지 인코딩이 성공적으로 시작되었습니다 . ");
         } catch (IOException e) {
+            fileEncodingService.encodingNotification(originResourceListDTO, "인코딩 실패");
+            fileEncodingService.encodingLog(originResourceListDTO, "인코딩 실패");
             return ResponseEntity.status(500).body("이미지 인코딩 실패 : " + e.getMessage());
         }
     }
@@ -218,6 +220,8 @@ public class FileBoardController {
             fileEncodingService.videoEncodingBoard(originalResourceId, originResourceListDTO);
             return ResponseEntity.ok("영상 인코딩이 성공적으로 시작되었습니다 . ");
         } catch (IOException e) {
+            fileEncodingService.encodingNotification(originResourceListDTO, "인코딩 실패");
+            fileEncodingService.encodingLog(originResourceListDTO, "인코딩 실패");
             return ResponseEntity.status(500).body("영상 인코딩 실패 : " + e.getMessage());
         }
     }
