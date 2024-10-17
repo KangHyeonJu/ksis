@@ -258,7 +258,7 @@ public class FileBoardController {
     @PostMapping("/active/{originalResource}")
     public ResponseEntity<Void> activeFile(@PathVariable Long originalResource) {
         fileBoardService.activationFile(originalResource);
-        return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
+        return ResponseEntity.noContent().build();  // 활성화 후 성공 응답
     }
 
     // 파일 삭제
@@ -267,7 +267,7 @@ public class FileBoardController {
     @PostMapping("/deactivation/{originalResource}")
     public ResponseEntity<Void> deactivationFile(@PathVariable Long originalResource) {
         fileBoardService.deactivationFile(originalResource);
-        return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
+        return ResponseEntity.noContent().build();  // 비활성화 후 성공 응답
     }
 
     //인코딩 파일 삭제, 인코딩 파일만 DB에서 삭제

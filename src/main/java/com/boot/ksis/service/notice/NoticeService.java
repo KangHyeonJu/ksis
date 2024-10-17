@@ -84,8 +84,8 @@ public class NoticeService {
     //USER 공지 조회 (비활성화 본인 공지)
     public List<DeviceListDTO> getUserNoneActiveNotices(String accountId) {
         List<Notice> notices = noticeRepository.findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(accountId, false);
-        List<Notice> adminNotices = noticeRepository.findByAccount_RoleAndIsActiveOrderByRegTimeDesc(Role.ADMIN, true);
-        return convertUserNoticesToDTO(notices, adminNotices);
+
+        return convertNoticesToDTO(notices);
     }
 
     // 본인 공지 및 관리자 공지 DTO 변환

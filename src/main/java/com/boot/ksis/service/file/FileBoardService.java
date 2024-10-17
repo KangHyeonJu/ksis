@@ -517,6 +517,7 @@ public class FileBoardService {
         }
     }
 
+    @Transactional
     //비활성화 된 파일 다시 활성화
     public void activationFile(Long id) {
         OriginalResource originalResource = originalResourceRepository.findById(id)
@@ -527,6 +528,7 @@ public class FileBoardService {
 
     }
 
+    @Transactional
     // 파일 삭제 및 관련된 썸네일 삭제
     public void deactivationFile(Long id) {
         OriginalResource originalResource = originalResourceRepository.findById(id)
