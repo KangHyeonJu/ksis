@@ -3,6 +3,8 @@ package com.boot.ksis.repository.notice;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.entity.Notice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,4 +24,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     List<Notice> findByIsActiveOrderByRegTimeDesc(boolean isActive);
 
     Optional<Notice> findByNoticeIdAndIsActiveOrderByRegTimeDesc(Long noticeId, boolean isActive);
+
+    @Query("SELECT no FROM Notice no WHERE (no.account.accountId LIKE %:searchTerm% OR no.account.name LIKE %:searchTerm%)")
+    List<Notice> searchByAccountIdOrName(@Param("searchTerm") String searchTerm);
 }

@@ -13,6 +13,7 @@ import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.MapsId.PlaylistSequence;
 import com.boot.ksis.repository.account.AccountDeviceMapRepository;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.notice.NoticeRepository;
 import com.boot.ksis.repository.pc.PcRepository;
 import com.boot.ksis.repository.playlist.PlayListRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
@@ -51,6 +52,7 @@ public class SignageService {
     private final DeviceEncodeMapRepository deviceEncodeMapRepository;
     private final OriginalResourceRepository originalResourceRepository;
     private final PcRepository pcRepository;
+    private final NoticeRepository noticeRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -381,12 +383,26 @@ public class SignageService {
     }
 
     //재생장치 공지 목록 조회
-    public List<SignageNoticeDTO> getSignageNotice(Long signageId){
+    public Page<SignageNoticeDTO> getSignageNotice(Long signageId, int page, int size, String searchTerm, String searchCategory){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "noticeId"));
+
+        Page<DeviceNoticeMap> deviceNoticeMaps;
+
+        if (searchCategory != null && !searchCategory.isEmpty()){
+            if(searchCategory.equals("title")){
+                deviceNoticeMaps = deviceNoticeRepository.findByDeviceIdAndNotice_TitleContainingIgnoreCase(signageId, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                List<Notice> noticeList = noticeRepository.searchByAccountIdOrName(searchTerm);
+
+                deviceNoticeMaps = deviceNoticeRepository.findByDeviceIdAndNoticeIn(signageId, noticeList, pageable);
+            }else {
+                deviceNoticeMaps = deviceNoticeRepository.findByDeviceId(signageId, pageable);
+            }
+        }else {
+            deviceNoticeMaps = deviceNoticeRepository.findByDeviceId(signageId, pageable);
+        }
+
         List<SignageNoticeDTO> signageNoticeDTOList = new ArrayList<>();
-
-        //디바이스-공지 맵핑 테이블에서 디바이스 아이디가 있는 공지 목록 조회
-        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeRepository.findByDeviceId(signageId);
-
 
         for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
             Notice notice = deviceNoticeMap.getNotice();
@@ -399,7 +415,7 @@ public class SignageService {
 
             signageNoticeDTOList.add(signageNoticeDTO);
         }
-        return signageNoticeDTOList;
+        return new PageImpl<>(signageNoticeDTOList, pageable, deviceNoticeMaps.getTotalElements());
     }
 
     //재생장치에 등록된 파일 조회
@@ -791,13 +807,15 @@ public class SignageService {
         for(AccountDeviceMap accountDeviceMap : accountDeviceMaps){
             Device device = accountDeviceMap.getDevice();
 
-            SignageStatusDTO signageStatusDTO = SignageStatusDTO.builder()
-                    .deviceId(device.getDeviceId())
-                    .deviceName(device.getDeviceName())
-                    .isConnect(device.getIsConnect())
-                    .build();
+            if(device.getDeviceType() == DeviceType.SIGNAGE) {
+                SignageStatusDTO signageStatusDTO = SignageStatusDTO.builder()
+                        .deviceId(device.getDeviceId())
+                        .deviceName(device.getDeviceName())
+                        .isConnect(device.getIsConnect())
+                        .build();
 
-            signageStatusDTOList.add(signageStatusDTO);
+                signageStatusDTOList.add(signageStatusDTO);
+            }
         }
 
         return signageStatusDTOList;

@@ -127,9 +127,13 @@ public class SignageController {
 
     //재생장치에 해당하는 공지 조회
     @GetMapping("/notice/{signageId}")
-    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId,
+                                           @RequestParam int page,
+                                           @RequestParam int size,
+                                           @RequestParam(required = false) String searchTerm,
+                                           @RequestParam(required = false) String searchCategory){
         try {
-            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+            return new ResponseEntity<>(signageService.getSignageNotice(signageId, page, size, searchTerm, searchCategory), HttpStatus.OK);
         } catch(EntityNotFoundException e){
             return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
         }
