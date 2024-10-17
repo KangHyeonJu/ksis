@@ -6,7 +6,8 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.Notice;
-import com.boot.ksis.repository.signage.DeviceRepository;
+import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.DeviceRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
 import com.boot.ksis.repository.notice.NoticeRepository;
@@ -60,7 +61,6 @@ public class NoticeService {
 
     }
 
-
     //ADMIN 공지 조회 (활성화 된 것 전체)
     public List<DeviceListDTO> getAllActiveNotices() {
         // 활성화된 공지들만 조회
@@ -85,8 +85,8 @@ public class NoticeService {
     //USER 공지 조회 (비활성화 본인 공지)
     public List<DeviceListDTO> getUserNoneActiveNotices(String accountId) {
         List<Notice> notices = noticeRepository.findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(accountId, false);
-        List<Notice> adminNotices = noticeRepository.findByAccount_RoleAndIsActiveOrderByRegTimeDesc(Role.ADMIN, true);
-        return convertUserNoticesToDTO(notices, adminNotices);
+
+        return convertNoticesToDTO(notices);
     }
 
     // 본인 공지 및 관리자 공지 DTO 변환
@@ -213,7 +213,7 @@ public class NoticeService {
 
     @Transactional
     // 공지 비활성화
-    public void DeactivationNotice(Long noticeId) {
+    public void deactivationNotice(Long noticeId) {
 
         // 공지 엔티티 조회
         Notice notice = noticeRepository.findById(noticeId)
@@ -229,16 +229,16 @@ public class NoticeService {
         noticeRepository.save(notice);
     }
 
-    public List<Long> findDeviceNotice(Long noticeId){
-        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(noticeId);
+    @Transactional
+    //비활성화 된 파일 다시 활성화
+    public void activationNotice(Long noticeId) {
+        // 공지 엔티티 조회
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new RuntimeException("해당 공지를 찾을 수 없습니다."));
 
-        List<Long> deviceIds = new ArrayList<>();
+        notice.setActive(true);
+        noticeRepository.save(notice);
 
-        for(DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps){
-            Long deviceId = deviceNoticeMap.getDeviceId();
-            deviceIds.add(deviceId);
-        }
-        return deviceIds;
     }
 
 
