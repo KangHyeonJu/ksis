@@ -350,7 +350,9 @@ public class FileEncodingService {
         encodedResource.setFileName(fileName);
         encodedResource.setFileTitle(originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution()
                 + "_" + originResourceListDTO.getFormat());
+        System.out.println("getFileTitle : "+originalResource.getFileTitle());
         encodedResource.setResolution(originResourceListDTO.getResolution());
+        System.out.println("getResolution : "+originalResource.getResolution());
         encodedResource.setFormat(originResourceListDTO.getFormat());
         encodedResource.setPlayTime(originalResource.getPlayTime());
         encodedResource.setRegTime(LocalDateTime.now());

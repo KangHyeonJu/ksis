@@ -109,6 +109,11 @@ public class JwtTokenProvider {
         return false;
     }
 
+    public String getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getSubject(); // 여기서 사용자 ID를 반환
+    }
+
     // accessToken
     private Claims parseClaims(String accessToken) {
         try {

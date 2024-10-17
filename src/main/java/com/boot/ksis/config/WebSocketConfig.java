@@ -17,6 +17,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final DeviceWebSocketHandler deviceWebSocketHandler;
     private final MainWebSocketHandler mainWebSocketHandler;
     private final NotificationWebSocketHandler notificationWebSocketHandler;
+    private final LoginWebSocketHandler loginWebSocketHandler;
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(deviceWebSocketHandler, "/ws/device")
@@ -26,6 +27,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOrigins("*");
 
         registry.addHandler(notificationWebSocketHandler, "/ws/notifications")
+        .setAllowedOrigins("*");
+        
+        registry.addHandler(loginWebSocketHandler, "/ws/login")
                 .setAllowedOrigins("*");
     }
 }

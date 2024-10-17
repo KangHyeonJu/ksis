@@ -57,6 +57,7 @@ public class SignageService {
     @PersistenceContext
     private EntityManager entityManager;
 
+
     //담당자로 등록된 재생장치 목록 조회
     public List<DeviceListDTO> getSignageUser(String accountId){
         List<Device> deviceList = signageRepository.findDevicesByAccountIdAndType(accountId, DeviceType.SIGNAGE);

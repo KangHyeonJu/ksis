@@ -242,6 +242,7 @@ public class NoticeService {
 
 
 
+
     // 공지 수정
     @Transactional
     public void updateNotice(Long noticeId, UpdateNoticeDTO updateNoticeDTO) {
