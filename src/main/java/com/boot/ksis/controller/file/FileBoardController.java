@@ -264,8 +264,8 @@ public class FileBoardController {
     // 파일 삭제
     // 삭제하면 인코딩 파일, 썸네일 다 DB에서 삭제
     @CustomAnnotation(activityDetail = "원본 파일 비활성화")
-    @PostMapping("/deactive/{originalResource}")
-    public ResponseEntity<Void> deactiveFile(@PathVariable Long originalResource) {
+    @PostMapping("/deactivation/{originalResource}")
+    public ResponseEntity<Void> deactivationFile(@PathVariable Long originalResource) {
         fileBoardService.deactivationFile(originalResource);
         return ResponseEntity.noContent().build();  // 삭제 후 성공 응답
     }
