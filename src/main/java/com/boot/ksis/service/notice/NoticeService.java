@@ -6,6 +6,7 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Device;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import com.boot.ksis.entity.Notice;
+import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.DeviceRepository;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notice.DeviceNoticeMapRepository;
@@ -212,7 +213,7 @@ public class NoticeService {
 
     @Transactional
     // 공지 비활성화
-    public void DeactivationNotice(Long noticeId) {
+    public void deactivationNotice(Long noticeId) {
 
         // 공지 엔티티 조회
         Notice notice = noticeRepository.findById(noticeId)
@@ -226,6 +227,18 @@ public class NoticeService {
 
         // 공지 저장 (변경 사항 반영)
         noticeRepository.save(notice);
+    }
+
+    @Transactional
+    //비활성화 된 파일 다시 활성화
+    public void activationNotice(Long noticeId) {
+        // 공지 엔티티 조회
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new RuntimeException("해당 공지를 찾을 수 없습니다."));
+
+        notice.setActive(true);
+        noticeRepository.save(notice);
+
     }
 
 

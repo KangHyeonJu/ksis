@@ -52,7 +52,14 @@ public class NoticeController {
     // 공지 비활성화
     @PostMapping("/deactivation/{noticeId}")
     public ResponseEntity<?> DeactivationNotice(@PathVariable Long noticeId) {
-        noticeService.DeactivationNotice(noticeId);
+        noticeService.deactivationNotice(noticeId);
+        return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
+    }
+
+    // 공지 활성화
+    @PostMapping("/activation/{noticeId}")
+    public ResponseEntity<?> ActivationNotice(@PathVariable Long noticeId) {
+        noticeService.activationNotice(noticeId);
         return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
     }
 
