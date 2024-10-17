@@ -294,6 +294,8 @@ public class FileBoardController {
                 return ResponseEntity.status(HttpStatus.ACCEPTED).body("동일한 해상도와 포멧이 존재합니다 .");
             }
         } catch (IOException e) {
+            fileEncodingService.encodingNotification(originResourceListDTO, "인코딩 실패");
+            fileEncodingService.encodingLog(originResourceListDTO, "인코딩 실패");
             return ResponseEntity.status(500).body("이미지 인코딩 실패 : " + e.getMessage());
         }
     }
@@ -311,6 +313,8 @@ public class FileBoardController {
                 return ResponseEntity.status(HttpStatus.ACCEPTED).body("동일한 해상도와 포멧이 존재합니다 .");
             }
         } catch (IOException e) {
+            fileEncodingService.encodingNotification(originResourceListDTO, "인코딩 실패");
+            fileEncodingService.encodingLog(originResourceListDTO, "인코딩 실패");
             return ResponseEntity.status(500).body("영상 인코딩 실패 : " + e.getMessage());
         }
     }

@@ -1,5 +1,7 @@
 package com.boot.ksis.service.file;
 
+import com.boot.ksis.config.NotificationWebSocketHandler;
+import com.boot.ksis.config.ToastNotificationWebSocketHandler;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.upload.OriginalResourceDTO;
@@ -8,6 +10,16 @@ import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.log.UploadLogRepository;
+import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.EncodedResource;
+import com.boot.ksis.entity.Log.ActivityLog;
+import com.boot.ksis.entity.Log.UploadLog;
+import com.boot.ksis.entity.Notification;
+import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.log.ActivityLogRepository;
+import com.boot.ksis.repository.log.UploadLogRepository;
+import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +56,11 @@ public class FileEncodingService {
     private final EncodedResourceRepository encodedResourceRepository;
     private final OriginalResourceRepository originalResourceRepository;
     private final FileSizeService fileSizeService;
+    private final NotificationRepository notificationRepository;
+    private final NotificationWebSocketHandler notificationWebSocketHandler;
+    private final AccountRepository accountRepository;
     private final UploadLogRepository uploadLogRepository;
+    private final ToastNotificationWebSocketHandler toastNotificationWebSocketHandler;
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(OriginResourceListDTO originResourceListDTO) {
@@ -224,7 +240,9 @@ public class FileEncodingService {
 
                 fileSizeService.updateTotalFileSize(encoded);
 
-                updateEncodedResourceCompleteLog(encodedResource, encodedResource.getOriginalResource().getAccount());
+                // 인코딩 알림,로그 저장
+                encodingNotification(originResourceListDTO, "인코딩 완료");
+                encodingLog(originResourceListDTO, "인코딩 완료");
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName);
             }
@@ -365,13 +383,54 @@ public class FileEncodingService {
                 System.out.println("영상 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
 
                 fileSizeService.updateTotalFileSize(encoded);
-                updateEncodedResourceCompleteLog(encodedResource, encodedResource.getOriginalResource().getAccount());
+
+                // 인코딩 알림,로그 저장
+                encodingNotification(originResourceListDTO, "업로드 완료");
+                encodingLog(originResourceListDTO, "인코딩 완료");
             } else {
                 throw new IllegalArgumentException("파일 이름을 찾을 수 없습니다: " + outputFileName); // EncodedResource가 없을 때
             }
         } catch (IOException e) {
             updateEncodedResourceStatusToFail(encodedResource, encodedResource.getOriginalResource().getAccount()); // 인코딩 실패 시 상태 변경
             e.printStackTrace(); // 파일 사이즈 확인 중 오류 발생
+        }
+    }
+    
+    // 인코딩 알림 저장
+    public void encodingNotification(OriginResourceListDTO originResourceListDTO, String message){
+        OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(originResourceListDTO.getOriginalResourceId());
+        String fileTitle = originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat();
+        Account account = accountRepository.findByAccountId(originResourceListDTO.getAccountId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid account ID: " + originResourceListDTO.getAccountId()));
+
+        Notification notification = new Notification();
+        notification.setResourceType(originalResource.getResourceType());
+        notification.setMessage(fileTitle + " " + message);
+        notification.setAccount(account);
+        notification.setIsRead(false);
+        notificationRepository.save(notification);
+
+        notificationWebSocketHandler.sendToUser(originalResource.getAccount().getAccountId(), "알림 웹소켓");
+    }
+
+    // 인코딩 로그 저장
+    public void encodingLog(OriginResourceListDTO originResourceListDTO, String message){
+        try {
+            OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(originResourceListDTO.getOriginalResourceId());
+            String fileTitle = originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat();
+            Account account = accountRepository.findByAccountId(originResourceListDTO.getAccountId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid account ID: " + originResourceListDTO.getAccountId()));
+
+            UploadLog uploadLog = new UploadLog();
+            uploadLog.setAccount(account);
+            uploadLog.setMessage(fileTitle + " " + message);
+
+            uploadLogRepository.save(uploadLog);
+            System.out.println("로그 저장 성공: " + fileTitle + " " + message);
+
+        } catch (Exception e) {
+            System.err.println("로그 저장 실패: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
