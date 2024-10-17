@@ -12,7 +12,6 @@ import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import com.boot.ksis.service.file.FileSizeService;
-import com.boot.ksis.service.sse.SseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,6 @@ public class EncodedResourceService {
     private final OriginalResourceRepository originalResourceRepository;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
-    private final SseEmitterService sseNotificationEmitterService;
     private final NotificationWebSocketHandler notificationWebSocketHandler;
     private final UploadLogRepository uploadLogRepository;
     private final FileSizeService fileSizeService;
