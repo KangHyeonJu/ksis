@@ -1,23 +1,14 @@
 package com.boot.ksis.service.file;
 
-import com.boot.ksis.config.NotificationWebSocketHandler;
-import com.boot.ksis.config.ToastNotificationWebSocketHandler;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
-import com.boot.ksis.dto.upload.OriginalResourceDTO;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.Log.UploadLog;
-import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.repository.log.UploadLogRepository;
-import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.Log.ActivityLog;
 import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.entity.OriginalResource;
+import com.boot.ksis.handler.NotificationWebSocketHandler;
 import com.boot.ksis.repository.account.AccountRepository;
-import com.boot.ksis.repository.log.ActivityLogRepository;
 import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;
@@ -60,7 +51,6 @@ public class FileEncodingService {
     private final NotificationWebSocketHandler notificationWebSocketHandler;
     private final AccountRepository accountRepository;
     private final UploadLogRepository uploadLogRepository;
-    private final ToastNotificationWebSocketHandler toastNotificationWebSocketHandler;
 
     // 영상 해상도 스케일 설정
     private String getResolutionScale(OriginResourceListDTO originResourceListDTO) {
