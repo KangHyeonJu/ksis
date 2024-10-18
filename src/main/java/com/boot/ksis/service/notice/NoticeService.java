@@ -267,4 +267,13 @@ public class NoticeService {
         saveDeviceNoticeMaps(updateNoticeDTO.getDeviceIds(), notice);
     }
 
+    public List<Long> findDeviceNotice(Long noticeId){
+        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(noticeId);
+        List<Long> deviceIds = new ArrayList<>();
+        for(DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps){
+            Long deviceId = deviceNoticeMap.getDeviceId();
+            deviceIds.add(deviceId);
+        }
+        return deviceIds;
+    }
 }

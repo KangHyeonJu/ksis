@@ -60,6 +60,8 @@ public class NoticeController {
     // 공지 비활성화
     @PostMapping("/deactivation/{noticeId}")
     public ResponseEntity<?> DeactivationNotice(@PathVariable Long noticeId) {
+        deviceWebSocketHandler.sendNoticeUpdateMessage(noticeService.findDeviceNotice(noticeId));
+
         noticeService.deactivationNotice(noticeId);
         return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
     }

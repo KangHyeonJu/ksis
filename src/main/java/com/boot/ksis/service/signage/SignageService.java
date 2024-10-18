@@ -1,6 +1,7 @@
 package com.boot.ksis.service.signage;
 
 import com.boot.ksis.constant.DeviceType;
+import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.account.AccountDeviceDTO;
 import com.boot.ksis.dto.pc.DeviceListDTO;
@@ -505,7 +506,7 @@ public class SignageService {
 
             //원본 resource로 인코딩 resource 목록 조회
             for(OriginalResource originalResource : originalResourceList){
-                List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResource(originalResource);
+                List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceAndResourceStatus(originalResource, ResourceStatus.COMPLETED);
 
                 //인코딩 resource 썸네일 경로
                 for(EncodedResource encodedResource : encodedResourceList){

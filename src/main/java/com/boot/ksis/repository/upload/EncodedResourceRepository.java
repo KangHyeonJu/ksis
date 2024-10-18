@@ -2,7 +2,6 @@ package com.boot.ksis.repository.upload;
 
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
-import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,6 +20,8 @@ public interface EncodedResourceRepository extends JpaRepository<EncodedResource
     void deleteByOriginalResource(OriginalResource originalResource);
     
     List<EncodedResource> findByOriginalResource(OriginalResource originalResource);
+
+    List<EncodedResource> findByOriginalResourceAndResourceStatus(OriginalResource originalResource, ResourceStatus resourceStatus);
 
     List<EncodedResource> findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(OriginalResource originalResource, ResourceStatus resourceStatus);
 
