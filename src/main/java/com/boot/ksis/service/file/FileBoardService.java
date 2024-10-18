@@ -3,7 +3,6 @@ package com.boot.ksis.service.file;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.constant.Role;
-import com.boot.ksis.controller.log.AccessLogController;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.entity.*;
@@ -24,8 +23,6 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -411,19 +408,23 @@ public class FileBoardService {
 
         List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
 
-        for (EncodedResource encodedResource : encodedResources) {
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            EncodeListDTO encode = new EncodeListDTO(
-                    encodedResource.getEncodedResourceId(),
-                    thumbNail.getFilePath(),
-                    originalResource.getFilePath(),
-                    encodedResource.getFileTitle(),
-                    encodedResource.getResolution(),
-                    encodedResource.getFormat(),
-                    encodedResource.getRegTime());
+        if(!encodedResources.isEmpty()){
+            for (EncodedResource encodedResource : encodedResources) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+                EncodeListDTO encode = new EncodeListDTO(
+                        encodedResource.getEncodedResourceId(),
+                        thumbNail.getFilePath(),
+                        originalResource.getFilePath(),
+                        encodedResource.getFileTitle(),
+                        encodedResource.getResolution(),
+                        encodedResource.getFormat(),
+                        encodedResource.getRegTime());
+                resourceDetailListDTO.add(encode);
+            }
+        }else{
+            EncodeListDTO encode = EncodeListDTO.builder().filePath(originalResource.getFilePath()).build();
             resourceDetailListDTO.add(encode);
         }
-
         return resourceDetailListDTO;
     }
 
@@ -435,16 +436,21 @@ public class FileBoardService {
 
         List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
 
-        for (EncodedResource encodedResource : encodedResources) {
-            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-            EncodeListDTO encode = new EncodeListDTO(
-                    encodedResource.getEncodedResourceId(),
-                    thumbNail.getFilePath(),
-                    originalResource.getFilePath(),
-                    encodedResource.getFileTitle(),
-                    encodedResource.getResolution(),
-                    encodedResource.getFormat(),
-                    encodedResource.getRegTime());
+        if(!encodedResources.isEmpty()){
+            for (EncodedResource encodedResource : encodedResources) {
+                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+                EncodeListDTO encode = new EncodeListDTO(
+                        encodedResource.getEncodedResourceId(),
+                        thumbNail.getFilePath(),
+                        originalResource.getFilePath(),
+                        encodedResource.getFileTitle(),
+                        encodedResource.getResolution(),
+                        encodedResource.getFormat(),
+                        encodedResource.getRegTime());
+                resourceDetailListDTO.add(encode);
+            }
+        }else{
+            EncodeListDTO encode = EncodeListDTO.builder().filePath(originalResource.getFilePath()).build();
             resourceDetailListDTO.add(encode);
         }
 
