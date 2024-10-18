@@ -42,7 +42,7 @@ public class AccountService {
         }
 
         if (Boolean.TRUE.equals(account.getIsActive())) {
-            return false;
+            throw new IllegalArgumentException("비활성화된 아이디 입니다.");
         }
 
         //방문자 수 추가

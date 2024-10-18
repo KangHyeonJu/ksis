@@ -80,6 +80,9 @@ public class AccountController {
             return accountService.validateCredentials(loginDTO.getAccountId(), loginDTO.getPassword())
                     ? ResponseEntity.ok(authService.signIn(loginDTO.getAccountId(), loginDTO.getPassword()))
                     : ResponseEntity.badRequest().build();
+        } catch (IllegalArgumentException e){
+            // 계정 검증 중 발생한 예외 메시지를 프론트엔드에 전달
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
