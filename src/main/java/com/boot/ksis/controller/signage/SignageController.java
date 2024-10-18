@@ -1,14 +1,13 @@
 package com.boot.ksis.controller.signage;
 
 import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.controller.sse.SseController;
+import com.boot.ksis.handler.DeviceWebSocketHandler;
 import com.boot.ksis.dto.playlist.PlayListAddDTO;
 import com.boot.ksis.dto.playlist.PlayListSequenceDTO;
 import com.boot.ksis.dto.signage.SignageFormDTO;
 import com.boot.ksis.dto.signage.SignageNoticeStatusDTO;
 import com.boot.ksis.service.account.AccountListService;
 import com.boot.ksis.service.signage.SignageService;
-import com.boot.ksis.service.sse.SseEmitterService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,21 @@ import java.util.Map;
 public class SignageController {
     private final SignageService signageService;
     private final AccountListService accountService;
-    private final SseEmitterService sseEmitterService;
+
+    private final DeviceWebSocketHandler deviceWebSocketHandler;
+
+    //재생장치 목록 조회
+    @GetMapping()
+    public ResponseEntity<?> signageList(Principal principal, @RequestParam String role){
+        //현재 로그인한 id 가져오기
+        String accountId = principal.getName();
+
+        if(role.contains("ADMIN")){     //관리자일 경우 전체 목록 조회
+            return new ResponseEntity<>(signageService.getSignageAdmin(), HttpStatus.OK);
+        }else{      //USER일 경우 해당 USER가 담당자인 재생장치만 조회
+            return new ResponseEntity<>(signageService.getSignageUser(accountId), HttpStatus.OK);
+        }
+    }
 
     @GetMapping("/all")
     public ResponseEntity<?> signageList(Principal principal, @RequestParam String role,
@@ -94,6 +107,9 @@ public class SignageController {
     @PutMapping("/update/{signageId}")
     public ResponseEntity<String> signagePut(@PathVariable Long signageId, @RequestBody SignageNoticeStatusDTO signageNoticeStatusDTO) {
         signageService.updateSignageStatus(signageId, signageNoticeStatusDTO.isShowNotice());
+
+        deviceWebSocketHandler.sendNoticeMessage(signageId);
+
         return ResponseEntity.ok("재생장치 공지표시 상태가 정상적으로 수정되었습니다.");
     }
 
@@ -111,9 +127,13 @@ public class SignageController {
 
     //재생장치에 해당하는 공지 조회
     @GetMapping("/notice/{signageId}")
-    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId){
+    public ResponseEntity<?> signageNotice(@PathVariable("signageId") Long signageId,
+                                           @RequestParam int page,
+                                           @RequestParam int size,
+                                           @RequestParam(required = false) String searchTerm,
+                                           @RequestParam(required = false) String searchCategory){
         try {
-            return new ResponseEntity<>(signageService.getSignageNotice(signageId), HttpStatus.OK);
+            return new ResponseEntity<>(signageService.getSignageNotice(signageId, page, size, searchTerm, searchCategory), HttpStatus.OK);
         } catch(EntityNotFoundException e){
             return new ResponseEntity<>("존재하지 않는 재생장치입니다.", HttpStatus.OK);
         }
@@ -195,7 +215,7 @@ public class SignageController {
     public ResponseEntity<String> selectPlaylist(@PathVariable("signageId") Long signageId, @RequestBody Map<String, Long> playlistId){
         Long selectedPlaylist = playlistId.get("selectedPlaylist");
         signageService.setPlaylist(signageId, selectedPlaylist);
-        sseEmitterService.sendUpdateEvent();
+        deviceWebSocketHandler.sendPlaylistUpdateMessage(signageId);
 
         return ResponseEntity.ok("Playlist selected successfully");
     }
@@ -247,8 +267,8 @@ public class SignageController {
     @PutMapping("/playlistDtl/{playListId}")
     public ResponseEntity<String> updatePlaylist(@PathVariable("playListId") Long playListId, @RequestPart("playListAddDTO") PlayListAddDTO playListAddDTO, @RequestPart("resourceSequence") List<PlayListSequenceDTO> resourceSequence){
         signageService.resourceSequence(playListId, playListAddDTO, resourceSequence);
-        sseEmitterService.sendUpdateEvent();
 
+        deviceWebSocketHandler.sendPlaylistUpdateMessage(signageService.findPlaylistDevice(playListId));
         return ResponseEntity.ok("재생목록이 정상적으로 수정되었습니다.");
     }
 

@@ -1,7 +1,7 @@
-package com.boot.ksis.service;
+package com.boot.ksis.service.account;
 
 import com.boot.ksis.entity.Device;
-import com.boot.ksis.repository.DeviceRepository;
+import com.boot.ksis.repository.signage.DeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

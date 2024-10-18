@@ -1,24 +1,15 @@
 package com.boot.ksis.controller.notification;
 
-import com.boot.ksis.dto.notification.UploadNotificationDTO;
 import com.boot.ksis.dto.notification.AccountNotificationDTO;
+import com.boot.ksis.dto.notification.UploadNotificationDTO;
 import com.boot.ksis.service.notification.NotificationService;
 import com.boot.ksis.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
 @RequiredArgsConstructor

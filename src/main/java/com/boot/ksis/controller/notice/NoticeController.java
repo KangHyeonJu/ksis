@@ -1,6 +1,7 @@
 package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
+import com.boot.ksis.handler.DeviceWebSocketHandler;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
@@ -24,6 +25,8 @@ public class NoticeController {
     private final NoticeService noticeService;
     private final AccountRepository accountRepository;
 
+    private final DeviceWebSocketHandler deviceWebSocketHandler;
+
 
     // 공지 등록
     @CustomAnnotation(activityDetail = "공지 등록")
@@ -35,6 +38,8 @@ public class NoticeController {
         noticeDTO.setName(noticeDTO.getName());
         //공지 등록
         noticeService.createNotice(noticeDTO);
+
+        deviceWebSocketHandler.sendNoticeUpdateMessage(noticeDTO.getDeviceIds());
         return ResponseEntity.ok("공지가 정상적으로 등록되었습니다.");
     }
 
@@ -46,13 +51,23 @@ public class NoticeController {
         updateNoticeDTO.setAccountId(accountId);
 
         noticeService.updateNotice(noticeId, updateNoticeDTO);
+
+        deviceWebSocketHandler.sendNoticeUpdateMessage(updateNoticeDTO.getDeviceIds());
+
         return ResponseEntity.ok("공지사항이 성공적으로 수정되었습니다.");
     }
 
     // 공지 비활성화
-    @PostMapping("/delete/{noticeId}")
+    @PostMapping("/deactivation/{noticeId}")
     public ResponseEntity<?> DeactivationNotice(@PathVariable Long noticeId) {
-        noticeService.DeactivationNotice(noticeId);
+        noticeService.deactivationNotice(noticeId);
+        return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
+    }
+
+    // 공지 활성화
+    @PostMapping("/activation/{noticeId}")
+    public ResponseEntity<?> ActivationNotice(@PathVariable Long noticeId) {
+        noticeService.activationNotice(noticeId);
         return ResponseEntity.ok("공지사항이 성공적으로 삭제되었습니다.");
     }
 
@@ -86,13 +101,43 @@ public class NoticeController {
         }
     }
 
+    // 공지 조회 (본인 및 관리자 공지 전체)
+    @GetMapping("/deactivation/all")
+    public ResponseEntity<?> getDeactivationNotices(Principal principal) {
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+
+        if (!accountOptional.isPresent()) {
+            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        Account account = accountOptional.get();
+        Role role = account.getRole();
+
+        if (role == null) {
+            return new ResponseEntity<>("역할 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (role.equals(Role.ADMIN)) { // Role 객체와 비교
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(accountId), HttpStatus.OK);
+        }
+    }
+
 
     // 공지 상세조회
     @GetMapping("/{noticeId}")
     public ResponseEntity<?> getNoticeById(@PathVariable Long noticeId) {
         try {
             // 공지 상세 조회 서비스 호출
-            DetailNoticeDTO notice = noticeService.getNoticeById(noticeId);
+            DetailNoticeDTO notice = noticeService.getActiveNoticeById(noticeId);
             return ResponseEntity.ok(notice); // 성공 시 상세 공지 반환
 
         } catch (RuntimeException e) {

@@ -2,11 +2,11 @@
 //
 //import com.boot.ksis.entity.Account;
 //import com.boot.ksis.entity.Device;
-//import com.boot.ksis.repository.DeviceRepository;
+//import com.boot.ksis.repository.signage.DeviceRepository;
 //import com.boot.ksis.repository.account.AccountRepository;
 //import com.boot.ksis.repository.account.VisitRepository;
-//import com.boot.ksis.service.AccountService;
-//import com.boot.ksis.service.MacService;
+//import com.boot.ksis.service.account.AccountService;
+//import com.boot.ksis.service.account.MacService;
 //import com.boot.ksis.util.JwtTokenProvider;
 //import io.jsonwebtoken.Jwts;
 //import io.jsonwebtoken.SignatureAlgorithm;

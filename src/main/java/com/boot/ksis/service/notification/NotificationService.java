@@ -1,5 +1,6 @@
 package com.boot.ksis.service.notification;
 
+import com.boot.ksis.handler.NotificationWebSocketHandler;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.dto.notification.UploadNotificationDTO;
 import com.boot.ksis.dto.notification.AccountNotificationDTO;
@@ -7,7 +8,6 @@ import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Notification;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
-import com.boot.ksis.service.sse.SseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final SseEmitterService emitterService;
+    private final NotificationWebSocketHandler notificationWebSocketHandler;
     private final NotificationRepository notificationRepository;
     private final AccountRepository accountRepository;
 
@@ -40,7 +40,7 @@ public class NotificationService {
         notification.setResourceType(resourceType);
 
         notificationRepository.save(notification);
-        emitterService.sendToUser(notification.getAccount().getAccountId(), "Notification Updated");
+        notificationWebSocketHandler.sendToUser(account.getAccountId(), "Notification Updated");
 
     }
 
@@ -70,7 +70,7 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id).orElseThrow();
         notification.setIsRead(true);
         notificationRepository.save(notification);
-        emitterService.sendToUser(notification.getAccount().getAccountId(), "Notification Updated");
+        notificationWebSocketHandler.sendToUser(notification.getAccount().getAccountId(), "Notification Updated");
     }
 
     // 안읽은 알림 개수

@@ -1,4 +1,4 @@
-package com.boot.ksis.config;
+package com.boot.ksis.handler;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

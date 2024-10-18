@@ -1,13 +1,8 @@
-package com.boot.ksis.controller;
+package com.boot.ksis.controller.account;
 
 import com.boot.ksis.dto.login.JwtTokenDTO;
-import com.boot.ksis.entity.RefreshToken;
-import com.boot.ksis.repository.RefreshTokenRepository;
-import com.boot.ksis.service.sse.SseEmitterService;
-import com.boot.ksis.util.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.boot.ksis.service.account.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
-import com.boot.ksis.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +15,6 @@ import java.util.Collections;
 public class AuthController {
 
     private final AuthService authService;
-    private final SseEmitterService sseEmitterService;
 
     @PostMapping("/get-token")
     public ResponseEntity<?> getAccessToken(@RequestHeader("Authorization") String authorizationHeader) {

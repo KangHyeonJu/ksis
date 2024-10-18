@@ -63,5 +63,5 @@ public class OriginalResource extends BaseEntity {
     // 활성화 상태 (추가)
     @Column(name = "is_active", nullable = false, columnDefinition = "TINYINT(1)")
     @ColumnDefault("1") // 활성화 1
-    private boolean isActive = true;  // 기본값: 활성 상태
+    private boolean isActive = true;  // 기본값(1): 활성 상태
 }
