@@ -10,6 +10,7 @@ import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.file.FileBoardService;
 import com.boot.ksis.service.file.FileEncodingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/resourceList")
@@ -166,6 +168,7 @@ public class FileBoardController {
         try {
             imageFiles = fileBoardService.getEcActiveImageFiles(page, size, searchTerm, searchCategory, account, role);
         } catch (Exception e) {
+            log.error("파일 조회 중 오류 발생: ", e);
             return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -176,7 +179,11 @@ public class FileBoardController {
 
     // 업로드된 인코딩 동영상 파일 목록 조회
     @GetMapping("/EcVideos")
-    public ResponseEntity<?> getEcVideoFiles(Principal principal) {
+    public ResponseEntity<?> getEcVideoFiles(Principal principal,
+                                             @RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String searchTerm,
+                                             @RequestParam(required = false) String searchCategory) {
 
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -194,8 +201,15 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        List<EncodeListDTO> videoFiles = fileBoardService.getEcActiveVideoFiles(account, role);
-        return ResponseEntity.ok(videoFiles);
+        Page<EncodeListDTO> videoFiles;
+
+        try {
+            videoFiles = fileBoardService.getEcActiveVideoFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+         return ResponseEntity.ok(videoFiles);
     }
 
     
