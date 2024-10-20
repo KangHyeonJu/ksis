@@ -7,15 +7,17 @@ import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.Log.ActivityLog;
+import com.boot.ksis.repository.file.FileEncodedRepository;
+import com.boot.ksis.repository.file.FileOriginRepository;
 import com.boot.ksis.repository.file.FileSizeRepository;
 import com.boot.ksis.repository.log.ActivityLogRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.DeviceEncodeMapRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
-import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,13 +42,12 @@ public class FileBoardService {
     String thumbnailsLocation;
 
     // OriginalResource 엔티티를 데이터베이스에서 조회하거나 저장하는 데 사용되는 레포지토리
-    private final OriginalResourceRepository originalResourceRepository;
+    private final FileOriginRepository fileOriginRepository;
+    //encodedResource 엔티티
+    private final FileEncodedRepository fileEncodedRepository;
 
     // ThumbNail 엔티티를 데이터베이스에서 조회하거나 삭제하는 데 사용되는 레포지토리
     private final ThumbNailRepository thumbNailRepository;
-
-    //encodedResource 엔티티
-    private final EncodedResourceRepository encodedResourceRepository;
 
     private final FileSizeRepository fileSizeRepository;
 
@@ -60,7 +61,7 @@ public class FileBoardService {
     public List<ResourceListDTO> getAllFiles() {
         List<ResourceListDTO> resourceListDTOS = new ArrayList<>();
 
-        List<OriginalResource> originalResources = originalResourceRepository.findByResourceStatusAndIsActive(ResourceStatus.COMPLETED, true);
+        List<OriginalResource> originalResources = fileOriginRepository.findByResourceStatusAndIsActive(ResourceStatus.COMPLETED, true);
 
         for (OriginalResource originalResource : originalResources) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
@@ -89,7 +90,7 @@ public class FileBoardService {
 
         if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList
-                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
+                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
 
             for (OriginalResource originalResource : originalResourceList) {
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
@@ -108,7 +109,7 @@ public class FileBoardService {
             }}else{
 
         // accountId로 본인이 업로드한 이미지만 조회
-        List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+        List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
                 accountId, ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
 
         for (OriginalResource originalResource : originalResourceList) {
@@ -132,64 +133,61 @@ public class FileBoardService {
     }
 
     // 인코딩된 이미지 파일만 조회
-    public List<EncodeListDTO> getEcActiveImageFiles(Account accountId, Role role) {
+    public Page<EncodeListDTO> getEcActiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
 
-        List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<EncodedResource> encodeListDTOPage;
 
         if(role == Role.ADMIN){
-            List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
-
-            // 해당 originalResourceId와 연관된 인코딩 리소스 조회
-            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
-                    originalResourceList, ResourceStatus.COMPLETED, ResourceType.IMAGE);
-
-            // 필터링된 encodedResource로 DTO 생성
-            for (EncodedResource encodedResource : encodedResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
-
-                // EncodeListDTO 객체 생성 후 리스트에 추가
-                EncodeListDTO encoded = new EncodeListDTO(
-                        encodedResource.getEncodedResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        encodedResource.getFilePath(),
-                        encodedResource.getFileTitle(),
-                        encodedResource.getResolution(),
-                        encodedResource.getFormat(),
-                        encodedResource.getRegTime()
-                );
-
-                encodeListDTOList.add(encoded);
-            }
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    encodeListDTOPage = fileEncodedRepository.findByFileTitleAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    encodeListDTOPage = fileEncodedRepository.findByResolutionAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                }else{
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCase(
+                            ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);}
+            }else{
+                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCase(
+                        ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);}
         }else {
-
-            // 로그인한 사용자의 originalResource를 먼저 필터링
-            List<OriginalResource> originalResourceList = originalResourceRepository
-                    .findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc
-                            (accountId, ResourceStatus.COMPLETED, true);
-
-            // 해당 originalResourceId와 연관된 인코딩 리소스 조회
-            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
-                    originalResourceList, ResourceStatus.COMPLETED, ResourceType.IMAGE);
-
-            // 필터링된 encodedResource로 DTO 생성
-            for (EncodedResource encodedResource : encodedResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
-
-                // EncodeListDTO 객체 생성 후 리스트에 추가
-                EncodeListDTO encoded = new EncodeListDTO(
-                        encodedResource.getEncodedResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        encodedResource.getFilePath(),
-                        encodedResource.getFileTitle(),
-                        encodedResource.getResolution(),
-                        encodedResource.getFormat(),
-                        encodedResource.getRegTime()
-                );
-
-                encodeListDTOList.add(encoded);
-            }
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    encodeListDTOPage = fileEncodedRepository.findByFileTitleAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    encodeListDTOPage = fileEncodedRepository.findByResolutionAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                }else{
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(
+                            ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);}
+            }else{
+                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(
+                        ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);}
         }
-        return encodeListDTOList;
+
+        List<EncodeListDTO> encodedListDTOList = new ArrayList<>();
+
+        // 필터링된 encodedResource로 DTO 생성
+        for (EncodedResource encodedResource : encodeListDTOPage) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(encodedResource.getOriginalResource());
+
+            // EncodeListDTO 객체 생성 후 리스트에 추가
+            EncodeListDTO encoded = new EncodeListDTO(
+                    encodedResource.getEncodedResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    encodedResource.getFilePath(),
+                    encodedResource.getFileTitle(),
+                    encodedResource.getResolution(),
+                    encodedResource.getFormat(),
+                    encodedResource.getRegTime()
+            );
+
+            encodedListDTOList.add(encoded);
+        }
+        return new PageImpl<>(encodedListDTOList, pageable, encodeListDTOPage.getTotalElements());
     }
 
 
@@ -199,7 +197,7 @@ public class FileBoardService {
 
         if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList
-                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
+                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
 
             for (OriginalResource originalResource : originalResourceList) {
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
@@ -218,7 +216,7 @@ public class FileBoardService {
             }}else{
 
             // accountId로 본인이 업로드한 이미지만 조회
-            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+            List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
                     accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
 
             for (OriginalResource originalResource : originalResourceList) {
@@ -246,10 +244,10 @@ public class FileBoardService {
         List<EncodeListDTO> encodeListDTOList = new ArrayList<>();
 
         if(role.equals(Role.ADMIN)){
-            List<OriginalResource> originalResourceList = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
+            List<OriginalResource> originalResourceList = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
 
             // 해당 originalResourceId와 연관된 인코딩 리소스 조회
-            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
+            List<EncodedResource> encodedResourceList = fileEncodedRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                     originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
 
             // 필터링된 encodedResource로 DTO 생성
@@ -272,12 +270,12 @@ public class FileBoardService {
         }else {
 
             // 로그인한 사용자의 originalResource를 먼저 필터링
-            List<OriginalResource> originalResourceList = originalResourceRepository
+            List<OriginalResource> originalResourceList = fileOriginRepository
                     .findByAccountAndResourceStatusAndIsActiveOrderByRegTimeDesc
                             (accountId, ResourceStatus.COMPLETED, true);
 
             // 해당 originalResourceId와 연관된 인코딩 리소스 조회
-            List<EncodedResource> encodedResourceList = encodedResourceRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
+            List<EncodedResource> encodedResourceList = fileEncodedRepository.findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(
                     originalResourceList, ResourceStatus.COMPLETED, ResourceType.VIDEO);
 
             // 필터링된 encodedResource로 DTO 생성
@@ -310,7 +308,7 @@ public class FileBoardService {
 
         if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList
-                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
+                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
 
             for (OriginalResource originalResource : originalResourceList) {
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
@@ -329,7 +327,7 @@ public class FileBoardService {
             }}else{
 
             // accountId로 본인이 업로드한 이미지만 조회
-            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+            List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
                     accountId, ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
 
             for (OriginalResource originalResource : originalResourceList) {
@@ -358,7 +356,7 @@ public class FileBoardService {
 
         if(role == Role.ADMIN){
             List<OriginalResource> originalResourceList
-                    = originalResourceRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
+                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
 
             for (OriginalResource originalResource : originalResourceList) {
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
@@ -377,7 +375,7 @@ public class FileBoardService {
             }}else{
 
             // accountId로 본인이 업로드한 이미지만 조회
-            List<OriginalResource> originalResourceList = originalResourceRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
+            List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
                     accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
 
             for (OriginalResource originalResource : originalResourceList) {
@@ -404,9 +402,9 @@ public class FileBoardService {
     public List<EncodeListDTO> getResourceImgDtl(Long originalResourceId) {
         List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
 
-        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+        OriginalResource originalResource = fileOriginRepository.findById(originalResourceId).orElse(null);
 
-        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
+        List<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
 
         if(!encodedResources.isEmpty()){
             for (EncodedResource encodedResource : encodedResources) {
@@ -432,9 +430,9 @@ public class FileBoardService {
     public List<EncodeListDTO> getResourceVideoDtl(Long originalResourceId) {
         List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
 
-        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+        OriginalResource originalResource = fileOriginRepository.findById(originalResourceId).orElse(null);
 
-        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
+        List<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
 
         if(!encodedResources.isEmpty()){
             for (EncodedResource encodedResource : encodedResources) {
@@ -461,7 +459,7 @@ public class FileBoardService {
 
     //이미지 파일 인코딩 조회
     public ResourceListDTO getResourceFiles(Long originalResourceId) {
-        OriginalResource originalResource = originalResourceRepository.findById(originalResourceId).orElse(null);
+        OriginalResource originalResource = fileOriginRepository.findById(originalResourceId).orElse(null);
         ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
         return new ResourceListDTO(
                 originalResource.getOriginalResourceId(),
@@ -479,7 +477,7 @@ public class FileBoardService {
     // 원본 파일 제목 수정
     public void updateOrFileTitle(Long id, ResourceListDTO resourceListDTO, Account account) {
 
-        OriginalResource originalResource = originalResourceRepository.findById(id)
+        OriginalResource originalResource = fileOriginRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
         String oldTitle = originalResource.getFileTitle();
         originalResource.setFileTitle(resourceListDTO.getFileTitle());
@@ -487,13 +485,13 @@ public class FileBoardService {
 
         ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail("원본 " +oldTitle + "에서 " + newTitle + "로 변경되었습니다.").dateTime(LocalDateTime.now()).build();
         activityLogRepository.save(activityLog);
-        originalResourceRepository.save(originalResource);
+        fileOriginRepository.save(originalResource);
 
     }
 
     // 인코딩 파일 제목 수정
     public void updateErFileTitle(Long id, EncodeListDTO encodeListDTO, Account account) {
-        EncodedResource encodedResource = encodedResourceRepository.findById(id)
+        EncodedResource encodedResource = fileEncodedRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 파일을 찾을 수 없습니다. id: " + id));
         String oldTitle = encodedResource.getFileTitle();
         encodedResource.setFileTitle(encodeListDTO.getFileTitle());
@@ -502,7 +500,7 @@ public class FileBoardService {
 
         ActivityLog activityLog = ActivityLog.builder().account(account).activityDetail("인코딩 " + oldTitle + "에서 " + newTitle + "로 변경되었습니다.").dateTime(LocalDateTime.now()).build();
         activityLogRepository.save(activityLog);
-        encodedResourceRepository.save(encodedResource); // 변경된 내용을 저장
+        fileEncodedRepository.save(encodedResource); // 변경된 내용을 저장
     }
 
 
@@ -526,20 +524,20 @@ public class FileBoardService {
     @Transactional
     //비활성화 된 파일 다시 활성화
     public void activationFile(Long id) {
-        OriginalResource originalResource = originalResourceRepository.findById(id)
+        OriginalResource originalResource = fileOriginRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 파일을 찾을 수 없습니다."));
 
         originalResource.setActive(true);
-        originalResourceRepository.save(originalResource);
+        fileOriginRepository.save(originalResource);
 
     }
 
     @Transactional
     // 파일 삭제 및 관련된 썸네일 삭제
     public void deactivationFile(Long id) {
-        OriginalResource originalResource = originalResourceRepository.findById(id)
+        OriginalResource originalResource = fileOriginRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 파일을 찾을 수 없습니다."));
-        List<EncodedResource> encodedResources = encodedResourceRepository.findByOriginalResource(originalResource);
+        List<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResource(originalResource);
 
         // 리스트 내의 인코딩된 파일 삭제
         for (EncodedResource encodedResource : encodedResources) {
@@ -547,22 +545,7 @@ public class FileBoardService {
         }
 
         originalResource.setActive(false);
-        originalResourceRepository.save(originalResource);
-
-        // 원본 파일 삭제
-       // deleteFileFromStorage(uploadLocation+originalResource.getFileName());
-
-
-  /*      // 썸네일 파일 삭제
-        // 썸네일 파일 경로에서 /file/thumbnails/ 부분 제거
-        String filePathWithoutPrefix = thumbNail.getFilePath().replace("/file/thumbnails/", "");
-
-        // 썸네일 로컬 스토리지 경로 생성
-        String inputFilePath = thumbnailsLocation + filePathWithoutPrefix;
-
-        // 생성된 썸네일 로컬 파일 경로로 파일 삭제 메서드 호출
-        deleteFileFromStorage(inputFilePath);*/
-
+        fileOriginRepository.save(originalResource);
 
         // 시퀀스 DB 삭제 (각 EncodedResource에 대해 개별적으로 삭제)
         for (EncodedResource encodedResource : encodedResources) {
@@ -574,17 +557,8 @@ public class FileBoardService {
             deviceEncodeMapRepository.deleteByEncodedResourceId(encodedResource.getEncodedResourceId());
         }
 
-        // 관련된 썸네일 DB 삭제
-        //thumbNailRepository.deleteByOriginalResource(originalResource);
-
         // 연관된 인코딩 파일 DB 삭제
-        encodedResourceRepository.deleteByOriginalResource(originalResource);
-
-        // 원본 파일 DB 삭제
-        //originalResourceRepository.deleteById(id);
-
-
-
+        fileEncodedRepository.deleteByOriginalResource(originalResource);
 
         // 파일 크기 정보를 조회
         FileSize fileSize = fileSizeRepository.findByFileSizeId(1);
@@ -600,14 +574,11 @@ public class FileBoardService {
             } else if (originalResource.getResourceType() == ResourceType.VIDEO) {
                 fileSize.setTotalEncodedVideo(fileSize.getTotalEncodedVideo() - totalEncodedFileSize);
             }
-        }
-
-    }
-
+        }}
         //인코딩 파일 삭제 관련 파일
         @Transactional
         public void deleteEncodedFile(Long id) {
-            EncodedResource encodedResource = encodedResourceRepository.findByEncodedResourceId(id);
+            EncodedResource encodedResource = fileEncodedRepository.findByEncodedResourceId(id);
 
             // 인코딩된 파일 삭제
             deleteFileFromStorage(encodingLocation+encodedResource.getFileName());
@@ -621,7 +592,7 @@ public class FileBoardService {
 
 
             // 인코딩 파일 DB 삭제
-            encodedResourceRepository.deleteById(id);
+            fileEncodedRepository.deleteById(id);
 
 
             // 용량 삭제

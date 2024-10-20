@@ -5,13 +5,12 @@ import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
-import com.boot.ksis.dto.resolution.ResolutionDTO;
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.file.FileBoardService;
 import com.boot.ksis.service.file.FileEncodingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -140,9 +138,13 @@ public class FileBoardController {
 
     // 업로드된 원본 이미지 파일 목록 조회
     @GetMapping("/EcImages")
-    public ResponseEntity<?> getEcImageFiles(Principal principal) {
+    public ResponseEntity<?> getEcImageFiles(Principal principal,
+                                             @RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String searchTerm,
+                                             @RequestParam(required = false) String searchCategory) {
 
-
+        // 인증 확인
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -159,12 +161,18 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
-        List<EncodeListDTO> imageFiles = fileBoardService.getEcActiveImageFiles(account, role);
+        Page<EncodeListDTO> imageFiles;
 
+        try {
+            imageFiles = fileBoardService.getEcActiveImageFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 조회 결과 반환
         return ResponseEntity.ok(imageFiles);
-
     }
+
 
     // 업로드된 인코딩 동영상 파일 목록 조회
     @GetMapping("/EcVideos")
