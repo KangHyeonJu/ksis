@@ -109,13 +109,8 @@ public class NoticeService {
             }else if(searchCategory.equals("regTime")){
                 noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(
                         searchTerm, false, pageable);
-            }else if(searchCategory.equals("device")){
-                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(
-                        searchTerm, false, pageable);
-
-                // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
-                noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
-            }else{
+            }
+            else{
                 noticeList = noticeRepository.findByIsActive(false, pageable);
             }
         }else{
@@ -201,13 +196,6 @@ public class NoticeService {
             }else if(searchCategory.equals("regTime")){
                 noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
                         searchTerm, false, accountId, pageable);
-            }else if(searchCategory.equals("device")){
-                // DeviceNoticeMap에서 Notice를 추출하여 변환
-                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_AccountIdAndNotice_Active(
-                        searchTerm, accountId, false, pageable);
-
-                // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
-                noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
             }else{
                 noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
             }
