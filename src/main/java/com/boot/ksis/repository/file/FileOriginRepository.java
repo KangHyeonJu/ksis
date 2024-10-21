@@ -3,8 +3,13 @@ package com.boot.ksis.repository.file;
 import com.boot.ksis.constant.ResourceStatus;
 import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.entity.Account;
+import com.boot.ksis.entity.EncodedResource;
 import com.boot.ksis.entity.OriginalResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,5 +37,30 @@ public interface FileOriginRepository  extends JpaRepository<OriginalResource, L
 
     //전체 조회
     List<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive);
+
+
+
+
+    //관리자 페이징
+    Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, String fileTitle, Account accountId, Pageable pageable);
+
+    Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount( ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, String resolution, Account accountId, Pageable pageable);
+
+    @Query("SELECT r FROM OriginalResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType AND r.isActive = :isActive And r.account =:accountId")
+    Page<OriginalResource> searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
+            (@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, @Param("isActive")Boolean isActive,  @Param("accountId") Account accountId, Pageable pageable);
+
+    Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase( ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, Account accountId, Pageable pageable);
+
+    //일반 유저 페이징
+    Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, String fileTitle, Pageable pageable);
+
+    Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, String resolution, Pageable pageable);
+
+    @Query("SELECT r FROM OriginalResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType AND r.isActive = :isActive")
+    Page<OriginalResource> searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, @Param("isActive")Boolean isActive, Pageable pageable);
+
+
+    Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActive(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, Pageable pageable);
 
 }

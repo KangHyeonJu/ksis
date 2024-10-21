@@ -14,7 +14,6 @@ import com.boot.ksis.repository.log.ActivityLogRepository;
 import com.boot.ksis.repository.playlist.PlaylistSequenceRepository;
 import com.boot.ksis.repository.signage.DeviceEncodeMapRepository;
 import com.boot.ksis.repository.signage.ThumbNailRepository;
-import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -84,39 +83,56 @@ public class FileBoardService {
     }
 
     // 본인이 업로드한  활성화 된 원본 이미지 파일만 조회
-    public List<ResourceListDTO> getRsActiveImageFiles(Account accountId, Role role) {
+    public Page<ResourceListDTO> getRsActiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
 
-        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<OriginalResource> resourceListDTOPage;
 
         if(role == Role.ADMIN){
-            List<OriginalResource> originalResourceList
-                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase
+                            (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase
+                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, true, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase
+                            (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                            ResourceStatus.COMPLETED, ResourceType.IMAGE, true, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                        ResourceStatus.COMPLETED, ResourceType.IMAGE, true, pageable);}
+        }else {
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount
+                            (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm,  accountId, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
+                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, true, accountId, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount
+                            (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm,  accountId, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                            ResourceStatus.COMPLETED, ResourceType.IMAGE, true, accountId, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                        ResourceStatus.COMPLETED, ResourceType.IMAGE, true, accountId, pageable);}
+        }
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+        List<ResourceListDTO> originalListDTOList = new ArrayList<>();
 
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}else{
-
-        // accountId로 본인이 업로드한 이미지만 조회
-        List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
-                accountId, ResourceStatus.COMPLETED, ResourceType.IMAGE, true);
-
-        for (OriginalResource originalResource : originalResourceList) {
+        // 필터링된 encodedResource로 DTO 생성
+        for (OriginalResource originalResource : resourceListDTOPage) {
             ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
 
-            // ResourceListDTO 객체 생성 후 리스트에 추가
-            ResourceListDTO resource = new ResourceListDTO(
+            // OriginListDTO 객체 생성 후 리스트에 추가
+            ResourceListDTO origin = new ResourceListDTO(
                     originalResource.getOriginalResourceId(),
                     thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
                     originalResource.getFilePath(),
@@ -125,11 +141,10 @@ public class FileBoardService {
                     originalResource.getFormat(),
                     originalResource.getRegTime()
             );
-            resourceListDTOList.add(resource);
-        }}
 
-        // 최종적으로 생성된 resourceListDTOList 반환
-        return resourceListDTOList;
+            originalListDTOList.add(origin);
+        }
+        return new PageImpl<>(originalListDTOList, pageable, resourceListDTOPage.getTotalElements());
     }
 
     // 인코딩된 이미지 파일만 조회
@@ -192,52 +207,70 @@ public class FileBoardService {
 
 
     // 본인이 업로드한, 업로드가 완료된 활성화 원본 동영상 파일만 조회
-    public List<ResourceListDTO> getRsActiveVideoFiles(Account accountId, Role role) {
-        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+    public Page<ResourceListDTO> getRsActiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<OriginalResource> resourceListDTOPage;
 
         if(role == Role.ADMIN){
-            List<OriginalResource> originalResourceList
-                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase
+                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, true, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                            ResourceStatus.COMPLETED, ResourceType.VIDEO, true, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                        ResourceStatus.COMPLETED, ResourceType.VIDEO, true, pageable);}
+        }else {
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm,  accountId, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
+                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, true, accountId, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm,  accountId, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                            ResourceStatus.COMPLETED, ResourceType.VIDEO, true, accountId, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                        ResourceStatus.COMPLETED, ResourceType.VIDEO, true, accountId, pageable);}
+        }
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+        List<ResourceListDTO> originalListDTOList = new ArrayList<>();
 
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}else{
+        // 필터링된 encodedResource로 DTO 생성
+        for (OriginalResource originalResource : resourceListDTOPage) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
 
-            // accountId로 본인이 업로드한 이미지만 조회
-            List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
-                    accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, true);
+            // OriginListDTO 객체 생성 후 리스트에 추가
+            ResourceListDTO origin = new ResourceListDTO(
+                    originalResource.getOriginalResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    originalResource.getFilePath(),
+                    originalResource.getFileTitle(),
+                    originalResource.getResolution(),
+                    originalResource.getFormat(),
+                    originalResource.getRegTime()
+            );
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}
-
-        // 최종적으로 생성된 resourceListDTOList 반환
-        return resourceListDTOList;
+            originalListDTOList.add(origin);
+        }
+        return new PageImpl<>(originalListDTOList, pageable, resourceListDTOPage.getTotalElements());
     }
+
+
 
     //본인이 올린 동영상 파일만 조회(인코딩이 완료된것만)
     public Page<EncodeListDTO> getEcActiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
@@ -297,103 +330,130 @@ public class FileBoardService {
         return new PageImpl<>(encodedListDTOList, pageable, encodeListDTOPage.getTotalElements());
     }
 
+
+
     //비활성화
     // 본인이 업로드한  활성화 된 원본 이미지 파일만 조회
-    public List<ResourceListDTO> getDeactiveImageFiles(Account accountId, Role role) {
+    public Page<ResourceListDTO> getDeactiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
 
-
-        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<OriginalResource> resourceListDTOPage;
 
         if(role == Role.ADMIN){
-            List<OriginalResource> originalResourceList
-                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, false, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                            ResourceStatus.COMPLETED, ResourceType.IMAGE, false, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                        ResourceStatus.COMPLETED, ResourceType.IMAGE, false, pageable);}
+        }else {
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm,  accountId, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, false, accountId, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm,  accountId, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                            ResourceStatus.COMPLETED, ResourceType.IMAGE, false, accountId, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                        ResourceStatus.COMPLETED, ResourceType.IMAGE, false, accountId, pageable);}
+        }
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+        List<ResourceListDTO> originalListDTOList = new ArrayList<>();
 
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}else{
+        // 필터링된 encodedResource로 DTO 생성
+        for (OriginalResource originalResource : resourceListDTOPage) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
 
-            // accountId로 본인이 업로드한 이미지만 조회
-            List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
-                    accountId, ResourceStatus.COMPLETED, ResourceType.IMAGE, false);
+            // OriginListDTO 객체 생성 후 리스트에 추가
+            ResourceListDTO origin = new ResourceListDTO(
+                    originalResource.getOriginalResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    originalResource.getFilePath(),
+                    originalResource.getFileTitle(),
+                    originalResource.getResolution(),
+                    originalResource.getFormat(),
+                    originalResource.getRegTime()
+            );
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}
-
-        // 최종적으로 생성된 resourceListDTOList 반환
-        return resourceListDTOList;
+            originalListDTOList.add(origin);
+        }
+        return new PageImpl<>(originalListDTOList, pageable, resourceListDTOPage.getTotalElements());
     }
 
 
-    public List<ResourceListDTO> getDeactiveVideoFiles(Account accountId, Role role) {
-        List<ResourceListDTO> resourceListDTOList = new ArrayList<>();
+    public Page<ResourceListDTO> getDeactiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<OriginalResource> resourceListDTOPage;
 
         if(role == Role.ADMIN){
-            List<OriginalResource> originalResourceList
-                    = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase
+                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, false, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                            ResourceStatus.COMPLETED, ResourceType.VIDEO, false, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActive(
+                        ResourceStatus.COMPLETED, ResourceType.VIDEO, false, pageable);}
+        }else {
+            if(searchCategory != null && !searchCategory.isEmpty()) {
+                if(searchCategory.equals("fileTitle")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm,  accountId, pageable);
+                }else if(searchCategory.equals("regTime")){
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
+                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, false, accountId, pageable);
+                }else if(searchCategory.equals("resolution")){
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount
+                            (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm,  accountId, pageable);
+                }else{
+                    resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                            ResourceStatus.COMPLETED, ResourceType.VIDEO, false, accountId, pageable);}
+            }else{
+                resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase(
+                        ResourceStatus.COMPLETED, ResourceType.VIDEO, false, accountId, pageable);}
+        }
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
+        List<ResourceListDTO> originalListDTOList = new ArrayList<>();
 
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}else{
+        // 필터링된 encodedResource로 DTO 생성
+        for (OriginalResource originalResource : resourceListDTOPage) {
+            ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
 
-            // accountId로 본인이 업로드한 이미지만 조회
-            List<OriginalResource> originalResourceList = fileOriginRepository.findByAccountAndResourceStatusAndResourceTypeAndIsActiveOrderByRegTimeDesc(
-                    accountId, ResourceStatus.COMPLETED, ResourceType.VIDEO, false);
+            // OriginListDTO 객체 생성 후 리스트에 추가
+            ResourceListDTO origin = new ResourceListDTO(
+                    originalResource.getOriginalResourceId(),
+                    thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
+                    originalResource.getFilePath(),
+                    originalResource.getFileTitle(),
+                    originalResource.getResolution(),
+                    originalResource.getFormat(),
+                    originalResource.getRegTime()
+            );
 
-            for (OriginalResource originalResource : originalResourceList) {
-                ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
-
-                // ResourceListDTO 객체 생성 후 리스트에 추가
-                ResourceListDTO resource = new ResourceListDTO(
-                        originalResource.getOriginalResourceId(),
-                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 있을 경우 경로, 없으면 null
-                        originalResource.getFilePath(),
-                        originalResource.getFileTitle(),
-                        originalResource.getResolution(),
-                        originalResource.getFormat(),
-                        originalResource.getRegTime()
-                );
-                resourceListDTOList.add(resource);
-            }}
-
-        // 최종적으로 생성된 resourceListDTOList 반환
-        return resourceListDTOList;
+            originalListDTOList.add(origin);
+        }
+        return new PageImpl<>(originalListDTOList, pageable, resourceListDTOPage.getTotalElements());
     }
 
     // 특정 이미지 원본 파일 조회
