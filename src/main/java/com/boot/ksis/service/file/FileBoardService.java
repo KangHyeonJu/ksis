@@ -141,30 +141,30 @@ public class FileBoardService {
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
-                    encodeListDTOPage = fileEncodedRepository.findByFileTitleAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);
                 }else if(searchCategory.equals("resolution")){
-                    encodeListDTOPage = fileEncodedRepository.findByResolutionAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm, pageable);
                 }else{
-                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCase(
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceType(
                             ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);}
             }else{
-                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCase(
+                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceType(
                         ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);}
         }else {
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
-                    encodeListDTOPage = fileEncodedRepository.findByFileTitleAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
-                    encodeListDTOPage = fileEncodedRepository.findByResolutionAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm,  accountId, pageable);
                 }else{
-                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndOriginalResource_AccountContainingIgnoreCase(
                             ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);}
             }else{
-                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(
+                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndOriginalResource_AccountContainingIgnoreCase(
                         ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);}
         }
 
@@ -248,30 +248,30 @@ public class FileBoardService {
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
-                    encodeListDTOPage = fileEncodedRepository.findByFileTitleAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, pageable);
                 }else if(searchCategory.equals("resolution")){
-                    encodeListDTOPage = fileEncodedRepository.findByResolutionAndResourceStatusContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm, pageable);
                 }else{
-                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCase(
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceType(
                             ResourceStatus.COMPLETED, ResourceType.VIDEO, pageable);}
             }else{
-                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCase(
+                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceType(
                         ResourceStatus.COMPLETED, ResourceType.VIDEO, pageable);}
         }else {
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
-                    encodeListDTOPage = fileEncodedRepository.findByFileTitleAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
-                    encodeListDTOPage = fileEncodedRepository.findByResolutionAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm,  accountId, pageable);
                 }else{
-                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(
+                    encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndOriginalResource_AccountContainingIgnoreCase(
                             ResourceStatus.COMPLETED, ResourceType.VIDEO, accountId, pageable);}
             }else{
-                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(
+                encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndOriginalResource_AccountContainingIgnoreCase(
                         ResourceStatus.COMPLETED, ResourceType.VIDEO, accountId, pageable);}
         }
 

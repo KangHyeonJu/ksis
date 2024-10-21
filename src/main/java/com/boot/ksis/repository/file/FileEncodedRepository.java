@@ -35,23 +35,23 @@ public interface FileEncodedRepository extends JpaRepository<EncodedResource, Lo
     List<EncodedResource> findByOriginalResourceInAndResourceStatusAndResourceTypeOrderByRegTimeDesc(List<OriginalResource> originalResource, ResourceStatus resourceStatus, ResourceType resourceType);
 
     //관리자 페이징
-    Page<EncodedResource> findByFileTitleAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(String fileTitle, ResourceStatus resourceStatus, Account accountId, Pageable pageable);
+    Page<EncodedResource> findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCaseAndOriginalResource_Account( ResourceStatus resourceStatus, ResourceType resourceType, String fileTitle, Account accountId, Pageable pageable);
 
-    Page<EncodedResource> findByResolutionAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(String resolution, ResourceStatus resourceStatus, Account accountId, Pageable pageable);
+    Page<EncodedResource> findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCaseAndOriginalResource_Account( ResourceStatus resourceStatus, ResourceType resourceType, String resolution, Account accountId, Pageable pageable);
 
-    @Query("SELECT r FROM EncodedResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus And r.originalResource.account =:accountId")
-    Page<EncodedResource> searchByRegTimeAndResourceStatusContainingIgnoreCaseAndOriginalResource_Account(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("accountId") Account accountId, Pageable pageable);
+    @Query("SELECT r FROM EncodedResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType And r.originalResource.account =:accountId")
+    Page<EncodedResource> searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, @Param("accountId") Account accountId, Pageable pageable);
 
-    Page<EncodedResource> findByResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus resourceStatus, ResourceType resourceType, Account accountId, Pageable pageable);
+    Page<EncodedResource> findByResourceStatusAndResourceTypeAndOriginalResource_AccountContainingIgnoreCase( ResourceStatus resourceStatus, ResourceType resourceType, Account accountId, Pageable pageable);
 
     //일반 유저 페이징
-    Page<EncodedResource> findByFileTitleAndResourceStatusContainingIgnoreCase(String fileTitle, ResourceStatus resourceStatus, Pageable pageable);
+    Page<EncodedResource> findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCase(ResourceStatus resourceStatus, ResourceType resourceType, String fileTitle, Pageable pageable);
 
-    Page<EncodedResource> findByResolutionAndResourceStatusContainingIgnoreCase(String resolution, ResourceStatus resourceStatus, Pageable pageable);
+    Page<EncodedResource> findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCase(ResourceStatus resourceStatus, ResourceType resourceType, String resolution, Pageable pageable);
 
-    @Query("SELECT r FROM EncodedResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus")
-    Page<EncodedResource> searchByRegTimeAndResourceStatusContainingIgnoreCase(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, Pageable pageable);
+    @Query("SELECT r FROM EncodedResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType")
+    Page<EncodedResource> searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCase(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, Pageable pageable);
 
 
-    Page<EncodedResource> findByResourceStatusAndResourceTypeContainingIgnoreCase(ResourceStatus resourceStatus, ResourceType resourceType, Pageable pageable);
+    Page<EncodedResource> findByResourceStatusAndResourceType(ResourceStatus resourceStatus, ResourceType resourceType, Pageable pageable);
 }
