@@ -21,7 +21,7 @@ import java.util.Optional;
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
 
-    Optional<Notice> findByNoticeIdAndIsActiveOrderByRegTimeDesc(Long noticeId, boolean isActive);
+    Optional<Notice> findByNoticeIdOrderByRegTimeDesc(Long noticeId);
 
     @Query("SELECT no FROM Notice no WHERE (no.account.accountId LIKE %:searchTerm% OR no.account.name LIKE %:searchTerm%)")
     List<Notice> searchByAccountIdOrName(@Param("searchTerm") String searchTerm);
