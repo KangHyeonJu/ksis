@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOrigins("*");
 
         registry.addHandler(notificationWebSocketHandler, "/ws/notifications")
-        .setAllowedOrigins("*");
+                .setAllowedOrigins("*");
         
         registry.addHandler(loginWebSocketHandler, "/ws/login")
                 .setAllowedOrigins("*");

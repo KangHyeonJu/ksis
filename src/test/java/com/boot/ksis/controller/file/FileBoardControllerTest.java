@@ -1,72 +1,63 @@
 /*
 package com.boot.ksis.controller.file;
 
-import com.boot.ksis.entity.EncodedResource;
-import com.boot.ksis.entity.OriginalResource;
-import com.boot.ksis.repository.signage.ThumbNailRepository;
-import com.boot.ksis.repository.upload.EncodedResourceRepository;
-import com.boot.ksis.repository.upload.OriginalResourceRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+
 import com.boot.ksis.service.file.FileBoardService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.*;
-
-class FileBoardControllerTest {
-    @Mock
-    private OriginalResourceRepository originalResourceRepository;
-
-    @Mock
-    private ThumbNailRepository thumbNailRepository;
-
-    @Mock
-    private EncodedResourceRepository encodedResourceRepository;
-
+public class FileBoardControllerTest {
     @InjectMocks
+    private FileBoardController fileBoardController;
+
+    @Mock
     private FileBoardService fileBoardService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testDeleteFile() {
-        Long originalResourceId = 1L;
+    @DisplayName("파일 비활성화 테스트")
+    void testDeactivationFile() {
+        Long id = 1L;
 
-        // Mocking OriginalResource entity
-        OriginalResource mockOriginalResource = mock(OriginalResource.class);
+        // Service 메서드 호출 확인
+        doNothing().when(fileBoardService).deactivationFile(anyLong());
 
-        // Mocking repository methods
-        when(originalResourceRepository.findByOriginalResourceId(originalResourceId)).thenReturn(mockOriginalResource);
+        ResponseEntity<Void> response = fileBoardController.deactivationFile(id);
 
-        // 실제 메서드 호출
-        assertDoesNotThrow(() -> fileBoardService.deleteFile(originalResourceId));
-
-        // verify that the delete methods were called
-        verify(thumbNailRepository, times(1)).deleteByOriginalResource(mockOriginalResource);
-        verify(originalResourceRepository, times(1)).deleteById(originalResourceId);
-        verify(encodedResourceRepository, times(1)).deleteByOriginalResource(mockOriginalResource);
+        // 서비스가 호출되었는지 확인
+        verify(fileBoardService, times(1)).deactivationFile(id);
+        // 응답 상태가 204 No Content인지 확인
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
-    public void testDeleteEncodedFile() {
-        Long encodedResourceId = 1L;
+    @DisplayName("파일 삭제 테스트")
+    void testDeleteEncodedFile() {
+        Long id = 1L;
 
-        // Mocking EncodedResource entity
-        EncodedResource mockEncodedResource = mock(EncodedResource.class);
+        // Service 메서드 호출 확인
+        doNothing().when(fileBoardService).deleteEncodedFile(anyLong());
 
-        // Mocking repository methods
-        when(encodedResourceRepository.findByEncodedResourceId(encodedResourceId)).thenReturn(mockEncodedResource);
+        ResponseEntity<Void> response = fileBoardController.deleteEncodedFile(id);
 
-        // 실제 메서드 호출
-        assertDoesNotThrow(() -> fileBoardService.deleteEncodedFile(encodedResourceId));
-
-        // verify that the delete methods were called
-        verify(encodedResourceRepository, times(1)).deleteById(encodedResourceId);
+        // 서비스가 호출되었는지 확인
+        verify(fileBoardService, times(1)).deleteEncodedFile(id);
+        // 응답 상태가 204 No Content인지 확인
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
-}*/
+
+}
+*/

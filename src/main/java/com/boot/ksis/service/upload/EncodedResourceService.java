@@ -7,6 +7,7 @@ import com.boot.ksis.dto.upload.EncodingRequestDTO;
 import com.boot.ksis.entity.*;
 import com.boot.ksis.entity.Log.UploadLog;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.file.FileEncodedRepository;
 import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
 import com.boot.ksis.repository.upload.EncodedResourceRepository;

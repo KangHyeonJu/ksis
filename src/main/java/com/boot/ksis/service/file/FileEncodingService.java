@@ -9,9 +9,10 @@ import com.boot.ksis.entity.Notification;
 import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.handler.NotificationWebSocketHandler;
 import com.boot.ksis.repository.account.AccountRepository;
+import com.boot.ksis.repository.file.FileEncodedRepository;
+import com.boot.ksis.repository.file.FileOriginRepository;
 import com.boot.ksis.repository.log.UploadLogRepository;
 import com.boot.ksis.repository.notification.NotificationRepository;
-import com.boot.ksis.repository.upload.EncodedResourceRepository;
 import com.boot.ksis.repository.upload.OriginalResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,8 +45,12 @@ public class FileEncodingService {
     // C:/ksis-file/encoding/
     String encodingLocation;
 
-    private final EncodedResourceRepository encodedResourceRepository;
-    private final OriginalResourceRepository originalResourceRepository;
+
+    // OriginalResource 엔티티를 데이터베이스에서 조회하거나 저장하는 데 사용되는 레포지토리
+    private final FileOriginRepository fileOriginRepository;
+    //encodedResource 엔티티
+    private final FileEncodedRepository fileEncodedRepository;
+
     private final FileSizeService fileSizeService;
     private final NotificationRepository notificationRepository;
     private final NotificationWebSocketHandler notificationWebSocketHandler;
@@ -107,7 +112,7 @@ public class FileEncodingService {
         uploadLogRepository.save(uploadLog);
 
         encodedResource.setResourceStatus(ResourceStatus.FAIL);
-        encodedResourceRepository.save(encodedResource);
+        fileEncodedRepository.save(encodedResource);
     }
 
     // 인코딩 성공 시 로그남기기
@@ -124,14 +129,14 @@ public class FileEncodingService {
 
     public boolean checkResolution(OriginResourceListDTO originResourceListDTO) {
         // originalResourceId를 사용해 OriginalResource에서 fileName을 가져옴
-        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originResourceListDTO.getOriginalResourceId());
+        Optional<OriginalResource> originalResourceOpt = fileOriginRepository.findById(originResourceListDTO.getOriginalResourceId());
         if (!originalResourceOpt.isPresent()) {
             throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: id=" + originResourceListDTO.getOriginalResourceId());
         }
 
         OriginalResource originalResource = originalResourceOpt.get();
 
-       EncodedResource encodedResource = encodedResourceRepository.findByOriginalResourceAndResolutionAndFormat(originalResource, originResourceListDTO.getResolution(), originResourceListDTO.getFormat());
+       EncodedResource encodedResource = fileEncodedRepository.findByOriginalResourceAndResolutionAndFormat(originalResource, originResourceListDTO.getResolution(), originResourceListDTO.getFormat());
 
         return encodedResource == null;
     }
@@ -140,7 +145,7 @@ public class FileEncodingService {
     public void imageEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
 
         // originalResourceId를 사용해 OriginalResource에서 fileName을 가져옴
-        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
+        Optional<OriginalResource> originalResourceOpt = fileOriginRepository.findById(originalResourceId);
         if (!originalResourceOpt.isPresent()) {
             throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: id=" + originalResourceId);
         }
@@ -214,18 +219,18 @@ public class FileEncodingService {
         encodedResource.setResourceStatus(ResourceStatus.UPLOADING);
         encodedResource.setFileSize(originResourceListDTO.getFileSize());
 
-        encodedResourceRepository.save(encodedResource);
+        fileEncodedRepository.save(encodedResource);
 
         // 파일 사이즈 확인 및 DB 업데이트
         try {
             long fileSize = getFileSize(outputFileName);
-            Optional<EncodedResource> encodedResourceOpt = encodedResourceRepository.findById(encodedResource.getEncodedResourceId());
+            Optional<EncodedResource> encodedResourceOpt = fileEncodedRepository.findById(encodedResource.getEncodedResourceId());
 
             if (encodedResourceOpt.isPresent()) {
                 EncodedResource encoded = encodedResourceOpt.get();
                 encoded.setFileSize((int) fileSize);
                 encoded.setResourceStatus(ResourceStatus.COMPLETED);
-                encodedResourceRepository.save(encoded);
+                fileEncodedRepository.save(encoded);
                 System.out.println("이미지 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
 
                 fileSizeService.updateTotalFileSize(encoded);
@@ -246,7 +251,7 @@ public class FileEncodingService {
     public void videoEncodingBoard(Long originalResourceId, OriginResourceListDTO originResourceListDTO) throws IOException {
 
         // originalResourceId를 사용해 OriginalResource에서 fileName을 가져옴
-        Optional<OriginalResource> originalResourceOpt = originalResourceRepository.findById(originalResourceId);
+        Optional<OriginalResource> originalResourceOpt = fileOriginRepository.findById(originalResourceId);
         if (!originalResourceOpt.isPresent()) {
             throw new IllegalArgumentException("원본 리소스를 찾을 수 없습니다: originalResourceId=" + originalResourceId);
         }
@@ -360,18 +365,18 @@ public class FileEncodingService {
         encodedResource.setResourceStatus(ResourceStatus.UPLOADING); // 인코딩 진행 중 상태
         encodedResource.setFileSize(originResourceListDTO.getFileSize());
 
-        encodedResourceRepository.save(encodedResource); // EncodedResource 저장
+        fileEncodedRepository.save(encodedResource); // EncodedResource 저장
 
         // 파일 사이즈 확인 및 DB 업데이트
         try {
             long fileSize = getFileSize(outputFileName); // 인코딩된 파일 사이즈 확인
-            Optional<EncodedResource> encodedResourceOpt = encodedResourceRepository.findById(encodedResource.getEncodedResourceId());
+            Optional<EncodedResource> encodedResourceOpt = fileEncodedRepository.findById(encodedResource.getEncodedResourceId());
 
             if (encodedResourceOpt.isPresent()) {
                 EncodedResource encoded = encodedResourceOpt.get();
                 encoded.setFileSize((int) fileSize);
                 encoded.setResourceStatus(ResourceStatus.COMPLETED); // 인코딩 완료 상태
-                encodedResourceRepository.save(encoded); // EncodedResource 업데이트
+                fileEncodedRepository.save(encoded); // EncodedResource 업데이트
                 System.out.println("영상 인코딩 및 DB 저장 완료, 파일 이름: " + outputFileName);
 
                 fileSizeService.updateTotalFileSize(encoded);
@@ -390,7 +395,7 @@ public class FileEncodingService {
     
     // 인코딩 알림 저장
     public void encodingNotification(OriginResourceListDTO originResourceListDTO, String message){
-        OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(originResourceListDTO.getOriginalResourceId());
+        OriginalResource originalResource = fileOriginRepository.findByOriginalResourceId(originResourceListDTO.getOriginalResourceId());
         String fileTitle = originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat();
         Account account = accountRepository.findByAccountId(originResourceListDTO.getAccountId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid account ID: " + originResourceListDTO.getAccountId()));
@@ -408,7 +413,7 @@ public class FileEncodingService {
     // 인코딩 로그 저장
     public void encodingLog(OriginResourceListDTO originResourceListDTO, String message){
         try {
-            OriginalResource originalResource = originalResourceRepository.findByOriginalResourceId(originResourceListDTO.getOriginalResourceId());
+            OriginalResource originalResource = fileOriginRepository.findByOriginalResourceId(originResourceListDTO.getOriginalResourceId());
             String fileTitle = originalResource.getFileTitle() + "_" + originResourceListDTO.getResolution() + "_" + originResourceListDTO.getFormat();
             Account account = accountRepository.findByAccountId(originResourceListDTO.getAccountId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid account ID: " + originResourceListDTO.getAccountId()));

@@ -4,6 +4,7 @@ import com.boot.ksis.aop.CustomAnnotation;
 import com.boot.ksis.dto.api.ApiDTO;
 import com.boot.ksis.service.api.ApiService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,8 +47,11 @@ public class ApiController {
 
     // 모든 API 조회
     @GetMapping("/all")
-    public ResponseEntity<List<ApiDTO>> getAllAPIs() {
-        List<ApiDTO> apis = apiService.getAllApis();
+    public ResponseEntity<Page<ApiDTO>> getAllAPIs(@RequestParam int page,
+                                                   @RequestParam int size,
+                                                   @RequestParam(required = false) String searchTerm,
+                                                   @RequestParam(required = false) String searchCategory) {
+        Page<ApiDTO> apis = apiService.getAllApis(page, size, searchTerm, searchCategory);
         return ResponseEntity.ok(apis);
     }
 

@@ -1,6 +1,9 @@
 package com.boot.ksis.repository.notice;
 
+import com.boot.ksis.constant.Role;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,4 +22,13 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
 
     // 특정 공지에 해당하는 매핑 정보를 삭제하는 메소드
     void deleteByNoticeId(Long noticeId);
+
+    //관리자
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(String deviceName, boolean isActive, Pageable pageable);
+
+
+    //유저
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_AccountIdAndNotice_Active(String deviceName, String accountId, boolean isActive,  Pageable pageable);
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_Active(String deviceName, Role role, boolean isActive, Pageable pageable);
+
 }
