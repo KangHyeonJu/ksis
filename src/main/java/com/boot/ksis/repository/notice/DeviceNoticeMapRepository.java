@@ -1,6 +1,7 @@
 package com.boot.ksis.repository.notice;
 
 import com.boot.ksis.constant.Role;
+import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +29,7 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
 
 
     //유저
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_AccountIdAndNotice_Active(String deviceName, String accountId, boolean isActive,  Pageable pageable);
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_Active(String deviceName, Role role, boolean isActive, Pageable pageable);
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(String deviceName, Account accountId, boolean isActive, Pageable pageable);
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(String deviceName, Role role, boolean isActive, Pageable pageable);
 
 }

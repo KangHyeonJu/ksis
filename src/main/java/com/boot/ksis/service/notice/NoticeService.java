@@ -12,7 +12,6 @@ import com.boot.ksis.repository.notice.NoticeRepository;
 import com.boot.ksis.repository.signage.DeviceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.results.graph.tuple.TupleResult;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -126,9 +125,9 @@ public class NoticeService {
     }
 
     //USER 공지 조회 (활성화 본인 공지)
-    public Page<DeviceListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, String accountId) {
+    public Page<DeviceListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "noticeId"));
 
         Page<Notice> noticeList;
         Page<Notice> adminNoticeList;
@@ -139,11 +138,6 @@ public class NoticeService {
                         (true, accountId, searchTerm, pageable);
                 adminNoticeList = noticeRepository.findByAccount_RoleAndIsActiveAndTitleContainingIgnoreCase
                         (Role.ADMIN, true, searchTerm, pageable);
-            }else if(searchCategory.equals("account")){
-                noticeList = noticeRepository.searchByAccountOrNameAndIsActiveAndAccount(
-                        searchTerm, true, accountId, pageable);
-                adminNoticeList = noticeRepository.searchByAccountOrNameAndAccount_RoleAndIsActive
-                        (searchTerm, Role.ADMIN, true, pageable);
             }else if(searchCategory.equals("regTime")){
                 noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
                         searchTerm, true, accountId, pageable);
@@ -151,9 +145,9 @@ public class NoticeService {
                         (searchTerm, Role.ADMIN, true, pageable);
             }else if(searchCategory.equals("device")){
                 // DeviceNoticeMap에서 Notice를 추출하여 변환
-                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_AccountIdAndNotice_Active(
+                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(
                         searchTerm, accountId, true, pageable);
-                Page<DeviceNoticeMap> adminDeviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_Active(
+                Page<DeviceNoticeMap> adminDeviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(
                         searchTerm, Role.ADMIN, true, pageable);
 
                 // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
@@ -181,7 +175,7 @@ public class NoticeService {
     }
 
     //USER 공지 조회 (비활성화 본인 공지)
-    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, String accountId) {
+    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
         Page<Notice> noticeList;
@@ -190,9 +184,6 @@ public class NoticeService {
             if(searchCategory.equals("title")){
                 noticeList = noticeRepository.findByIsActiveAndAccountAndTitleContainingIgnoreCase
                         (false, accountId, searchTerm, pageable);
-            }else if(searchCategory.equals("account")){
-                noticeList = noticeRepository.searchByAccountOrNameAndIsActiveAndAccount(
-                        searchTerm, false, accountId, pageable);
             }else if(searchCategory.equals("regTime")){
                 noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
                         searchTerm, false, accountId, pageable);
