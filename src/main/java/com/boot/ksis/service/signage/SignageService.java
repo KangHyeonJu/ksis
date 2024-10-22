@@ -618,7 +618,10 @@ public class SignageService {
         Device device = signageRepository.findByDeviceId(playListAddDTO.getDeviceId());
 
         //플레이리스트 정보 등록
-        PlayList playList = playListRepository.save(playListAddDTO.createNewSignage(device));
+        PlayList playList = playListAddDTO.createNewSignage(device);
+        playList.setIsDefault(playListRepository.findByDevice(device).isEmpty());
+
+        playListRepository.save(playList);
 
         //재생순서 및 resource 등록
         for(PlayListSequenceDTO playListSequenceDTO : playListSequenceDTOList){
