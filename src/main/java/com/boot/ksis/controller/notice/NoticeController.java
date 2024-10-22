@@ -144,6 +144,36 @@ public class NoticeController {
         }
     }
 
+    // 공지 조회 (본인 및 관리자 공지 전체)
+    @GetMapping("/deactivation/all")
+    public ResponseEntity<?> getDeactivationNotices(Principal principal) {
+        if (principal == null) {
+            return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accountId = principal.getName();
+
+        // Account 객체를 repository를 통해 조회
+        Optional<Account> accountOptional = accountRepository.findById(accountId);
+
+        if (!accountOptional.isPresent()) {
+            return new ResponseEntity<>("계정 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        Account account = accountOptional.get();
+        Role role = account.getRole();
+
+        if (role == null) {
+            return new ResponseEntity<>("역할 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (role.equals(Role.ADMIN)) { // Role 객체와 비교
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(accountId), HttpStatus.OK);
+        }
+    }
+
 
     // 공지 상세조회
     @GetMapping("/{noticeId}")
