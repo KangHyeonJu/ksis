@@ -18,7 +18,7 @@ public interface EncodedResourceRepository extends JpaRepository<EncodedResource
     EncodedResource findByEncodedResourceId(Long encodedResourceId);
 
     void deleteByOriginalResource(OriginalResource originalResource);
-    
+
     List<EncodedResource> findByOriginalResource(OriginalResource originalResource);
 
     List<EncodedResource> findByOriginalResourceAndResourceStatus(OriginalResource originalResource, ResourceStatus resourceStatus);
