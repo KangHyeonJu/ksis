@@ -1,5 +1,7 @@
 package com.boot.ksis.repository.notice;
 
+import com.boot.ksis.constant.ResourceStatus;
+import com.boot.ksis.constant.ResourceType;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.Notice;
