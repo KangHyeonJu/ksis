@@ -11,6 +11,7 @@ import com.boot.ksis.service.file.FileBoardService;
 import com.boot.ksis.service.file.FileEncodingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RequestMapping("/resourceList")
 public class FileBoardController {
-
+    @Autowired
     private final FileBoardService fileBoardService;
     private final FileEncodingService fileEncodingService;
     private final AccountRepository accountRepository;
