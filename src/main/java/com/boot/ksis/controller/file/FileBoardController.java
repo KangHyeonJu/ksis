@@ -5,13 +5,14 @@ import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.file.EncodeListDTO;
 import com.boot.ksis.dto.file.OriginResourceListDTO;
 import com.boot.ksis.dto.file.ResourceListDTO;
-import com.boot.ksis.dto.resolution.ResolutionDTO;
 import com.boot.ksis.entity.Account;
-import com.boot.ksis.entity.OriginalResource;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.file.FileBoardService;
 import com.boot.ksis.service.file.FileEncodingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,14 +20,14 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/resourceList")
 public class FileBoardController {
-
+    @Autowired
     private final FileBoardService fileBoardService;
     private final FileEncodingService fileEncodingService;
     private final AccountRepository accountRepository;
@@ -40,7 +41,11 @@ public class FileBoardController {
 
     // 업로드된 원본 이미지 파일 목록 조회
     @GetMapping("/active/RsImages")
-    public ResponseEntity<?> getActiveRsImageFiles(Principal principal) {
+    public ResponseEntity<?> getActiveRsImageFiles(Principal principal,
+                                                   @RequestParam int page,
+                                                   @RequestParam int size,
+                                                   @RequestParam(required = false) String searchTerm,
+                                                   @RequestParam(required = false) String searchCategory) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -57,15 +62,26 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
-        List<ResourceListDTO> imageFiles = fileBoardService.getRsActiveImageFiles(account, role);
+        Page<ResourceListDTO> imageFiles;
 
+        try {
+            imageFiles = fileBoardService.getRsActiveImageFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            log.error("파일 조회 중 오류 발생: ", e);
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 조회 결과 반환
         return ResponseEntity.ok(imageFiles);
     }
 
     // 업로드된 원본 동영상 파일 목록 조회
     @GetMapping("/active/RsVideos")
-    public ResponseEntity<?> getActiveVideoFiles(Principal principal) {
+    public ResponseEntity<?> getActiveVideoFiles(Principal principal,
+                                                 @RequestParam int page,
+                                                 @RequestParam int size,
+                                                 @RequestParam(required = false) String searchTerm,
+                                                 @RequestParam(required = false) String searchCategory) {
 
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -83,14 +99,26 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
+        Page<ResourceListDTO> videoFiles;
 
-        List<ResourceListDTO> videoFiles = fileBoardService.getRsActiveVideoFiles(account, role);
+        try {
+            videoFiles = fileBoardService.getRsActiveVideoFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            log.error("파일 조회 중 오류 발생: ", e);
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 조회 결과 반환
         return ResponseEntity.ok(videoFiles);
     }
 
     // 업로드된 비활성화 원본 이미지 파일 목록 조회
     @GetMapping("/deactivation/Images")
-    public ResponseEntity<?> getDeactivationImageFiles(Principal principal) {
+    public ResponseEntity<?> getDeactivationImageFiles(Principal principal,
+                                                       @RequestParam int page,
+                                                       @RequestParam int size,
+                                                       @RequestParam(required = false) String searchTerm,
+                                                       @RequestParam(required = false) String searchCategory) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -107,15 +135,26 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
-        List<ResourceListDTO> imageFiles = fileBoardService.getDeactiveImageFiles(account, role);
+        Page<ResourceListDTO> imageFiles;
 
+        try {
+            imageFiles = fileBoardService.getDeactiveImageFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            log.error("파일 조회 중 오류 발생: ", e);
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 조회 결과 반환
         return ResponseEntity.ok(imageFiles);
     }
 
     // 업로드된 비활성화 원본 동영상 파일 목록 조회
     @GetMapping("/deactivation/Videos")
-    public ResponseEntity<?> getDeactivationVideoFiles(Principal principal) {
+    public ResponseEntity<?> getDeactivationVideoFiles(Principal principal,
+                                                       @RequestParam int page,
+                                                       @RequestParam int size,
+                                                       @RequestParam(required = false) String searchTerm,
+                                                       @RequestParam(required = false) String searchCategory) {
 
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -133,16 +172,29 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
+        Page<ResourceListDTO> videoFiles;
 
-        List<ResourceListDTO> videoFiles = fileBoardService.getDeactiveVideoFiles(account, role);
+        try {
+            videoFiles = fileBoardService.getDeactiveVideoFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            log.error("파일 조회 중 오류 발생: ", e);
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 조회 결과 반환
         return ResponseEntity.ok(videoFiles);
+
     }
 
     // 업로드된 원본 이미지 파일 목록 조회
     @GetMapping("/EcImages")
-    public ResponseEntity<?> getEcImageFiles(Principal principal) {
+    public ResponseEntity<?> getEcImageFiles(Principal principal,
+                                             @RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String searchTerm,
+                                             @RequestParam(required = false) String searchCategory) {
 
-
+        // 인증 확인
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -159,16 +211,27 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        // 역할 구분 없이 본인이 올린 이미지 파일 목록 조회
-        List<EncodeListDTO> imageFiles = fileBoardService.getEcActiveImageFiles(account, role);
+        Page<EncodeListDTO> imageFiles;
 
+        try {
+            imageFiles = fileBoardService.getEcActiveImageFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            log.error("파일 조회 중 오류 발생: ", e);
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 조회 결과 반환
         return ResponseEntity.ok(imageFiles);
-
     }
+
 
     // 업로드된 인코딩 동영상 파일 목록 조회
     @GetMapping("/EcVideos")
-    public ResponseEntity<?> getEcVideoFiles(Principal principal) {
+    public ResponseEntity<?> getEcVideoFiles(Principal principal,
+                                             @RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String searchTerm,
+                                             @RequestParam(required = false) String searchCategory) {
 
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -186,8 +249,15 @@ public class FileBoardController {
         Account account = accountOptional.get();
         Role role = account.getRole();
 
-        List<EncodeListDTO> videoFiles = fileBoardService.getEcActiveVideoFiles(account, role);
-        return ResponseEntity.ok(videoFiles);
+        Page<EncodeListDTO> videoFiles;
+
+        try {
+            videoFiles = fileBoardService.getEcActiveVideoFiles(page, size, searchTerm, searchCategory, account, role);
+        } catch (Exception e) {
+            return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+         return ResponseEntity.ok(videoFiles);
     }
 
     

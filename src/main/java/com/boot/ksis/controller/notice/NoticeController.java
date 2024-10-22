@@ -1,12 +1,12 @@
 package com.boot.ksis.controller.notice;
 
 import com.boot.ksis.aop.CustomAnnotation;
-import com.boot.ksis.handler.DeviceWebSocketHandler;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.dto.notice.DetailNoticeDTO;
 import com.boot.ksis.dto.notice.NoticeDTO;
 import com.boot.ksis.dto.notice.UpdateNoticeDTO;
 import com.boot.ksis.entity.Account;
+import com.boot.ksis.handler.DeviceWebSocketHandler;
 import com.boot.ksis.repository.account.AccountRepository;
 import com.boot.ksis.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
@@ -73,7 +73,11 @@ public class NoticeController {
 
     // 공지 조회 (본인 및 관리자 공지 전체)
     @GetMapping("/all")
-    public ResponseEntity<?> getUserNotices(Principal principal) {
+    public ResponseEntity<?> getUserNotices(Principal principal,
+                                            @RequestParam int page,
+                                            @RequestParam int size,
+                                            @RequestParam(required = false) String searchTerm,
+                                            @RequestParam(required = false) String searchCategory) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -94,16 +98,21 @@ public class NoticeController {
             return new ResponseEntity<>("역할 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
+
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllActiveNotices(), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserActiveNotices(accountId), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }
     }
 
     // 공지 조회 (본인 및 관리자 공지 전체)
     @GetMapping("/deactivation/all")
-    public ResponseEntity<?> getDeactivationNotices(Principal principal) {
+    public ResponseEntity<?> getDeactivationNotices(Principal principal,
+                                                    @RequestParam int page,
+                                                    @RequestParam int size,
+                                                    @RequestParam(required = false) String searchTerm,
+                                                    @RequestParam(required = false) String searchCategory) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -125,9 +134,9 @@ public class NoticeController {
         }
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(accountId), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }
     }
 

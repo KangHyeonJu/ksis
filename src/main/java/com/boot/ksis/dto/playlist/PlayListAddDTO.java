@@ -22,7 +22,7 @@ public class PlayListAddDTO {
 
     public PlayList createNewSignage(Device device){
         PlayList playList = modelMapper.map(this, PlayList.class);
-        playList.setIsDefault(false);
+//        playList.setIsDefault(false);
         playList.setDevice(device);
 
         return playList;

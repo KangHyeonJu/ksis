@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +45,7 @@ public class AccountService {
         }
 
         if (Boolean.TRUE.equals(account.getIsActive())) {
-            return false;
+            throw new IllegalArgumentException("비활성화된 아이디 입니다.");
         }
 
         //방문자 수 추가
@@ -112,7 +115,24 @@ public class AccountService {
             accounts = switch (searchCategory) {
                 case "accountId" -> accountRepository.findByAccountIdContainingIgnoreCase(searchTerm, pageable);
                 case "name" -> accountRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
-                case "businessTel" -> accountRepository.findByBusinessTelContainingIgnoreCase(searchTerm, pageable);
+//                case "businessTel" -> accountRepository.findByBusinessTelContainingIgnoreCase(searchTerm, pageable);
+                case "businessTel" -> {
+                    // 모든 계정을 먼저 조회한 후 복호화해서 검색어와 비교
+                    Page<Account> allAccounts = accountRepository.findAll(pageable);
+                    List<Account> filteredAccounts = allAccounts.getContent().stream()
+                            .filter(account -> {
+                                String decryptedBusinessTel;
+                                try {
+                                    decryptedBusinessTel = AESUtil.decrypt(account.getBusinessTel(), keySpec);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                                return decryptedBusinessTel.contains(searchTerm);
+                            })
+                            .collect(Collectors.toList());
+                    accounts = new PageImpl<>(filteredAccounts, pageable, allAccounts.getTotalElements());
+                    yield accounts;
+                }
                 case "isActive" -> accountRepository.findByIsActive(Boolean.parseBoolean(searchTerm), pageable);
                 default -> accountRepository.findAll(pageable);
             };
@@ -138,14 +158,6 @@ public class AccountService {
                     dto.setIsActive(account.getIsActive());
                     return dto;
                 });
-
-        accountListDTOs.forEach(dto -> {
-            System.out.println("AccountId: " + dto.getAccountId());
-            System.out.println("Name: " + dto.getName());
-            System.out.println("BusinessTel: " + dto.getBusinessTel());
-            System.out.println("IsActive: " + dto.getIsActive());
-            System.out.println("-----------------------------");
-        });
         return accountListDTOs;
     }
 

@@ -12,6 +12,7 @@ import com.boot.ksis.repository.notice.NoticeRepository;
 import com.boot.ksis.repository.signage.DeviceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -61,31 +62,144 @@ public class NoticeService {
     }
 
     //ADMIN 공지 조회 (활성화 된 것 전체)
-    public List<DeviceListDTO> getAllActiveNotices() {
-        // 활성화된 공지들만 조회
-        List<Notice> notices = noticeRepository.findByIsActiveOrderByRegTimeDesc(true);
-        return convertNoticesToDTO(notices);
+    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<Notice> noticeList;
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("title")){
+                noticeList = noticeRepository.findByIsActiveAndTitleContainingIgnoreCase
+                        (true, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                noticeList = noticeRepository.searchByAccountOrNameAndIsActive(searchTerm, true, pageable);
+            }else if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(searchTerm, true, pageable);
+            }else if(searchCategory.equals("device")){
+                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(
+                        searchTerm, true, pageable);
+
+                // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
+                noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
+            }else{
+                noticeList = noticeRepository.findByIsActive(true, pageable);
+            }
+        }else{
+            noticeList = noticeRepository.findByIsActive(true, pageable);
+        }
+
+        // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
+        List<Notice> notices = noticeList.getContent();
+        List<NoticeListDTO> noticeDTOList = convertNoticesToDTO(notices);
+
+        // Page<DeviceListDTO>로 변환하여 리턴
+        return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
     //ADMIN 공지 조회(비활성화 전체)
-    public List<DeviceListDTO> getAllNoneActiveNotices() {
-        // 활성화된 공지들만 조회
-        List<Notice> notices = noticeRepository.findByIsActiveOrderByRegTimeDesc(false);
-        return convertNoticesToDTO(notices);
+    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+        Page<Notice> noticeList;
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("title")){
+                noticeList = noticeRepository.findByIsActiveAndTitleContainingIgnoreCase
+                        (false, searchTerm, pageable);
+            }else if(searchCategory.equals("account")){
+                noticeList = noticeRepository.searchByAccountOrNameAndIsActive(
+                        searchTerm, false, pageable);
+            }else if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(
+                        searchTerm, false, pageable);
+            }
+            else{
+                noticeList = noticeRepository.findByIsActive(false, pageable);
+            }
+        }else{
+            noticeList = noticeRepository.findByIsActive(false, pageable);
+        }
+
+        // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
+        List<Notice> notices = noticeList.getContent();
+        List<NoticeListDTO> noticeDTOList = convertNoticesToDTO(notices);
+
+        // Page<NoticeListDTO>로 변환하여 리턴
+        return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
     //USER 공지 조회 (활성화 본인 공지)
-    public List<DeviceListDTO> getUserActiveNotices(String accountId) {
-        List<Notice> notices = noticeRepository.findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(accountId, true);
-        List<Notice> adminNotices = noticeRepository.findByAccount_RoleAndIsActiveOrderByRegTimeDesc(Role.ADMIN, true);
-        return convertUserNoticesToDTO(notices, adminNotices);
+    public Page<DeviceListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "noticeId"));
+
+        Page<Notice> noticeList;
+        Page<Notice> adminNoticeList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("title")){
+                noticeList = noticeRepository.findByIsActiveAndAccountAndTitleContainingIgnoreCase
+                        (true, accountId, searchTerm, pageable);
+                adminNoticeList = noticeRepository.findByAccount_RoleAndIsActiveAndTitleContainingIgnoreCase
+                        (Role.ADMIN, true, searchTerm, pageable);
+            }else if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
+                        searchTerm, true, accountId, pageable);
+                adminNoticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndAccount_RoleAndIsActive
+                        (searchTerm, Role.ADMIN, true, pageable);
+            }else if(searchCategory.equals("device")){
+                // DeviceNoticeMap에서 Notice를 추출하여 변환
+                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(
+                        searchTerm, accountId, true, pageable);
+                Page<DeviceNoticeMap> adminDeviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(
+                        searchTerm, Role.ADMIN, true, pageable);
+
+                // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
+                noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
+                adminNoticeList = adminDeviceNoticePage.map(DeviceNoticeMap::getNotice);
+
+            }else{
+                noticeList = noticeRepository.findByIsActiveAndAccount(true, accountId, pageable);
+                adminNoticeList = noticeRepository.findByAccount_RoleAndIsActive
+                        (Role.ADMIN, true, pageable);
+            }
+        }else{
+            noticeList = noticeRepository.findByIsActiveAndAccount(true, accountId, pageable);
+            adminNoticeList = noticeRepository.findByAccount_RoleAndIsActive
+                    (Role.ADMIN, true, pageable);
+        }
+
+        // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
+        List<Notice> notices = noticeList.getContent();
+        List<Notice> adminNotices = adminNoticeList.getContent();
+        List<DeviceListDTO> noticeDTOList = convertUserNoticesToDTO(notices, adminNotices);
+
+        // Page<DeviceListDTO>로 변환하여 리턴
+        return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
     //USER 공지 조회 (비활성화 본인 공지)
-    public List<DeviceListDTO> getUserNoneActiveNotices(String accountId) {
-        List<Notice> notices = noticeRepository.findByAccount_AccountIdAndIsActiveOrderByRegTimeDesc(accountId, false);
+    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
-        return convertNoticesToDTO(notices);
+        Page<Notice> noticeList;
+
+        if(searchCategory != null && !searchTerm.isEmpty()){
+            if(searchCategory.equals("title")){
+                noticeList = noticeRepository.findByIsActiveAndAccountAndTitleContainingIgnoreCase
+                        (false, accountId, searchTerm, pageable);
+            }else if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
+                        searchTerm, false, accountId, pageable);
+            }else{
+                noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
+            }
+        }else{
+            noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
+        }
+
+        // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
+        List<Notice> notices = noticeList.getContent();
+        List<NoticeListDTO> noticeDTOList = convertNoticesToDTO(notices);
+
+        // Page<NoticeListDTO>로 변환하여 리턴
+        return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
     // 본인 공지 및 관리자 공지 DTO 변환
@@ -122,11 +236,11 @@ public class NoticeService {
     }
 
     // 전체 공지 목록을 DTO로 변환
-    private List<DeviceListDTO> convertNoticesToDTO(List<Notice> notices) {
-        List<DeviceListDTO> noticeDTOList = new ArrayList<>();
+    private List<NoticeListDTO> convertNoticesToDTO(List<Notice> notices) {
+        List<NoticeListDTO> noticeDTOList = new ArrayList<>();
 
         for (Notice notice : notices) {
-            DeviceListDTO dto = new DeviceListDTO();
+            NoticeListDTO dto = new NoticeListDTO();
             dto.setNoticeId(notice.getNoticeId());
             dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
             dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
@@ -267,4 +381,13 @@ public class NoticeService {
         saveDeviceNoticeMaps(updateNoticeDTO.getDeviceIds(), notice);
     }
 
+    public List<Long> findDeviceNotice(Long noticeId){
+        List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(noticeId);
+        List<Long> deviceIds = new ArrayList<>();
+        for(DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps){
+            Long deviceId = deviceNoticeMap.getDeviceId();
+            deviceIds.add(deviceId);
+        }
+        return deviceIds;
+    }
 }

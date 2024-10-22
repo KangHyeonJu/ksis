@@ -4,11 +4,11 @@ import com.boot.ksis.dto.api.ApiDTO;
 import com.boot.ksis.entity.API;
 import com.boot.ksis.repository.api.ApiRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +29,34 @@ public class ApiService {
     }
 
     // 모든 API 조회
-    public List<ApiDTO> getAllApis() {
-        List<API> apis = apiRepository.findAll(Sort.by(Sort.Direction.DESC, "regTime"));
-        return apis.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ApiDTO> getAllApis(int page, int size, String searchTerm, String searchCategory) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        Page<API> apiList;
+
+        if (searchCategory != null && !searchCategory.isEmpty()) {
+            if(searchCategory.equals("apiName")) {
+                apiList = apiRepository.findByApiNameContainingIgnoreCase(searchTerm, pageable);
+            }else if(searchCategory.equals("provider")) {
+                apiList = apiRepository.findByProviderContainingIgnoreCase(searchTerm, pageable);
+            }else if(searchCategory.equals("expiryDate")) {
+                apiList = apiRepository.findByExpiryDateContainingIgnoreCase(searchTerm, pageable);
+            }else {
+                apiList = apiRepository.findAll(pageable);
+            }
+        }else{
+            apiList = apiRepository.findAll(pageable);
+        }
+
+        List<ApiDTO> apiDTOS =  new ArrayList<>();
+
+        for (API api : apiList){
+            ApiDTO apiDTO = convertToDTO(api);
+
+            apiDTOS.add(apiDTO);
+        }
+
+        return new PageImpl<>(apiDTOS, pageable, apiList.getTotalElements());
     }
 
     // 특정 API 조회
