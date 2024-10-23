@@ -268,9 +268,9 @@ public class NoticeService {
 
 
     // 공지 상세 조회
-    public DetailNoticeDTO getActiveNoticeById(Long noticeId) {
+    public DetailNoticeDTO getNoticeById(Long noticeId) {
         // 비활성화된 공지를 포함한 조회
-        Optional<Notice> noticeOptional = noticeRepository.findByNoticeIdAndIsActiveOrderByRegTimeDesc(noticeId, true);
+        Optional<Notice> noticeOptional = noticeRepository.findByNoticeIdOrderByRegTimeDesc(noticeId);
 
         // 공지가 비활성화된 경우 예외 처리
         if (noticeOptional.isEmpty()) {
@@ -307,6 +307,7 @@ public class NoticeService {
 
         return dto;
     }
+
 
     // 공지에 대한 디바이스 매핑 저장 로직
     private void saveDeviceNoticeMaps(List<Long> deviceIds, Notice notice) {
