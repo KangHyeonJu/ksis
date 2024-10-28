@@ -11,10 +11,7 @@ import com.boot.ksis.util.AESUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -107,7 +104,7 @@ public class AccountService {
     }
 
     public Page<AccountListDTO> getAccountList(int page, int size, String searchTerm, String searchCategory) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<Account> accounts;
 
         // 검색어와 검색 카테고리에 따라 쿼리 다르게 처리
@@ -115,7 +112,6 @@ public class AccountService {
             accounts = switch (searchCategory) {
                 case "accountId" -> accountRepository.findByAccountIdContainingIgnoreCase(searchTerm, pageable);
                 case "name" -> accountRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
-//                case "businessTel" -> accountRepository.findByBusinessTelContainingIgnoreCase(searchTerm, pageable);
                 case "businessTel" -> {
                     // 모든 계정을 먼저 조회한 후 복호화해서 검색어와 비교
                     Page<Account> allAccounts = accountRepository.findAll(pageable);
