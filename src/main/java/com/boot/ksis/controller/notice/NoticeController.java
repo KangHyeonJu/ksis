@@ -102,7 +102,7 @@ public class NoticeController {
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
             return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, accountId), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }
     }
 
@@ -136,7 +136,7 @@ public class NoticeController {
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
             return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, accountId), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }
     }
 
@@ -146,7 +146,7 @@ public class NoticeController {
     public ResponseEntity<?> getNoticeById(@PathVariable Long noticeId) {
         try {
             // 공지 상세 조회 서비스 호출
-            DetailNoticeDTO notice = noticeService.getActiveNoticeById(noticeId);
+            DetailNoticeDTO notice = noticeService.getNoticeById(noticeId);
             return ResponseEntity.ok(notice); // 성공 시 상세 공지 반환
 
         } catch (RuntimeException e) {
@@ -154,4 +154,5 @@ public class NoticeController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 공지는 비활성화된 상태입니다.");
         }
     }
+
 }
