@@ -2,6 +2,7 @@ package com.boot.ksis.entity;
 
 import com.boot.ksis.constant.Gender;
 import com.boot.ksis.constant.Role;
+import com.boot.ksis.entity.Base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import java.util.Collections;
 @Table(name = "account")
 @Getter
 @Setter
-public class Account implements UserDetails {
+public class Account extends BaseEntity implements UserDetails {
     //계정 아이디
     @Id
     @Column(name = "account_id")
