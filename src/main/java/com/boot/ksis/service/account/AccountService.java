@@ -73,7 +73,6 @@ public class AccountService {
         // BusinessTel 암호화
         String encryptedBusinessTel = AESUtil.encrypt(dto.getBusinessTel(), keySpec);
         account.setBusinessTel(encryptedBusinessTel);
-
         account.setEmergencyTel(dto.getEmergencyTel());
         account.setEmail(dto.getEmail());
         account.setPosition(dto.getPosition());
