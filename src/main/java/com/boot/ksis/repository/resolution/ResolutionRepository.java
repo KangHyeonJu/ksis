@@ -18,4 +18,8 @@ public interface ResolutionRepository extends JpaRepository<Resolution, Long> {
 
 
     Page<Resolution> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    Resolution findByWidth(int width);
+
+    Resolution findByHeight(int height);
 }

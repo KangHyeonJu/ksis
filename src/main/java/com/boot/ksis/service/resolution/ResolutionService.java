@@ -95,4 +95,15 @@ public class ResolutionService {
 
         resolutionRepository.save(resolution);
     }
+
+    //해상도 등록 중복 검사
+    public boolean checkResolution(ResolutionDTO resolutionDTO){
+        Resolution resolution = resolutionRepository.findByWidth(resolutionDTO.getWidth());
+
+        return resolution.getHeight() == resolutionDTO.getHeight();
+    }
+
+    //해상도 수정 중복 검사
+
+    
 }

@@ -42,8 +42,13 @@ public class ResolutionController {
     @PostMapping()
     public ResponseEntity<String> postResolution(@RequestBody ResolutionDTO resolutionDTO){
         try{
-            resolutionService.postResolution(resolutionDTO);
-            return ResponseEntity.ok("해상도가 정상적으로 등록되었습니다.");
+            if(resolutionService.checkResolution(resolutionDTO)){
+                resolutionService.postResolution(resolutionDTO);
+                return ResponseEntity.ok("해상도가 정상적으로 등록되었습니다.");
+            }else{
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 해상도입니다.");
+            }
+
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error post resolution");
         }
