@@ -457,60 +457,98 @@ public class FileBoardService {
     }
 
     // 특정 이미지 원본 파일 조회
-    public List<EncodeListDTO> getResourceImgDtl(Long originalResourceId) {
-        List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
+    public Page<EncodeListDTO> getResourceImgDtl(Long originalResourceId, int page, int size) {
 
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        // 원본 리소스 조회
         OriginalResource originalResource = fileOriginRepository.findById(originalResourceId).orElse(null);
 
-        List<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
+        // 원본 리소스가 존재하지 않을 경우 빈 페이지 반환
+        if (originalResource == null) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
 
-        if(!encodedResources.isEmpty()){
+        // 인코딩된 리소스 조회
+        Page<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResourceAndResourceStatusAndResourceType(
+                originalResource, ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);
+
+        // EncodeListDTO 리스트 생성
+        List<EncodeListDTO> resourceDetailList = new ArrayList<>();
+
+        // 인코딩된 리소스가 존재할 경우
+        if (!encodedResources.isEmpty()) {
             for (EncodedResource encodedResource : encodedResources) {
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
                 EncodeListDTO encode = new EncodeListDTO(
                         encodedResource.getEncodedResourceId(),
-                        thumbNail.getFilePath(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 존재할 경우
                         originalResource.getFilePath(),
                         encodedResource.getFileTitle(),
                         encodedResource.getResolution(),
                         encodedResource.getFormat(),
-                        encodedResource.getRegTime());
-                resourceDetailListDTO.add(encode);
+                        encodedResource.getRegTime()
+                );
+                resourceDetailList.add(encode);
             }
-        }else{
-            EncodeListDTO encode = EncodeListDTO.builder().filePath(originalResource.getFilePath()).build();
-            resourceDetailListDTO.add(encode);
+        } else {
+            // 인코딩된 리소스가 없을 경우 원본 리소스 정보만 포함
+            EncodeListDTO encode = EncodeListDTO.builder()
+                    .filePath(originalResource.getFilePath())
+                    .build();
+            resourceDetailList.add(encode);
         }
-        return resourceDetailListDTO;
+
+        // EncodeListDTO 리스트를 Page로 변환하여 반환
+        return new PageImpl<>(resourceDetailList, pageable, encodedResources.getTotalElements());
+
     }
 
     // 특정 영상 원본 파일 조회
-    public List<EncodeListDTO> getResourceVideoDtl(Long originalResourceId) {
-        List<EncodeListDTO> resourceDetailListDTO = new ArrayList<>();
+    public Page<EncodeListDTO> getResourceVideoDtl(Long originalResourceId, int page, int size) {
 
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        // 원본 리소스 조회
         OriginalResource originalResource = fileOriginRepository.findById(originalResourceId).orElse(null);
 
-        List<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResourceAndResourceStatusOrderByRegTimeDesc(originalResource, ResourceStatus.COMPLETED);
+        // 원본 리소스가 존재하지 않을 경우 빈 페이지 반환
+        if (originalResource == null) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
 
-        if(!encodedResources.isEmpty()){
+        // 인코딩된 리소스 조회
+        Page<EncodedResource> encodedResources = fileEncodedRepository.findByOriginalResourceAndResourceStatusAndResourceType(
+                originalResource, ResourceStatus.COMPLETED, ResourceType.VIDEO, pageable);
+
+        // EncodeListDTO 리스트 생성
+        List<EncodeListDTO> resourceDetailList = new ArrayList<>();
+
+        // 인코딩된 리소스가 존재할 경우
+        if (!encodedResources.isEmpty()) {
             for (EncodedResource encodedResource : encodedResources) {
                 ThumbNail thumbNail = thumbNailRepository.findByOriginalResource(originalResource);
                 EncodeListDTO encode = new EncodeListDTO(
                         encodedResource.getEncodedResourceId(),
-                        thumbNail.getFilePath(),
+                        thumbNail != null ? thumbNail.getFilePath() : null,  // 썸네일이 존재할 경우
                         originalResource.getFilePath(),
                         encodedResource.getFileTitle(),
                         encodedResource.getResolution(),
                         encodedResource.getFormat(),
-                        encodedResource.getRegTime());
-                resourceDetailListDTO.add(encode);
+                        encodedResource.getRegTime()
+                );
+                resourceDetailList.add(encode);
             }
-        }else{
-            EncodeListDTO encode = EncodeListDTO.builder().filePath(originalResource.getFilePath()).build();
-            resourceDetailListDTO.add(encode);
+        } else {
+            // 인코딩된 리소스가 없을 경우 원본 리소스 정보만 포함
+            EncodeListDTO encode = EncodeListDTO.builder()
+                    .filePath(originalResource.getFilePath())
+                    .build();
+            resourceDetailList.add(encode);
         }
 
-        return resourceDetailListDTO;
+        // EncodeListDTO 리스트를 Page로 변환하여 반환
+        return new PageImpl<>(resourceDetailList, pageable, encodedResources.getTotalElements());
     }
 
 

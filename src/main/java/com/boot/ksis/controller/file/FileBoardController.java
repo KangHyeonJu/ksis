@@ -270,16 +270,20 @@ public class FileBoardController {
 
     // 원본 특정 파일 상세조회 
     @GetMapping("/Img/{originalResourceId}")
-    public ResponseEntity<List<EncodeListDTO>> getResourceImgDtl (@PathVariable Long originalResourceId) {
+    public ResponseEntity<Page<EncodeListDTO>> getResourceImgDtl (@PathVariable Long originalResourceId,
+                                                                  @RequestParam int page,
+                                                                  @RequestParam int size) {
         //  상세 조회 서비스 호출
-        List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceImgDtl(originalResourceId);
+        Page<EncodeListDTO> encodeListDTO = fileBoardService.getResourceImgDtl(originalResourceId, page, size);
         return ResponseEntity.ok(encodeListDTO); //원본 특정 파일 상세조회값 반환
     }
     // 원본 특정 파일 상세조회
     @GetMapping("/Video/{originalResourceId}")
-    public ResponseEntity<List<EncodeListDTO>> getResourceVideoDtl (@PathVariable Long originalResourceId) {
+    public ResponseEntity<Page<EncodeListDTO>> getResourceVideoDtl (@PathVariable Long originalResourceId,
+                                                                    @RequestParam int page,
+                                                                    @RequestParam int size) {
         //  상세 조회 서비스 호출
-        List<EncodeListDTO> encodeListDTO = fileBoardService.getResourceVideoDtl(originalResourceId);
+        Page<EncodeListDTO> encodeListDTO = fileBoardService.getResourceVideoDtl(originalResourceId, page, size);
         return ResponseEntity.ok(encodeListDTO); //원본 특정 파일 상세조회값 반환
     }
 
