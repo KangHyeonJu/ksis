@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ResolutionRepository extends JpaRepository<Resolution, Long> {
     Resolution findByResolutionId(Long resolutionId);
 
@@ -19,7 +21,7 @@ public interface ResolutionRepository extends JpaRepository<Resolution, Long> {
 
     Page<Resolution> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-    Resolution findByWidth(int width);
+    List<Resolution> findByWidth(int width);
 
     Resolution findByHeight(int height);
 }

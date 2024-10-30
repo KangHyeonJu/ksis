@@ -76,10 +76,14 @@ public class ResolutionController {
 
     @CustomAnnotation(activityDetail = "해상도 수정")
     @PutMapping()
-    public ResponseEntity<String> updateResolution(@RequestBody ResolutionDTO resolutionDTO){
+    public ResponseEntity<String> checkUpdateResolution(@RequestBody ResolutionDTO resolutionDTO){
         try{
-            resolutionService.updateResolution(resolutionDTO);
-            return ResponseEntity.ok("해상도가 정상적으로 등록되었습니다.");
+            if(resolutionService.checkUpdateResolution(resolutionDTO)){
+                resolutionService.updateResolution(resolutionDTO);
+                return ResponseEntity.ok("해상도가 정상적으로 등록되었습니다.");
+            }else{
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body("이미 등록된 해상도입니다.");
+            }
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error post resolution");
         }
