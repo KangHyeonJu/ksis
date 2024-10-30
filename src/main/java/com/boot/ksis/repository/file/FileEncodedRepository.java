@@ -54,4 +54,9 @@ public interface FileEncodedRepository extends JpaRepository<EncodedResource, Lo
 
 
     Page<EncodedResource> findByResourceStatusAndResourceType(ResourceStatus resourceStatus, ResourceType resourceType, Pageable pageable);
+
+    //상세조회 페이징
+    Page<EncodedResource> findByOriginalResourceAndResourceStatusAndResourceType(
+            OriginalResource originalResource, ResourceStatus resourceStatus, ResourceType resourceType, Pageable pageable);
+
 }
