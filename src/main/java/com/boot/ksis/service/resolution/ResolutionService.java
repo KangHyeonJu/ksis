@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -95,4 +96,40 @@ public class ResolutionService {
 
         resolutionRepository.save(resolution);
     }
+
+    //해상도 등록 중복 검사
+    public boolean checkResolution(ResolutionDTO resolutionDTO){
+        List<Resolution> resolutionList = resolutionRepository.findByWidth(resolutionDTO.getWidth());
+
+        boolean check = true;
+
+        for(Resolution resolution : resolutionList){
+            if(resolution.getHeight() == resolutionDTO.getHeight()){
+                check = false;
+                break;
+            }
+        }
+        return check;
+    }
+
+    //해상도 수정 중복 검사
+    public boolean checkUpdateResolution(ResolutionDTO resolutionDTO){
+        Resolution updateResolution = resolutionRepository.findByResolutionId(resolutionDTO.getResolutionId());
+
+        List<Resolution> resolutionList = resolutionRepository.findByWidth(resolutionDTO.getWidth());
+
+        boolean check = true;
+
+        for(Resolution resolution : resolutionList){
+            if(resolution.getHeight() == resolutionDTO.getHeight()){
+                if(!Objects.equals(resolution.getResolutionId(), updateResolution.getResolutionId())){
+                    check = false;
+                    break;
+                }
+            }
+        }
+        return check;
+    }
+
+    
 }
