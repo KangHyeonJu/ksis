@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,5 +63,24 @@ public interface FileOriginRepository  extends JpaRepository<OriginalResource, L
 
 
     Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActive(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, Pageable pageable);
+
+    // 관리자용: 날짜 범위로 regTime을 조회
+    Page<OriginalResource> findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActive(
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
+            ResourceStatus resourceStatus,
+            ResourceType resourceType,
+            Boolean isActive,
+            Pageable pageable);
+
+    // 일반 사용자용: 날짜 범위로 regTime을 조회 + account 필터
+    Page<OriginalResource> findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActiveAndAccount(
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
+            ResourceStatus resourceStatus,
+            ResourceType resourceType,
+            Boolean isActive,
+            Account accountId,
+            Pageable pageable);
 
 }

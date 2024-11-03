@@ -45,7 +45,9 @@ public class FileBoardController {
                                                    @RequestParam int page,
                                                    @RequestParam int size,
                                                    @RequestParam(required = false) String searchTerm,
-                                                   @RequestParam(required = false) String searchCategory) {
+                                                   @RequestParam(required = false) String searchCategory,
+                                                   @RequestParam(required = false) String startTime,
+                                                   @RequestParam(required = false) String endTime) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -65,7 +67,7 @@ public class FileBoardController {
         Page<ResourceListDTO> imageFiles;
 
         try {
-            imageFiles = fileBoardService.getRsActiveImageFiles(page, size, searchTerm, searchCategory, account, role);
+            imageFiles = fileBoardService.getRsActiveImageFiles(page, size, searchTerm, searchCategory, account, role, startTime, endTime);
         } catch (Exception e) {
             log.error("파일 조회 중 오류 발생: ", e);
             return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -81,7 +83,9 @@ public class FileBoardController {
                                                  @RequestParam int page,
                                                  @RequestParam int size,
                                                  @RequestParam(required = false) String searchTerm,
-                                                 @RequestParam(required = false) String searchCategory) {
+                                                 @RequestParam(required = false) String searchCategory,
+                                                 @RequestParam(required = false) String startTime,
+                                                 @RequestParam(required = false) String endTime) {
 
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
@@ -102,7 +106,7 @@ public class FileBoardController {
         Page<ResourceListDTO> videoFiles;
 
         try {
-            videoFiles = fileBoardService.getRsActiveVideoFiles(page, size, searchTerm, searchCategory, account, role);
+            videoFiles = fileBoardService.getRsActiveVideoFiles(page, size, searchTerm, searchCategory, account, role, startTime, endTime);
         } catch (Exception e) {
             log.error("파일 조회 중 오류 발생: ", e);
             return new ResponseEntity<>("파일 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
