@@ -3,12 +3,14 @@ package com.boot.ksis.repository.notice;
 import com.boot.ksis.constant.Role;
 import com.boot.ksis.entity.Account;
 import com.boot.ksis.entity.MapsId.DeviceNoticeMap;
+import com.boot.ksis.entity.Notice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap, Long> {
@@ -25,11 +27,23 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
     void deleteByNoticeId(Long noticeId);
 
     //관리자
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(String deviceName, boolean isActive, Pageable pageable);
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(String deviceName,
+                                                                                      boolean isActive, Pageable pageable);
 
 
     //유저
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(String deviceName, Account accountId, boolean isActive, Pageable pageable);
+    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(String deviceName,
+                                                                                                         Account accountId, boolean isActive, Pageable pageable);
     Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(String deviceName, Role role, boolean isActive, Pageable pageable);
+
+
+    @Query("SELECT dnm FROM DeviceNoticeMap dnm " +
+            "JOIN dnm.notice n " +
+            "WHERE n.isActive = true " +
+            "AND dnm.device.deviceName LIKE CONCAT('%', :searchTerm, '%') " +  // CONCAT 사용으로 가독성 향상
+            "ORDER BY n.account.role ASC, n.regTime DESC")
+    Page<DeviceNoticeMap> findActiveNoticesWithDevice(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+
 
 }

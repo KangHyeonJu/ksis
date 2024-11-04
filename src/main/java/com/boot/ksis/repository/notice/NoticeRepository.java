@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,11 +60,36 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     //활성화 공지
     //관리자 공지 활성화된거
+
     @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = true " +
             "ORDER BY a.role ASC, n.regTime DESC")
     Page<Notice> findActiveNoticesWithAccountsOrdered(Pageable pageable);
+
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = true " +
+            "AND (n.title LIKE %:title%) " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findActiveNoticesWithTitle(@Param("title") String title, Pageable pageable);
+
+
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = true " +
+            "AND (a.accountId LIKE %:searchTerm% OR a.name LIKE %:searchTerm%) " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findActiveNoticesWithAccount(@Param("searchTerm") String searchTerm,
+                                                      Pageable pageable);
+
+ /*   @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = true " +
+            "AND (n.regTime = :regTime) " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findActiveNoticesWithRegTime(@Param("searchTerm") String searchTerm, Pageable pageable);
+*/
 
 
     //비활성화 공지
@@ -73,6 +99,14 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "WHERE n.isActive = false " +
             "ORDER BY n.regTime DESC")
     Page<Notice> findDeActivationNoticesWithAccountsOrdered(Pageable pageable);
+
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = false " +
+            "AND a.accountId = :accountId " +  // 현재 사용자의 accountId로 필터링
+            "ORDER BY n.regTime DESC")
+    Page<Notice> findDeActivationNoticesWithAccount(@Param("accountId") String accountId, Pageable pageable);
+
 
 
 }

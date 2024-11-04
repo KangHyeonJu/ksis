@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -62,12 +63,28 @@ public class NoticeService {
     }
 
     //ADMIN 공지 조회 (활성화 된 것 전체)
-    public Page<NoticeListDTO> getAllActiveNotices(int page, int size) {
+    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
 
+        if (searchCategory != null && !searchTerm.isEmpty()) {
+            if (searchCategory.equals("title")) {
+                noticeList = noticeRepository.findActiveNoticesWithTitle(searchTerm, pageable);
+            } else if (searchCategory.equals("account")) {
+                noticeList = noticeRepository.findActiveNoticesWithAccount(searchTerm, pageable);
+            } /*else if (searchCategory.equals("regTime")) {
+                noticeList = noticeRepository.findActiveNoticesWithRegTime(searchTerm, pageable);}*/
+             else if (searchCategory.equals("device")) {
+                Page<DeviceNoticeMap> deviceNoticePage =
+                        deviceNoticeMapRepository.findActiveNoticesWithDevice(searchTerm, pageable);
+                // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
+                noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
+            } else {
+                noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
+            }
+        } else {
             noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
-
+        }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
         List<Notice> notices = noticeList.getContent();
@@ -76,6 +93,7 @@ public class NoticeService {
         // Page<DeviceListDTO>로 변환하여 리턴
         return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
+
 
     //ADMIN 공지 조회(비활성화 전체)
     public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size) {
