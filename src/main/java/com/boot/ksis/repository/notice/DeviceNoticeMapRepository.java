@@ -19,16 +19,9 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
     @Query("SELECT d FROM DeviceNoticeMap d WHERE d.notice.noticeId = :noticeId")
     List<DeviceNoticeMap> findByNoticeId(@Param("noticeId") Long noticeId);
 
-    // 특정 공지에 해당하는 디바이스 목록을 조회하는 쿼리
-    @Query("SELECT d FROM DeviceNoticeMap d WHERE d.device.deviceId = :deviceId")
-    List<DeviceNoticeMap> findByDeviceId(@Param("deviceId") Long deviceId);
 
     // 특정 공지에 해당하는 매핑 정보를 삭제하는 메소드
     void deleteByNoticeId(Long noticeId);
-
-    //관리자
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(String deviceName,
-                                                                                      boolean isActive, Pageable pageable);
 
 
     //유저
@@ -37,13 +30,13 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
     Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(String deviceName, Role role, boolean isActive, Pageable pageable);
 
 
+    //관리자 재생장치로 검색
     @Query("SELECT dnm FROM DeviceNoticeMap dnm " +
             "JOIN dnm.notice n " +
             "WHERE n.isActive = true " +
             "AND dnm.device.deviceName LIKE CONCAT('%', :searchTerm, '%') " +  // CONCAT 사용으로 가독성 향상
             "ORDER BY n.account.role ASC, n.regTime DESC")
     Page<DeviceNoticeMap> findActiveNoticesWithDevice(@Param("searchTerm") String searchTerm, Pageable pageable);
-
 
 
 }

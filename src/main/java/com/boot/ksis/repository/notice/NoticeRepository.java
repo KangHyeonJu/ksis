@@ -60,13 +60,13 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     //활성화 공지
     //관리자 공지 활성화된거
-
     @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = true " +
             "ORDER BY a.role ASC, n.regTime DESC")
     Page<Notice> findActiveNoticesWithAccountsOrdered(Pageable pageable);
 
+    //제목으로 검색
     @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = true " +
@@ -74,7 +74,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "ORDER BY a.role ASC, n.regTime DESC")
     Page<Notice> findActiveNoticesWithTitle(@Param("title") String title, Pageable pageable);
 
-
+    //작성자로 검색
     @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = true " +
@@ -82,7 +82,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "ORDER BY a.role ASC, n.regTime DESC")
     Page<Notice> findActiveNoticesWithAccount(@Param("searchTerm") String searchTerm,
                                                       Pageable pageable);
-
+    //작성일로 검색
  /*   @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = true " +
@@ -90,6 +90,14 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "ORDER BY a.role ASC, n.regTime DESC")
     Page<Notice> findActiveNoticesWithRegTime(@Param("searchTerm") String searchTerm, Pageable pageable);
 */
+
+    //유저 공지 활성화된거
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE (a.role = 'admin' OR (a.role = 'user' AND a.accountId = :accountId)) " +
+            "AND n.isActive = true " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findUserNoticesByRole(@Param("accountId") String accountId, Pageable pageable);
 
 
     //비활성화 공지
@@ -114,14 +122,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "AND (a.accountId LIKE %:searchTerm% OR a.name LIKE %:searchTerm%) " +
             "ORDER BY n.regTime DESC")
     Page<Notice> findDeActivationNoticesWithAccount(@Param("searchTerm") String searchTerm, Pageable pageable);
-
-    @Query("SELECT n FROM Notice n " +
-            "JOIN n.account a " +
-            "WHERE n.isActive = false " +
-            "AND a.accountId = :accountId " +  // 현재 사용자의 accountId로 필터링
-            "ORDER BY n.regTime DESC")
-    Page<Notice> findDeActivationUserNoticesWithAccount(@Param("accountId") String accountId, Pageable pageable);
-
 
 
 }
