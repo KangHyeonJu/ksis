@@ -38,5 +38,21 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
             "ORDER BY n.account.role ASC, n.regTime DESC")
     Page<DeviceNoticeMap> findActiveNoticesWithDevice(@Param("searchTerm") String searchTerm, Pageable pageable);
 
+    //user 재생장치로 검색
+    @Query("SELECT dnm FROM DeviceNoticeMap dnm " +
+            "JOIN dnm.notice n " +
+            "JOIN n.account a " +
+            "WHERE (a.role = 'admin' OR (a.role = 'user' AND a.accountId = :accountId)) " +
+            "AND n.isActive = true " +
+            "AND dnm.device.deviceName LIKE CONCAT('%', :searchTerm, '%') " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<DeviceNoticeMap> findUserNoticesByRoleWithDevice(
+            @Param("accountId") String accountId,
+            @Param("searchTerm") String searchTerm,
+            Pageable pageable
+    );
+
+
+
 
 }
