@@ -62,29 +62,12 @@ public class NoticeService {
     }
 
     //ADMIN 공지 조회 (활성화 된 것 전체)
-    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+    public Page<NoticeListDTO> getAllActiveNotices(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
-        if(searchCategory != null && !searchTerm.isEmpty()){
-            if(searchCategory.equals("title")){
-                noticeList = noticeRepository.findByIsActiveAndTitleContainingIgnoreCase
-                        (true, searchTerm, pageable);
-            }else if(searchCategory.equals("account")){
-                noticeList = noticeRepository.searchByAccountOrNameAndIsActive(searchTerm, true, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(searchTerm, true, pageable);
-            }else if(searchCategory.equals("device")){
-                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(
-                        searchTerm, true, pageable);
 
-                // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
-                noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
-            }else{
-                noticeList = noticeRepository.findByIsActive(true, pageable);
-            }
-        }else{
-            noticeList = noticeRepository.findByIsActive(true, pageable);
-        }
+            noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
+
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
         List<Notice> notices = noticeList.getContent();
@@ -95,26 +78,13 @@ public class NoticeService {
     }
 
     //ADMIN 공지 조회(비활성화 전체)
-    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
-        if(searchCategory != null && !searchTerm.isEmpty()){
-            if(searchCategory.equals("title")){
-                noticeList = noticeRepository.findByIsActiveAndTitleContainingIgnoreCase
-                        (false, searchTerm, pageable);
-            }else if(searchCategory.equals("account")){
-                noticeList = noticeRepository.searchByAccountOrNameAndIsActive(
-                        searchTerm, false, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(
-                        searchTerm, false, pageable);
-            }
-            else{
-                noticeList = noticeRepository.findByIsActive(false, pageable);
-            }
-        }else{
-            noticeList = noticeRepository.findByIsActive(false, pageable);
-        }
+
+
+            noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered( pageable);
+
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
         List<Notice> notices = noticeList.getContent();

@@ -55,4 +55,24 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     Page<Notice> findByIsActiveAndAccount(boolean isActive, Account accountId, Pageable pageable);
     Page<Notice> findByAccount_RoleAndIsActive(Role role, boolean isActive, Pageable pageable);
+
+
+    //활성화 공지
+    //관리자 공지 활성화된거
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = true " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findActiveNoticesWithAccountsOrdered(Pageable pageable);
+
+
+    //비활성화 공지
+    //관리자 공지 비활성화 된거
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = false " +
+            "ORDER BY n.regTime DESC")
+    Page<Notice> findDeActivationNoticesWithAccountsOrdered(Pageable pageable);
+
+
 }

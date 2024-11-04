@@ -100,13 +100,13 @@ public class NoticeController {
 
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }
     }
 
-    // 공지 조회 (본인 및 관리자 공지 전체)
+    // 비활성화 공지 조회 (본인 및 관리자 공지 전체)
     @GetMapping("/deactivation/all")
     public ResponseEntity<?> getDeactivationNotices(Principal principal,
                                                     @RequestParam int page,
@@ -134,7 +134,7 @@ public class NoticeController {
         }
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }
