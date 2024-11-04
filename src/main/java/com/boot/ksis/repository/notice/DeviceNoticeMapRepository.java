@@ -23,13 +23,6 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
     // 특정 공지에 해당하는 매핑 정보를 삭제하는 메소드
     void deleteByNoticeId(Long noticeId);
 
-
-    //유저
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(String deviceName,
-                                                                                                         Account accountId, boolean isActive, Pageable pageable);
-    Page<DeviceNoticeMap> findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(String deviceName, Role role, boolean isActive, Pageable pageable);
-
-
     //관리자 재생장치로 검색
     @Query("SELECT dnm FROM DeviceNoticeMap dnm " +
             "JOIN dnm.notice n " +
@@ -51,8 +44,5 @@ public interface DeviceNoticeMapRepository extends JpaRepository<DeviceNoticeMap
             @Param("searchTerm") String searchTerm,
             Pageable pageable
     );
-
-
-
 
 }
