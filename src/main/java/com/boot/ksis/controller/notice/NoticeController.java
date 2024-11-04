@@ -135,7 +135,7 @@ public class NoticeController {
         }
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
         }

@@ -103,9 +103,24 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = false " +
+            "AND (n.title LIKE %:title%) " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findDeActivationNoticesWithTitle(@Param("title") String title, Pageable pageable);
+
+
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = false " +
+            "AND (a.accountId LIKE %:searchTerm% OR a.name LIKE %:searchTerm%) " +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findDeActivationNoticesWithAccount(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.isActive = false " +
             "AND a.accountId = :accountId " +  // 현재 사용자의 accountId로 필터링
             "ORDER BY n.regTime DESC")
-    Page<Notice> findDeActivationNoticesWithAccount(@Param("accountId") String accountId, Pageable pageable);
+    Page<Notice> findDeActivationUserNoticesWithAccount(@Param("accountId") String accountId, Pageable pageable);
 
 
 

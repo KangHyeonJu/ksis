@@ -96,19 +96,29 @@ public class NoticeService {
 
 
     //ADMIN 공지 조회(비활성화 전체)
-    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size) {
+    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
 
-
-            noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered( pageable);
-
+        if (searchCategory != null && !searchTerm.isEmpty()) {
+            if (searchCategory.equals("title")) {
+                noticeList = noticeRepository.findDeActivationNoticesWithTitle(searchTerm, pageable);
+            } else if (searchCategory.equals("account")) {
+                noticeList = noticeRepository.findDeActivationNoticesWithAccount(searchTerm, pageable);
+            } /*else if (searchCategory.equals("regTime")) {
+                noticeList = noticeRepository.findActiveNoticesWithRegTime(searchTerm, pageable);}*/
+          else {
+                noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
+            }
+        } else {
+            noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
+        }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
         List<Notice> notices = noticeList.getContent();
         List<NoticeListDTO> noticeDTOList = convertNoticesToDTO(notices);
 
-        // Page<NoticeListDTO>로 변환하여 리턴
+        // Page<DeviceListDTO>로 변환하여 리턴
         return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
