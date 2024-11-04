@@ -104,7 +104,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "JOIN n.account a " +
             "WHERE n.isActive = false " +
             "AND (n.title LIKE %:title%) " +
-            "ORDER BY a.role ASC, n.regTime DESC")
+            "ORDER BY n.regTime DESC")
     Page<Notice> findDeActivationNoticesWithTitle(@Param("title") String title, Pageable pageable);
 
 
@@ -112,7 +112,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "JOIN n.account a " +
             "WHERE n.isActive = false " +
             "AND (a.accountId LIKE %:searchTerm% OR a.name LIKE %:searchTerm%) " +
-            "ORDER BY a.role ASC, n.regTime DESC")
+            "ORDER BY n.regTime DESC")
     Page<Notice> findDeActivationNoticesWithAccount(@Param("searchTerm") String searchTerm, Pageable pageable);
 
     @Query("SELECT n FROM Notice n " +
