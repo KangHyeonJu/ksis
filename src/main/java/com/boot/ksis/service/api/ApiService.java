@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,10 +33,29 @@ public class ApiService {
     }
 
     // 모든 API 조회
-    public Page<ApiDTO> getAllApis(int page, int size, String searchTerm, String searchCategory) {
+    public Page<ApiDTO> getAllApis(int page, int size, String searchTerm, String searchCategory, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
         Page<API> apiList;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if (searchCategory != null && !searchCategory.isEmpty()) {
             if(searchCategory.equals("apiName")) {
@@ -40,7 +63,7 @@ public class ApiService {
             }else if(searchCategory.equals("provider")) {
                 apiList = apiRepository.findByProviderContainingIgnoreCase(searchTerm, pageable);
             }else if(searchCategory.equals("expiryDate")) {
-                apiList = apiRepository.findByExpiryDateContainingIgnoreCase(searchTerm, pageable);
+                apiList = apiRepository.findByExpiryDateBetween(startDateTime, endDateTime, pageable);
             }else {
                 apiList = apiRepository.findAll(pageable);
             }

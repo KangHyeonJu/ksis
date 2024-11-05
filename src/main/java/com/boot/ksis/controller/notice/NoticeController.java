@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -106,7 +107,7 @@ public class NoticeController {
         }
     }
 
-    // 공지 조회 (본인 및 관리자 공지 전체)
+    // 비활성화 공지 조회 (본인 및 관리자 공지 전체)
     @GetMapping("/deactivation/all")
     public ResponseEntity<?> getDeactivationNotices(Principal principal,
                                                     @RequestParam int page,
