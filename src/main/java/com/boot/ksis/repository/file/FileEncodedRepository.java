@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,23 @@ public interface FileEncodedRepository extends JpaRepository<EncodedResource, Lo
 
     @Query("SELECT r FROM EncodedResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType And r.originalResource.account =:accountId")
     Page<EncodedResource> searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, @Param("accountId") Account accountId, Pageable pageable);
+
+    Page<EncodedResource> findByRegTimeBetweenAndResourceStatusAndResourceType(
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            ResourceStatus resourceStatus,
+            ResourceType resourceType,
+            Pageable pageable
+    );
+
+    Page<EncodedResource> findByRegTimeBetweenAndResourceStatusAndResourceTypeAndOriginalResource_Account(
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            ResourceStatus resourceStatus,
+            ResourceType resourceType,
+            Account account,
+            Pageable pageable
+    );
 
     Page<EncodedResource> findByResourceStatusAndResourceTypeAndOriginalResource_AccountContainingIgnoreCase( ResourceStatus resourceStatus, ResourceType resourceType, Account accountId, Pageable pageable);
 
