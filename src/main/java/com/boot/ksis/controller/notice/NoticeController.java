@@ -78,7 +78,9 @@ public class NoticeController {
                                             @RequestParam int page,
                                             @RequestParam int size,
                                             @RequestParam(required = false) String searchTerm,
-                                            @RequestParam(required = false) String searchCategory) {
+                                            @RequestParam(required = false) String searchCategory,
+                                            @RequestParam(required = false) String startTime,
+                                            @RequestParam(required = false) String endTime) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -101,9 +103,9 @@ public class NoticeController {
 
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory, startTime, endTime), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account, startTime, endTime), HttpStatus.OK);
         }
     }
 
@@ -113,7 +115,9 @@ public class NoticeController {
                                                     @RequestParam int page,
                                                     @RequestParam int size,
                                                     @RequestParam(required = false) String searchTerm,
-                                                    @RequestParam(required = false) String searchCategory) {
+                                                    @RequestParam(required = false) String searchCategory,
+                                                    @RequestParam(required = false) String startTime,
+                                                    @RequestParam(required = false) String endTime) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -135,9 +139,9 @@ public class NoticeController {
         }
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory, startTime, endTime), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account, startTime, endTime), HttpStatus.OK);
         }
     }
 

@@ -15,7 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,18 +66,35 @@ public class NoticeService {
     }
 
     //ADMIN 공지 조회 (활성화 된 것 전체)
-    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory) {
+    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if (searchCategory != null && !searchTerm.isEmpty()) {
             if (searchCategory.equals("title")) {
                 noticeList = noticeRepository.findActiveNoticesWithTitle(searchTerm, pageable);
             } else if (searchCategory.equals("account")) {
                 noticeList = noticeRepository.findActiveNoticesWithAccount(searchTerm, pageable);
-            } /*else if (searchCategory.equals("regTime")) {
-                noticeList = noticeRepository.findActiveNoticesWithRegTime(searchTerm, pageable);}*/
-             else if (searchCategory.equals("device")) {
+            } else if (searchCategory.equals("device")) {
                 Page<DeviceNoticeMap> deviceNoticePage =
                         deviceNoticeMapRepository.findActiveNoticesWithDevice(searchTerm, pageable);
                 // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
@@ -83,7 +103,12 @@ public class NoticeService {
                 noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
             }
         } else {
-            noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
+            if (searchCategory.equals("regTime")) {
+                noticeList = noticeRepository.findActiveNoticesWithinDateRange(startDateTime, endDateTime, pageable);
+            } else {
+                noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
+            }
+
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
@@ -96,22 +121,44 @@ public class NoticeService {
 
 
     //ADMIN 공지 조회(비활성화 전체)
-    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory) {
+    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if (searchCategory != null && !searchTerm.isEmpty()) {
             if (searchCategory.equals("title")) {
                 noticeList = noticeRepository.findDeActivationNoticesWithTitle(searchTerm, pageable);
             } else if (searchCategory.equals("account")) {
                 noticeList = noticeRepository.findDeActivationNoticesWithAccount(searchTerm, pageable);
-            } /*else if (searchCategory.equals("regTime")) {
-                noticeList = noticeRepository.findActiveNoticesWithRegTime(searchTerm, pageable);}*/
+            }
           else {
                 noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
             }
         } else {
-            noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
+            if (searchCategory.equals("regTime")) {
+                noticeList = noticeRepository.findDeActivationNoticesWithRegTimeAdmin(startDateTime, endDateTime, pageable);
+            }else {
+                noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
+            }
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
@@ -123,7 +170,7 @@ public class NoticeService {
     }
 
     //USER 공지 조회 (활성화 본인 공지)
-    public Page<NoticeListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, Account account) {
+    public Page<NoticeListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, Account account, String startTime, String endTime) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "noticeId"));
 
@@ -132,14 +179,30 @@ public class NoticeService {
         // account 객체에서 accountId 추출
         String accountId = account.getAccountId();
 
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
+
         if(searchCategory != null && !searchTerm.isEmpty()){
             if(searchCategory.equals("title")){
                 noticeList = noticeRepository.findUserNoticesByRoleWithTitle
                         (accountId, searchTerm, pageable);
-            }/*else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
-                        searchTerm, true, account, pageable);
-            }*/else if(searchCategory.equals("device")){
+            }else if(searchCategory.equals("device")){
                 // DeviceNoticeMap에서 Notice를 추출하여 변환
                 Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findUserNoticesByRoleWithDevice(
                         accountId, searchTerm, pageable);
@@ -151,7 +214,12 @@ public class NoticeService {
                 noticeList = noticeRepository.findUserNoticesByRole(String.valueOf(accountId), pageable);
             }
         }else{
-            noticeList = noticeRepository.findUserNoticesByRole(String.valueOf(accountId), pageable);
+            if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.findByDateRangeIsActiveAndAccount(
+                        startDateTime, endDateTime, true, account, pageable);
+            }else{
+                noticeList = noticeRepository.findUserNoticesByRole(String.valueOf(accountId), pageable);
+            }
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
@@ -163,23 +231,46 @@ public class NoticeService {
     }
 
     //USER 공지 조회 (비활성화 본인 공지)
-    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
+    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
         Page<Notice> noticeList;
+
+        String accountIdStr = accountId.getAccountId();
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(searchCategory != null && !searchTerm.isEmpty()){
             if(searchCategory.equals("title")){
                 noticeList = noticeRepository.findByIsActiveAndAccountAndTitleContainingIgnoreCase
                         (false, accountId, searchTerm, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
-                        searchTerm, false, accountId, pageable);
             }else{
                 noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
             }
         }else{
-            noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
+            if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.findDeActivationNoticesWithRegTimeUser(
+                        startDateTime, endDateTime, accountIdStr, pageable);
+            }else {
+                noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
+            }
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
