@@ -60,14 +60,28 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "ORDER BY a.role ASC, n.regTime DESC")
     Page<Notice> findActiveNoticesWithAccount(@Param("searchTerm") String searchTerm,
                                                       Pageable pageable);
-    //작성일로 검색
- /*   @Query("SELECT n FROM Notice n " +
+    //작성일로 검색(관리자)
+    @Query("SELECT n FROM Notice n " +
             "JOIN n.account a " +
             "WHERE n.isActive = true " +
-            "AND (n.regTime = :regTime) " +
+            "AND n.regTime BETWEEN :startDateTime AND :endDateTime " +
             "ORDER BY a.role ASC, n.regTime DESC")
-    Page<Notice> findActiveNoticesWithRegTime(@Param("searchTerm") String searchTerm, Pageable pageable);
-*/
+    Page<Notice> findActiveNoticesWithinDateRange(@Param("startDateTime") LocalDateTime startDateTime,
+                                                  @Param("endDateTime") LocalDateTime endDateTime,
+                                                  Pageable pageable);
+
+    //작성일로 검색(유저)
+    @Query("SELECT n FROM Notice n " +
+            "JOIN n.account a " +
+            "WHERE n.regTime BETWEEN :startDateTime AND :endDateTime " +
+            "AND n.isActive = :isActive " +
+            "AND (n.account = :accountId OR a.role = 'ADMIN')" +
+            "ORDER BY a.role ASC, n.regTime DESC")
+    Page<Notice> findByDateRangeIsActiveAndAccount(@Param("startDateTime") LocalDateTime startDateTime,
+                                                   @Param("endDateTime") LocalDateTime endDateTime,
+                                                   @Param("isActive") boolean isActive,
+                                                   @Param("accountId") Account accountId,
+                                                   Pageable pageable);
 
     //유저 공지 활성화된거
     @Query("SELECT n FROM Notice n " +
@@ -104,6 +118,27 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "ORDER BY n.regTime DESC")
     Page<Notice> findDeActivationNoticesWithTitle(@Param("searchTerm") String searchTerm, Pageable pageable);
 
+    //등록일 검색(관리자)
+    @Query("select n from Notice n "+
+            "join n.account a "+
+            "where n.regTime between :startDateTime and :endDateTime "+
+            "and n.isActive = false "+
+            "order by n.regTime DESC")
+    Page<Notice> findDeActivationNoticesWithRegTimeAdmin(@Param("startDateTime") LocalDateTime startDateTime,
+                                                    @Param("endDateTime") LocalDateTime endDateTime,
+                                                    Pageable pageable);
+
+    //등록일 검색(유저)
+    @Query("select n from Notice n "+
+            "join n.account a "+
+            "where n.regTime between :startDateTime and :endDateTime "+
+            "and a.accountId = :accountIdStr "+
+            "and n.isActive = false "+
+            "order by n.regTime DESC")
+    Page<Notice> findDeActivationNoticesWithRegTimeUser(@Param("startDateTime") LocalDateTime startDateTime,
+                                                    @Param("endDateTime") LocalDateTime endDateTime,
+                                                    @Param("accountIdStr") String accountIdStr,
+                                                    Pageable pageable);
 
     //작성자 검색
     @Query("SELECT n FROM Notice n " +
