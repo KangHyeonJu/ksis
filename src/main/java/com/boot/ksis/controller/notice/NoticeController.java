@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -77,7 +78,9 @@ public class NoticeController {
                                             @RequestParam int page,
                                             @RequestParam int size,
                                             @RequestParam(required = false) String searchTerm,
-                                            @RequestParam(required = false) String searchCategory) {
+                                            @RequestParam(required = false) String searchCategory,
+                                            @RequestParam(required = false) String startTime,
+                                            @RequestParam(required = false) String endTime) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -100,19 +103,21 @@ public class NoticeController {
 
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllActiveNotices(page, size, searchTerm, searchCategory, startTime, endTime), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserActiveNotices(page, size, searchTerm, searchCategory, account, startTime, endTime), HttpStatus.OK);
         }
     }
 
-    // 공지 조회 (본인 및 관리자 공지 전체)
+    // 비활성화 공지 조회 (본인 및 관리자 공지 전체)
     @GetMapping("/deactivation/all")
     public ResponseEntity<?> getDeactivationNotices(Principal principal,
                                                     @RequestParam int page,
                                                     @RequestParam int size,
                                                     @RequestParam(required = false) String searchTerm,
-                                                    @RequestParam(required = false) String searchCategory) {
+                                                    @RequestParam(required = false) String searchCategory,
+                                                    @RequestParam(required = false) String startTime,
+                                                    @RequestParam(required = false) String endTime) {
         if (principal == null) {
             return new ResponseEntity<>("사용자가 인증되지 않았습니다.", HttpStatus.UNAUTHORIZED);
         }
@@ -134,9 +139,9 @@ public class NoticeController {
         }
 
         if (role.equals(Role.ADMIN)) { // Role 객체와 비교
-            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getAllNoneActiveNotices(page, size, searchTerm, searchCategory, startTime, endTime), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account), HttpStatus.OK);
+            return new ResponseEntity<>(noticeService.getUserNoneActiveNotices(page, size, searchTerm, searchCategory, account, startTime, endTime), HttpStatus.OK);
         }
     }
 

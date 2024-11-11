@@ -21,7 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,11 +86,28 @@ public class FileBoardService {
     }
 
     // 본인이 업로드한  활성화 된 원본 이미지 파일만 조회
-    public Page<ResourceListDTO> getRsActiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
-
-
+    public Page<ResourceListDTO> getRsActiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<OriginalResource> resourceListDTOPage;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
@@ -95,8 +115,8 @@ public class FileBoardService {
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase
                             (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase
-                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, true, pageable);
+                    resourceListDTOPage = fileOriginRepository.findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActive
+                            (startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.IMAGE, true, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase
                             (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm, pageable);
@@ -112,8 +132,8 @@ public class FileBoardService {
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount
                             (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
-                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, true, accountId, pageable);
+                    resourceListDTOPage = fileOriginRepository.findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActiveAndAccount
+                            (startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.IMAGE, true, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount
                             (ResourceStatus.COMPLETED, ResourceType.IMAGE, true, searchTerm,  accountId, pageable);
@@ -148,17 +168,36 @@ public class FileBoardService {
     }
 
     // 인코딩된 이미지 파일만 조회
-    public Page<EncodeListDTO> getEcActiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+    public Page<EncodeListDTO> getEcActiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role, String startTime, String endTime) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<EncodedResource> encodeListDTOPage;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByRegTimeBetweenAndResourceStatusAndResourceType(startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.IMAGE, pageable);
                 }else if(searchCategory.equals("resolution")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm, pageable);
                 }else{
@@ -172,7 +211,7 @@ public class FileBoardService {
                 if(searchCategory.equals("fileTitle")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByRegTimeBetweenAndResourceStatusAndResourceTypeAndOriginalResource_Account(startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.IMAGE, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.IMAGE, searchTerm,  accountId, pageable);
                 }else{
@@ -207,10 +246,29 @@ public class FileBoardService {
 
 
     // 본인이 업로드한, 업로드가 완료된 활성화 원본 동영상 파일만 조회
-    public Page<ResourceListDTO> getRsActiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+    public Page<ResourceListDTO> getRsActiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role, String startTime, String endTime) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<OriginalResource> resourceListDTOPage;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
@@ -218,8 +276,8 @@ public class FileBoardService {
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase
-                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, true, pageable);
+                    resourceListDTOPage = fileOriginRepository.findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActive
+                            (startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.VIDEO, true, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm, pageable);
@@ -235,8 +293,8 @@ public class FileBoardService {
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
-                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, true, accountId, pageable);
+                    resourceListDTOPage = fileOriginRepository.findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActiveAndAccount
+                            (startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.VIDEO, true, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, true, searchTerm,  accountId, pageable);
@@ -273,17 +331,36 @@ public class FileBoardService {
 
 
     //본인이 올린 동영상 파일만 조회(인코딩이 완료된것만)
-    public Page<EncodeListDTO> getEcActiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+    public Page<EncodeListDTO> getEcActiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role, String startTime, String endTime) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<EncodedResource> encodeListDTOPage;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByRegTimeBetweenAndResourceStatusAndResourceType(startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.VIDEO, pageable);
                 }else if(searchCategory.equals("resolution")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm, pageable);
                 }else{
@@ -297,7 +374,7 @@ public class FileBoardService {
                 if(searchCategory.equals("fileTitle")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndFileTitleContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    encodeListDTOPage = fileEncodedRepository.searchByRegTimeAndResourceStatusAndResourceTypeContainingIgnoreCaseAndOriginalResource_Account(searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, accountId, pageable);
+                    encodeListDTOPage = fileEncodedRepository.findByRegTimeBetweenAndResourceStatusAndResourceTypeAndOriginalResource_Account(startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.VIDEO, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
                     encodeListDTOPage = fileEncodedRepository.findByResourceStatusAndResourceTypeAndResolutionContainingIgnoreCaseAndOriginalResource_Account(ResourceStatus.COMPLETED, ResourceType.VIDEO, searchTerm,  accountId, pageable);
                 }else{
@@ -334,17 +411,36 @@ public class FileBoardService {
 
     //비활성화
     // 본인이 업로드한  활성화 된 원본 이미지 파일만 조회
-    public Page<ResourceListDTO> getDeactiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+    public Page<ResourceListDTO> getDeactiveImageFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role, String startTime, String endTime) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<OriginalResource> resourceListDTOPage;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
                 if(searchCategory.equals("fileTitle")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, false, pageable);
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase(startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.IMAGE, false, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm, pageable);
                 }else{
@@ -358,7 +454,7 @@ public class FileBoardService {
                 if(searchCategory.equals("fileTitle")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndFileTitleContainingIgnoreCaseAndAccount(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
-                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount(searchTerm, ResourceStatus.COMPLETED, ResourceType.IMAGE, false, accountId, pageable);
+                    resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount(startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.IMAGE, false, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount(ResourceStatus.COMPLETED, ResourceType.IMAGE, false, searchTerm,  accountId, pageable);
                 }else{
@@ -392,11 +488,30 @@ public class FileBoardService {
     }
 
 
-    public Page<ResourceListDTO> getDeactiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role) {
+    public Page<ResourceListDTO> getDeactiveVideoFiles(int page, int size, String searchTerm, String searchCategory, Account accountId, Role role, String startTime, String endTime) {
 
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<OriginalResource> resourceListDTOPage;
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(role == Role.ADMIN){
             if(searchCategory != null && !searchCategory.isEmpty()) {
@@ -405,7 +520,7 @@ public class FileBoardService {
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm, pageable);
                 }else if(searchCategory.equals("regTime")){
                     resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase
-                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, false, pageable);
+                            (startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.VIDEO, false, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm, pageable);
@@ -422,7 +537,7 @@ public class FileBoardService {
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm,  accountId, pageable);
                 }else if(searchCategory.equals("regTime")){
                     resourceListDTOPage = fileOriginRepository.searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
-                            (searchTerm, ResourceStatus.COMPLETED, ResourceType.VIDEO, false, accountId, pageable);
+                            (startDateTime, endDateTime, ResourceStatus.COMPLETED, ResourceType.VIDEO, false, accountId, pageable);
                 }else if(searchCategory.equals("resolution")){
                     resourceListDTOPage = fileOriginRepository.findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount
                             (ResourceStatus.COMPLETED, ResourceType.VIDEO, false, searchTerm,  accountId, pageable);

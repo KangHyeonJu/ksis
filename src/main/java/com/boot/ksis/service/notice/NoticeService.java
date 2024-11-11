@@ -15,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -62,28 +66,49 @@ public class NoticeService {
     }
 
     //ADMIN 공지 조회 (활성화 된 것 전체)
-    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+    public Page<NoticeListDTO> getAllActiveNotices(int page, int size, String searchTerm, String searchCategory, String startTime, String endTime) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
-        if(searchCategory != null && !searchTerm.isEmpty()){
-            if(searchCategory.equals("title")){
-                noticeList = noticeRepository.findByIsActiveAndTitleContainingIgnoreCase
-                        (true, searchTerm, pageable);
-            }else if(searchCategory.equals("account")){
-                noticeList = noticeRepository.searchByAccountOrNameAndIsActive(searchTerm, true, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(searchTerm, true, pageable);
-            }else if(searchCategory.equals("device")){
-                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Active(
-                        searchTerm, true, pageable);
 
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
+
+        if (searchCategory != null && !searchTerm.isEmpty()) {
+            if (searchCategory.equals("title")) {
+                noticeList = noticeRepository.findActiveNoticesWithTitle(searchTerm, pageable);
+            } else if (searchCategory.equals("account")) {
+                noticeList = noticeRepository.findActiveNoticesWithAccount(searchTerm, pageable);
+            } else if (searchCategory.equals("device")) {
+                Page<DeviceNoticeMap> deviceNoticePage =
+                        deviceNoticeMapRepository.findActiveNoticesWithDevice(searchTerm, pageable);
                 // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
                 noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
-            }else{
-                noticeList = noticeRepository.findByIsActive(true, pageable);
+            } else {
+                noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
             }
-        }else{
-            noticeList = noticeRepository.findByIsActive(true, pageable);
+        } else {
+            if (searchCategory.equals("regTime")) {
+                noticeList = noticeRepository.findActiveNoticesWithinDateRange(startDateTime, endDateTime, pageable);
+            } else {
+                noticeList = noticeRepository.findActiveNoticesWithAccountsOrdered(pageable);
+            }
+
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
@@ -94,104 +119,158 @@ public class NoticeService {
         return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
+
     //ADMIN 공지 조회(비활성화 전체)
-    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
+    public Page<NoticeListDTO> getAllNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, String startTime, String endTime) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<Notice> noticeList;
-        if(searchCategory != null && !searchTerm.isEmpty()){
-            if(searchCategory.equals("title")){
-                noticeList = noticeRepository.findByIsActiveAndTitleContainingIgnoreCase
-                        (false, searchTerm, pageable);
-            }else if(searchCategory.equals("account")){
-                noticeList = noticeRepository.searchByAccountOrNameAndIsActive(
-                        searchTerm, false, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActive(
-                        searchTerm, false, pageable);
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
             }
-            else{
-                noticeList = noticeRepository.findByIsActive(false, pageable);
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
             }
-        }else{
-            noticeList = noticeRepository.findByIsActive(false, pageable);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
+
+        if (searchCategory != null && !searchTerm.isEmpty()) {
+            if (searchCategory.equals("title")) {
+                noticeList = noticeRepository.findDeActivationNoticesWithTitle(searchTerm, pageable);
+            } else if (searchCategory.equals("account")) {
+                noticeList = noticeRepository.findDeActivationNoticesWithAccount(searchTerm, pageable);
+            }
+          else {
+                noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
+            }
+        } else {
+            if (searchCategory.equals("regTime")) {
+                noticeList = noticeRepository.findDeActivationNoticesWithRegTimeAdmin(startDateTime, endDateTime, pageable);
+            }else {
+                noticeList = noticeRepository.findDeActivationNoticesWithAccountsOrdered(pageable);
+            }
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
         List<Notice> notices = noticeList.getContent();
         List<NoticeListDTO> noticeDTOList = convertNoticesToDTO(notices);
 
-        // Page<NoticeListDTO>로 변환하여 리턴
+        // Page<DeviceListDTO>로 변환하여 리턴
         return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
     //USER 공지 조회 (활성화 본인 공지)
-    public Page<DeviceListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
+    public Page<NoticeListDTO> getUserActiveNotices(int page, int size, String searchTerm, String searchCategory, Account account, String startTime, String endTime) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "noticeId"));
 
         Page<Notice> noticeList;
-        Page<Notice> adminNoticeList;
+
+        // account 객체에서 accountId 추출
+        String accountId = account.getAccountId();
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(searchCategory != null && !searchTerm.isEmpty()){
             if(searchCategory.equals("title")){
-                noticeList = noticeRepository.findByIsActiveAndAccountAndTitleContainingIgnoreCase
-                        (true, accountId, searchTerm, pageable);
-                adminNoticeList = noticeRepository.findByAccount_RoleAndIsActiveAndTitleContainingIgnoreCase
-                        (Role.ADMIN, true, searchTerm, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
-                        searchTerm, true, accountId, pageable);
-                adminNoticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndAccount_RoleAndIsActive
-                        (searchTerm, Role.ADMIN, true, pageable);
+                noticeList = noticeRepository.findUserNoticesByRoleWithTitle
+                        (accountId, searchTerm, pageable);
             }else if(searchCategory.equals("device")){
                 // DeviceNoticeMap에서 Notice를 추출하여 변환
-                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_AccountAndNotice_IsActive(
-                        searchTerm, accountId, true, pageable);
-                Page<DeviceNoticeMap> adminDeviceNoticePage = deviceNoticeMapRepository.findByDevice_DeviceNameContainingIgnoreCaseAndNotice_Account_RoleAndNotice_IsActive(
-                        searchTerm, Role.ADMIN, true, pageable);
+                Page<DeviceNoticeMap> deviceNoticePage = deviceNoticeMapRepository.findUserNoticesByRoleWithDevice(
+                        accountId, searchTerm, pageable);
 
                 // DeviceNoticeMap에서 Notice를 추출하여 Page<Notice>로 변환
                 noticeList = deviceNoticePage.map(DeviceNoticeMap::getNotice);
-                adminNoticeList = adminDeviceNoticePage.map(DeviceNoticeMap::getNotice);
 
             }else{
-                noticeList = noticeRepository.findByIsActiveAndAccount(true, accountId, pageable);
-                adminNoticeList = noticeRepository.findByAccount_RoleAndIsActive
-                        (Role.ADMIN, true, pageable);
+                noticeList = noticeRepository.findUserNoticesByRole(String.valueOf(accountId), pageable);
             }
         }else{
-            noticeList = noticeRepository.findByIsActiveAndAccount(true, accountId, pageable);
-            adminNoticeList = noticeRepository.findByAccount_RoleAndIsActive
-                    (Role.ADMIN, true, pageable);
+            if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.findByDateRangeIsActiveAndAccount(
+                        startDateTime, endDateTime, true, account, pageable);
+            }else{
+                noticeList = noticeRepository.findUserNoticesByRole(String.valueOf(accountId), pageable);
+            }
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
         List<Notice> notices = noticeList.getContent();
-        List<Notice> adminNotices = adminNoticeList.getContent();
-        List<DeviceListDTO> noticeDTOList = convertUserNoticesToDTO(notices, adminNotices);
+        List<NoticeListDTO> noticeDTOList = convertNoticesToDTO(notices);
 
         // Page<DeviceListDTO>로 변환하여 리턴
         return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
     }
 
     //USER 공지 조회 (비활성화 본인 공지)
-    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId) {
+    public Page<NoticeListDTO> getUserNoneActiveNotices(int page, int size, String searchTerm, String searchCategory, Account accountId, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "regTime"));
 
         Page<Notice> noticeList;
+
+        String accountIdStr = accountId.getAccountId();
+
+        // 시작시간과 끝시간을 LocalDateTime으로 파싱
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            if (startTime != null && !startTime.isEmpty()) {
+                LocalDate startDate = LocalDate.parse(startTime, formatter);
+                startDateTime = startDate.atStartOfDay(); // 00:00:00으로 변환
+            }
+            if (endTime != null && !endTime.isEmpty()) {
+                LocalDate endDate = LocalDate.parse(endTime, formatter);
+                endDateTime = endDate.atTime(23, 59, 59); // 23:59:59으로 변환
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다.");
+        }
 
         if(searchCategory != null && !searchTerm.isEmpty()){
             if(searchCategory.equals("title")){
                 noticeList = noticeRepository.findByIsActiveAndAccountAndTitleContainingIgnoreCase
                         (false, accountId, searchTerm, pageable);
-            }else if(searchCategory.equals("regTime")){
-                noticeList = noticeRepository.searchByRegTimeContainingIgnoreCaseAndIsActiveAndAccount(
-                        searchTerm, false, accountId, pageable);
             }else{
                 noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
             }
         }else{
-            noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
+            if(searchCategory.equals("regTime")){
+                noticeList = noticeRepository.findDeActivationNoticesWithRegTimeUser(
+                        startDateTime, endDateTime, accountIdStr, pageable);
+            }else {
+                noticeList = noticeRepository.findByIsActiveAndAccount(false, accountId, pageable);
+            }
         }
 
         // Page<Notice> -> List<Notice>로 변환 후 DTO로 변환
@@ -200,39 +279,6 @@ public class NoticeService {
 
         // Page<NoticeListDTO>로 변환하여 리턴
         return new PageImpl<>(noticeDTOList, pageable, noticeList.getTotalElements());
-    }
-
-    // 본인 공지 및 관리자 공지 DTO 변환
-    private List<DeviceListDTO> convertUserNoticesToDTO(List<Notice> userNotices, List<Notice> adminNotices) {
-        List<DeviceListDTO> noticeDTOList = new ArrayList<>();
-
-        // 본인 공지와 관리자 공지를 모두 합칩니다.
-        List<Notice> combinedNotices = new ArrayList<>(userNotices);
-        combinedNotices.addAll(adminNotices);
-
-        for (Notice notice : combinedNotices) {
-            DeviceListDTO dto = new DeviceListDTO();
-            dto.setNoticeId(notice.getNoticeId());
-            dto.setAccountId(notice.getAccount() != null ? notice.getAccount().getAccountId() : null);
-            dto.setName(notice.getAccount() != null ? notice.getAccount().getName() : null);
-            dto.setRole(notice.getAccount() != null ? notice.getAccount().getRole() : null);
-            dto.setTitle(notice.getTitle());
-            dto.setRegDate(notice.getRegTime());
-
-            // 디바이스 정보 설정
-            List<DeviceNoticeMap> deviceNoticeMaps = deviceNoticeMapRepository.findByNoticeId(notice.getNoticeId());
-            List<DeviceNoticeDTO> deviceNoticeDTOList = new ArrayList<>();
-            for (DeviceNoticeMap deviceNoticeMap : deviceNoticeMaps) {
-                Device device = deviceNoticeMap.getDevice();
-                DeviceNoticeDTO deviceNoticeDTO = new DeviceNoticeDTO(device.getDeviceId(), device.getDeviceName());
-                deviceNoticeDTOList.add(deviceNoticeDTO);
-            }
-            dto.setDeviceList(deviceNoticeDTOList);
-
-            noticeDTOList.add(dto);
-        }
-
-        return noticeDTOList;
     }
 
     // 전체 공지 목록을 DTO로 변환
@@ -263,9 +309,6 @@ public class NoticeService {
 
         return noticeDTOList;
     }
-
-
-
 
     // 공지 상세 조회
     public DetailNoticeDTO getNoticeById(Long noticeId) {

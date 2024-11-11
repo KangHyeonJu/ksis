@@ -18,7 +18,9 @@ public interface AccountDeviceMapRepository extends JpaRepository<AccountDeviceM
 
     void deleteByDeviceIdIn(List<Long> deviceIds);
 
-    @Query("SELECT adm FROM AccountDeviceMap adm WHERE (adm.accountId LIKE %:searchTerm% OR adm.account.name LIKE %:searchTerm%) AND adm.device.deviceType = :deviceType")
-    List<AccountDeviceMap> searchByAccountIdOrName(@Param("searchTerm") String searchTerm, @Param("deviceType") DeviceType deviceType);
+    @Query("SELECT adm FROM AccountDeviceMap adm WHERE (adm.accountId LIKE %:searchTerm% " +
+            "OR adm.account.name LIKE %:searchTerm%) AND adm.device.deviceType = :deviceType")
+    List<AccountDeviceMap> searchByAccountIdOrName(@Param("searchTerm") String searchTerm,
+                                                   @Param("deviceType") DeviceType deviceType);
 
 }

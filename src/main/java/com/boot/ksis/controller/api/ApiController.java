@@ -50,8 +50,10 @@ public class ApiController {
     public ResponseEntity<Page<ApiDTO>> getAllAPIs(@RequestParam int page,
                                                    @RequestParam int size,
                                                    @RequestParam(required = false) String searchTerm,
-                                                   @RequestParam(required = false) String searchCategory) {
-        Page<ApiDTO> apis = apiService.getAllApis(page, size, searchTerm, searchCategory);
+                                                   @RequestParam(required = false) String searchCategory,
+                                                   @RequestParam(required = false) String startTime,
+                                                   @RequestParam(required = false) String endTime) {
+        Page<ApiDTO> apis = apiService.getAllApis(page, size, searchTerm, searchCategory, startTime, endTime);
         return ResponseEntity.ok(apis);
     }
 

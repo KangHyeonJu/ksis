@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,9 +47,14 @@ public interface FileOriginRepository  extends JpaRepository<OriginalResource, L
 
     Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCaseAndAccount( ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, String resolution, Account accountId, Pageable pageable);
 
-    @Query("SELECT r FROM OriginalResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType AND r.isActive = :isActive And r.account =:accountId")
-    Page<OriginalResource> searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount
-            (@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, @Param("isActive")Boolean isActive,  @Param("accountId") Account accountId, Pageable pageable);
+    @Query("SELECT r FROM OriginalResource r WHERE r.regTime between :startDateTime and :endDateTime AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType AND r.isActive = :isActive And r.account =:accountId")
+    Page<OriginalResource> searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCaseAndAccount(@Param("startDateTime") LocalDateTime startDateTime,
+                                                                                                                    @Param("endDateTime") LocalDateTime endDateTime,
+                                                                                                                    @Param("resourceStatus") ResourceStatus resourceStatus,
+                                                                                                                    @Param("resourceType") ResourceType resourceType,
+                                                                                                                    @Param("isActive")Boolean isActive,
+                                                                                                                    @Param("accountId") Account accountId,
+                                                                                                                    Pageable pageable);
 
     Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndAccountContainingIgnoreCase( ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, Account accountId, Pageable pageable);
 
@@ -57,10 +63,34 @@ public interface FileOriginRepository  extends JpaRepository<OriginalResource, L
 
     Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActiveAndResolutionContainingIgnoreCase(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, String resolution, Pageable pageable);
 
-    @Query("SELECT r FROM OriginalResource r WHERE CAST(r.regTime AS string) LIKE %:searchTerm% AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType AND r.isActive = :isActive")
-    Page<OriginalResource> searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase(@Param("searchTerm") String searchTerm, @Param("resourceStatus") ResourceStatus resourceStatus, @Param("resourceType") ResourceType resourceType, @Param("isActive")Boolean isActive, Pageable pageable);
+    @Query("SELECT r FROM OriginalResource r WHERE r.regTime between :startDateTime and :endDateTime AND r.resourceStatus = :resourceStatus AND r.resourceType = :resourceType AND r.isActive = :isActive")
+    Page<OriginalResource> searchByRegTimeAndResourceStatusAndResourceTypeAndIsActiveContainingIgnoreCase(@Param("startDateTime") LocalDateTime startDateTime,
+                                                                                                          @Param("endDateTime") LocalDateTime endDateTime,
+                                                                                                          @Param("resourceStatus") ResourceStatus resourceStatus,
+                                                                                                          @Param("resourceType") ResourceType resourceType,
+                                                                                                          @Param("isActive")Boolean isActive,
+                                                                                                          Pageable pageable);
 
 
     Page<OriginalResource> findByResourceStatusAndResourceTypeAndIsActive(ResourceStatus resourceStatus, ResourceType resourceType, Boolean isActive, Pageable pageable);
+
+    // 관리자용: 날짜 범위로 regTime을 조회
+    Page<OriginalResource> findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActive(
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
+            ResourceStatus resourceStatus,
+            ResourceType resourceType,
+            Boolean isActive,
+            Pageable pageable);
+
+    // 일반 사용자용: 날짜 범위로 regTime을 조회 + account 필터
+    Page<OriginalResource> findByRegTimeBetweenAndResourceStatusAndResourceTypeAndIsActiveAndAccount(
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
+            ResourceStatus resourceStatus,
+            ResourceType resourceType,
+            Boolean isActive,
+            Account accountId,
+            Pageable pageable);
 
 }
